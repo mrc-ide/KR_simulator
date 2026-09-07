@@ -1,0 +1,728 @@
+import os
+import logging
+from collections import defaultdict
+
+import pandas as pd
+
+
+def _build_viz_data(lineage, node_map):
+    """
+    Turn a lineage table (pre-simplify) + node ID map into the layout data
+    the transmission-map page renders: one entry per strain (generation,
+    host slot, position within its host, recomb ID, post-simplify ID) plus
+    the parent-child edges between them.
+
+    Parameters
+    ----------
+    lineage : pd.DataFrame
+        As written by output.lineage.save_lineage — columns gen,
+        child_node_ID, child_ind_ID, recomb_ID, parent_node_ID, parent_ind_ID.
+    node_map : pd.DataFrame
+        As written by output.node_id_map.save_node_id_map — columns
+        pre_simplify_node_ID, post_simplify_node_ID.
+
+    Returns
+    -------
+    dict
+        JSON-serialisable payload for the page's embedded data script.
+    """
+    T = int(lineage["gen"].max()) + 1
+    F = int(lineage["child_node_ID"].min())
+
+    child_info = lineage.drop_duplicates("child_node_ID")[["child_node_ID", "child_ind_ID", "gen", "recomb_ID"]]
+    node_to_ind = dict(zip(child_info["child_node_ID"], child_info["child_ind_ID"]))
+    node_to_gen = dict(zip(child_info["child_node_ID"], child_info["gen"]))
+    node_to_recomb = dict(zip(child_info["child_node_ID"], child_info["recomb_ID"]))
+
+    # founders never appear as a child, so their host has to be recovered
+    # from the parent side of gen (T-1) edges; any founder that was never
+    # sampled as a parent at all has no recorded host and is dropped into
+    # a fallback "unknown" lane
+    founder_rows = lineage[lineage["parent_node_ID"] < F][["parent_node_ID", "parent_ind_ID"]].drop_duplicates()
+    founder_known = dict(zip(founder_rows["parent_node_ID"], founder_rows["parent_ind_ID"]))
+    never_used_founders = F - len(founder_known)
+    ids_sorted = sorted(founder_known)
+    for m in [i for i in range(F) if i not in founder_known]:
+        before = max([i for i in ids_sorted if i < m], default=None)
+        after = min([i for i in ids_sorted if i > m], default=None)
+        bi, ai = founder_known.get(before), founder_known.get(after)
+        founder_known[m] = bi if bi == ai and bi is not None else None
+
+    for k, v in founder_known.items():
+        node_to_ind[k] = v
+        node_to_gen[k] = float(T)
+        node_to_recomb[k] = None
+
+    post_map = dict(zip(node_map["pre_simplify_node_ID"], node_map["post_simplify_node_ID"]))
+
+    gens = sorted(set(node_to_gen.values()), reverse=True)
+    gen_to_inds = {}
+    for g in gens:
+        inds = sorted({node_to_ind[n] for n in node_to_ind if node_to_gen[n] == g and node_to_ind[n] is not None})
+        gen_to_inds[g] = inds
+    Nh = max((len(v) for v in gen_to_inds.values()), default=0)
+
+    cell_nodes = defaultdict(list)
+    for n, g in node_to_gen.items():
+        cell_nodes[(g, node_to_ind[n])].append(n)
+    for k in cell_nodes:
+        cell_nodes[k].sort()
+
+    nodes_out = []
+    for n in sorted(node_to_gen):
+        g = node_to_gen[n]
+        ind = node_to_ind[n]
+        lane = gen_to_inds[g].index(ind) if ind is not None else None
+        cell = cell_nodes[(g, ind)]
+        slot = cell.index(n)
+        slot_count = len(cell)
+        post = post_map.get(n)
+        post = None if pd.isna(post) else int(post)
+        recomb = node_to_recomb.get(n)
+        nodes_out.append({
+            "id": int(n),
+            "gen": float(g),
+            "lane": lane,
+            "slot": slot,
+            "slotCount": slot_count,
+            "recomb": None if pd.isna(recomb) else int(recomb),
+            "post": post,
+            "isFounder": n < F,
+            "isSample": g == 0,
+        })
+
+    edges_out = [{"child": int(c), "parent": int(p)} for c, p in
+                 lineage[["child_node_ID", "parent_node_ID"]].drop_duplicates().itertuples(index=False)]
+
+    return {
+        "T": T,
+        "Nh": Nh,
+        "neverUsedFounders": never_used_founders,
+        "nodes": nodes_out,
+        "edges": edges_out,
+        "genOrder": gens,
+    }
+
+
+_HTML_TEMPLATE = r"""<title>Transmission map — sim __SEED__</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface:        #fcfcfb;
+    --page:           #f9f9f7;
+    --ink:            #0b0b0b;
+    --ink-2:          #52514e;
+    --ink-muted:      #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --lane-1: #2a78d6; --lane-2: #eb6834; --lane-3: #1baf7a; --lane-4: #eda100;
+    --lane-5: #e87ba4; --lane-6: #008300; --lane-7: #4a3aa7; --lane-8: #e34948;
+    --lane-overflow:  #898781;
+    --card:           #ffffff;
+    --edge:           #c9c8bf;
+    --warn-bg:        #fdf3e4;
+    --warn-ink:       #7a4a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface:        #1a1a19;
+      --page:           #0d0d0d;
+      --ink:            #ffffff;
+      --ink-2:          #c3c2b7;
+      --ink-muted:      #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --lane-1: #3987e5; --lane-2: #d95926; --lane-3: #199e70; --lane-4: #c98500;
+      --lane-5: #d55181; --lane-6: #008300; --lane-7: #9085e9; --lane-8: #e66767;
+      --lane-overflow:  #898781;
+      --card:           #222221;
+      --edge:           #3c3c39;
+      --warn-bg:        #2c2410;
+      --warn-ink:       #e0b25c;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    color-scheme: dark;
+    --surface: #1a1a19; --page: #0d0d0d; --ink: #ffffff; --ink-2: #c3c2b7; --ink-muted: #898781;
+    --gridline: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+    --lane-1: #3987e5; --lane-2: #d95926; --lane-3: #199e70; --lane-4: #c98500;
+    --lane-5: #d55181; --lane-6: #008300; --lane-7: #9085e9; --lane-8: #e66767;
+    --lane-overflow: #898781; --card: #222221; --edge: #3c3c39;
+    --warn-bg: #2c2410; --warn-ink: #e0b25c;
+  }
+  :root[data-theme="light"] .viz-root {
+    color-scheme: light;
+    --surface: #fcfcfb; --page: #f9f9f7; --ink: #0b0b0b; --ink-2: #52514e; --ink-muted: #898781;
+    --gridline: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
+    --lane-1: #2a78d6; --lane-2: #eb6834; --lane-3: #1baf7a; --lane-4: #eda100;
+    --lane-5: #e87ba4; --lane-6: #008300; --lane-7: #4a3aa7; --lane-8: #e34948;
+    --lane-overflow: #898781; --card: #ffffff; --edge: #c9c8bf;
+    --warn-bg: #fdf3e4; --warn-ink: #7a4a00;
+  }
+
+  * { box-sizing: border-box; }
+
+  .viz-root {
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    min-height: 100vh;
+    padding: 28px 20px 60px;
+  }
+
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  header.page { margin-bottom: 22px; }
+  .eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-muted); margin: 0 0 6px;
+  }
+  h1 { font-size: 22px; font-weight: 650; margin: 0 0 8px; text-wrap: balance; }
+  .dek { font-size: 14px; line-height: 1.55; color: var(--ink-2); max-width: 66ch; margin: 0; }
+  .dek strong { color: var(--ink); font-weight: 600; }
+
+  .meta-row { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-top: 14px; }
+  .chip {
+    font-size: 12px; color: var(--ink-2); background: var(--card);
+    border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px;
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+
+  .warn-banner {
+    display: none;
+    margin-top: 14px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    background: var(--warn-bg);
+    color: var(--warn-ink);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .warn-banner.show { display: block; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+    gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border);
+  }
+  .legend { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--ink-2); }
+  .legend-group { display: flex; align-items: center; gap: 7px; }
+  .swatch { width: 11px; height: 11px; border-radius: 50%; flex: none; display: inline-block; }
+  .swatch.founder { border: 1.5px solid var(--ink-muted); background: transparent; }
+  .swatch.sample { border: 2px solid var(--ink); background: var(--lane-1); }
+
+  #clearBtn {
+    font: inherit; font-size: 12px; font-weight: 600; color: var(--ink); background: var(--card);
+    border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; cursor: pointer;
+  }
+  #clearBtn:hover { border-color: var(--ink-muted); }
+  #clearBtn[disabled] { opacity: 0.4; cursor: default; }
+
+  .stage { display: grid; grid-template-columns: minmax(0, 1fr) 280px; }
+  @media (max-width: 860px) { .stage { grid-template-columns: 1fr; } }
+
+  .canvas-scroll { overflow-x: auto; padding: 18px 10px 22px; }
+
+  .side {
+    border-left: 1px solid var(--border); padding: 16px;
+    display: flex; flex-direction: column; gap: 14px; min-height: 320px;
+  }
+  @media (max-width: 860px) { .side { border-left: none; border-top: 1px solid var(--border); } }
+
+  .side h2 {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-muted); margin: 0;
+  }
+
+  .detail-empty { font-size: 13px; color: var(--ink-muted); line-height: 1.6; }
+
+  .detail-card { display: flex; flex-direction: column; gap: 12px; }
+  .id-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .id-big { font-size: 26px; font-weight: 650; }
+  .id-tag {
+    font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 5px;
+    background: var(--card); border: 1px solid var(--border); color: var(--ink-2);
+  }
+  .id-tag.post { color: var(--ink); border-color: var(--ink); }
+
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; font-size: 12.5px; }
+  .kv dt { color: var(--ink-muted); }
+  .kv dd { margin: 0; color: var(--ink); font-weight: 500; }
+
+  .rel-list { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
+  .rel-list .none { color: var(--ink-muted); font-style: italic; }
+  .rel-chip { display: inline-flex; align-items: center; gap: 5px; padding: 1px 0; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+
+  .stat-row { display: flex; gap: 10px; }
+  .stat { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+  .stat .n { font-size: 18px; font-weight: 650; }
+  .stat .l { font-size: 10.5px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  svg { display: block; }
+  .row-label { font-size: 11px; fill: var(--ink-muted); }
+  .row-label.founder-label { font-weight: 600; fill: var(--ink-2); }
+  .lane-label {
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; fill: var(--ink-muted); text-transform: uppercase;
+  }
+  .gridline { stroke: var(--gridline); stroke-width: 1; }
+
+  .edge-path { fill: none; stroke: var(--edge); stroke-width: 1.4; transition: stroke 0.12s ease, opacity 0.12s ease; }
+  .node-group { cursor: pointer; transition: opacity 0.12s ease; }
+  .node-dot { stroke-width: 1.6; }
+  .node-dot.founder-ring { stroke-dasharray: 2.2 2.2; }
+  .node-hit { fill: transparent; cursor: pointer; }
+  .pre-label {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 9.5px; font-weight: 700; text-anchor: middle; pointer-events: none;
+  }
+  .pre-label.on-fill { fill: #ffffff; }
+  .pre-label.on-ring { fill: var(--ink); }
+  .post-badge {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 8.5px; font-weight: 700; fill: var(--ink); text-anchor: middle; pointer-events: none;
+  }
+  .post-badge-bg { fill: var(--surface); stroke: var(--ink); stroke-width: 1; }
+
+  .dimmed .edge-path { opacity: 0.12; }
+  .node-group.dimmed { opacity: 0.16; }
+  .hi .edge-path { opacity: 1; stroke: var(--ink-2); stroke-width: 1.8; }
+  .node-group.hi { opacity: 1; }
+
+  #tooltip {
+    position: fixed; pointer-events: none; background: var(--ink); color: var(--surface);
+    font-size: 12px; line-height: 1.5; padding: 7px 10px; border-radius: 7px; max-width: 240px;
+    z-index: 50; opacity: 0; transform: translate(-9999px, -9999px); transition: opacity 0.08s ease;
+  }
+  #tooltip b { font-weight: 700; }
+  #tooltip .tt-muted { opacity: 0.7; }
+
+  details.table-toggle { margin-top: 18px; }
+  details.table-toggle > summary {
+    cursor: pointer; font-size: 13px; font-weight: 600; padding: 12px 16px; list-style: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  details.table-toggle > summary::-webkit-details-marker { display: none; }
+  details.table-toggle > summary::before {
+    content: "▸"; font-size: 11px; color: var(--ink-muted); transition: transform 0.12s ease;
+  }
+  details.table-toggle[open] > summary::before { transform: rotate(90deg); }
+  .table-scroll { overflow-x: auto; border-top: 1px solid var(--border); max-height: 420px; overflow-y: auto; }
+  table.raw { border-collapse: collapse; width: 100%; font-size: 12px; }
+  table.raw th {
+    position: sticky; top: 0; background: var(--surface); text-align: left; font-weight: 600;
+    color: var(--ink-muted); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.04em;
+    padding: 8px 12px; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  table.raw td { padding: 6px 12px; border-bottom: 1px solid var(--gridline); white-space: nowrap; color: var(--ink-2); }
+  table.raw tr.sample-row td { color: var(--ink); font-weight: 500; }
+  table.raw tbody tr:hover { background: var(--card); }
+
+  footer.note { margin-top: 16px; font-size: 12px; color: var(--ink-muted); line-height: 1.6; max-width: 74ch; }
+</style>
+
+<div class="viz-root">
+  <div class="wrap">
+    <header class="page">
+      <p class="eyebrow">KR malaria simulator — pedigree, pre-simplify</p>
+      <h1>Transmission map — seed __SEED__</h1>
+      <p class="dek">Every strain, every generation, drawn from the raw (pre-<code>simplify()</code>) tables — so nothing is compressed away. The number in each circle is its <strong>pre-simplify node ID</strong>; the small corner badge, where present, is the <strong>post-simplify ID</strong> from the final tree sequence. <strong>Click a strain</strong> to trace its full ancestry and descendants; hover for detail.</p>
+      <div class="meta-row" id="metaRow"></div>
+      <div class="warn-banner" id="warnBanner"></div>
+    </header>
+
+    <div class="panel">
+      <div class="toolbar">
+        <div class="legend" id="legend"></div>
+        <button id="clearBtn" disabled>Clear selection</button>
+      </div>
+
+      <div class="stage">
+        <div class="canvas-scroll">
+          <svg id="canvas"></svg>
+        </div>
+        <div class="side">
+          <h2>Selection</h2>
+          <div id="detail"><p class="detail-empty">Click any strain in the map to see its identity, host, and full lineage — ancestors traced back to the founders, descendants traced forward to today.</p></div>
+        </div>
+      </div>
+
+      <details class="table-toggle">
+        <summary>Raw lineage rows (<span id="rowCount"></span> transmission edges)</summary>
+        <div class="table-scroll">
+          <table class="raw">
+            <thead>
+              <tr><th>gen</th><th>child</th><th>child post-ID</th><th>recomb ID</th><th>parent</th><th>parent post-ID</th></tr>
+            </thead>
+            <tbody id="rawBody"></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+
+    <footer class="note" id="footerNote"></footer>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+
+<script id="lineage-data" type="application/json">
+__DATA_JSON__
+</script>
+
+<script>
+(function () {
+  const data = JSON.parse(document.getElementById("lineage-data").textContent);
+  const { T, Nh, neverUsedFounders, nodes, edges, genOrder } = data;
+
+  const LANE_PALETTE = ["var(--lane-1)", "var(--lane-2)", "var(--lane-3)", "var(--lane-4)",
+                         "var(--lane-5)", "var(--lane-6)", "var(--lane-7)", "var(--lane-8)"];
+  const OVERFLOW_COLOR = "var(--lane-overflow)";
+  function laneColor(i) { return i === null || i === undefined ? OVERFLOW_COLOR : (i < 8 ? LANE_PALETTE[i] : OVERFLOW_COLOR); }
+
+  document.getElementById("rowCount").textContent = edges.length;
+  document.getElementById("metaRow").innerHTML = `
+    <span class="chip"><b>${nodes.length}</b> strains</span>
+    <span class="chip"><b>${edges.length}</b> transmission edges</span>
+    <span class="chip"><b>${T + 1}</b> generations</span>
+    <span class="chip"><b>${Nh}</b> hosts</span>
+    <span class="chip"><b>${nodes.filter(n => n.isSample).length}</b> current samples</span>
+  `;
+
+  const legend = document.getElementById("legend");
+  const visibleLanes = Math.min(Nh, 8);
+  let legendHTML = "";
+  for (let i = 0; i < visibleLanes; i++) {
+    legendHTML += `<div class="legend-group"><span class="swatch" style="background:${LANE_PALETTE[i]}"></span>Host slot ${i + 1}</div>`;
+  }
+  if (Nh > 8) {
+    legendHTML += `<div class="legend-group"><span class="swatch" style="background:${OVERFLOW_COLOR}"></span>+${Nh - 8} more (shared color)</div>`;
+  }
+  legendHTML += `<div class="legend-group"><span class="swatch founder"></span>Founder</div>`;
+  legendHTML += `<div class="legend-group"><span class="swatch sample"></span>Current sample</div>`;
+  legendHTML += `<div class="legend-group">Number = pre-simplify ID &middot; badge = post-simplify ID</div>`;
+  legend.innerHTML = legendHTML;
+
+  const warnBanner = document.getElementById("warnBanner");
+  const warnings = [];
+  if (nodes.length > 400) {
+    warnings.push(`This run has ${nodes.length} strains across ${T + 1} generations — this diagram is built for small debug runs (a handful of hosts, a few dozen generations) and gets hard to read at this scale. Consider a smaller --Nh/--T for a run you specifically want to visualize.`);
+  }
+  if (Nh > 8) {
+    warnings.push(`${Nh} hosts exceeds the 8-color host-slot palette — slots beyond 8 share a single neutral color and are only distinguishable by hovering.`);
+  }
+  if (warnings.length) {
+    warnBanner.classList.add("show");
+    warnBanner.innerHTML = warnings.join("<br>");
+  }
+
+  document.getElementById("footerNote").innerHTML = `
+    Built from <span class="mono">lineage___SEED__.csv</span> + <span class="mono">node_id_map___SEED__.csv</span> (seed __SEED__).
+    "Host slot" is this generation's draw order, not a persistent host identity — the simulator creates a fresh individual
+    record for every host every generation, so slot 1 at one generation and slot 1 at another are different tskit
+    individuals that happen to occupy the same position in the transmission loop.
+    ${neverUsedFounders > 0 ? `${neverUsedFounders} founder strain(s) were never sampled as a parent in this run — that's expected sampling variance, not a data gap.` : ""}
+  `;
+
+  // ---- layout constants ----
+  const MARGIN_LEFT = 96;
+  const MARGIN_TOP = 46;
+  const MARGIN_RIGHT = 30;
+  const MARGIN_BOTTOM = 20;
+  const ROW_H = 70;
+  const LANE_W = 216;
+  const SLOT_SPACING = 32;
+  const R = 10.5;
+  const R_SAMPLE = 11.5;
+
+  const laneCount = Math.max(1, Nh);
+  const width = MARGIN_LEFT + laneCount * LANE_W + MARGIN_RIGHT;
+  const height = MARGIN_TOP + genOrder.length * ROW_H + MARGIN_BOTTOM;
+
+  function rowIndex(gen) { return T - gen; }
+  function nodeX(n) {
+    const lane = n.lane === null ? laneCount - 1 : n.lane;
+    const laneCenter = MARGIN_LEFT + lane * LANE_W + LANE_W / 2;
+    const offset = (n.slot - (n.slotCount - 1) / 2) * SLOT_SPACING;
+    return laneCenter + offset;
+  }
+  function nodeY(n) { return MARGIN_TOP + rowIndex(n.gen) * ROW_H; }
+
+  const byId = new Map(nodes.map(n => [n.id, n]));
+  const parentsOf = new Map();
+  const childrenOf = new Map();
+  nodes.forEach(n => { parentsOf.set(n.id, []); childrenOf.set(n.id, []); });
+  edges.forEach(e => {
+    parentsOf.get(e.child).push(e.parent);
+    childrenOf.get(e.parent).push(e.child);
+  });
+
+  const svg = document.getElementById("canvas");
+  svg.setAttribute("width", width);
+  svg.setAttribute("height", height);
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+
+  const NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  const gridLayer = el("g");
+  genOrder.forEach(g => {
+    const y = MARGIN_TOP + rowIndex(g) * ROW_H;
+    gridLayer.appendChild(el("line", { class: "gridline", x1: MARGIN_LEFT - 14, x2: width - MARGIN_RIGHT, y1: y, y2: y }));
+    const label = el("text", { class: "row-label" + (g === T ? " founder-label" : ""), x: MARGIN_LEFT - 20, y: y + 4, "text-anchor": "end" });
+    label.textContent = g === T ? "founders" : `gen ${g}`;
+    gridLayer.appendChild(label);
+  });
+  for (let i = 0; i < laneCount; i++) {
+    const label = el("text", { class: "lane-label", x: MARGIN_LEFT + i * LANE_W + LANE_W / 2, y: MARGIN_TOP - 20, "text-anchor": "middle" });
+    label.textContent = "slot " + (i + 1);
+    gridLayer.appendChild(label);
+  }
+  svg.appendChild(gridLayer);
+
+  const edgeLayer = el("g");
+  const edgeEls = [];
+  edges.forEach(e => {
+    const c = byId.get(e.child), p = byId.get(e.parent);
+    const x1 = nodeX(p), y1 = nodeY(p), x2 = nodeX(c), y2 = nodeY(c);
+    const my = (y1 + y2) / 2;
+    const d = `M ${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}`;
+    const path = el("path", { class: "edge-path", d });
+    path.dataset.child = e.child;
+    path.dataset.parent = e.parent;
+    edgeLayer.appendChild(path);
+    edgeEls.push(path);
+  });
+  svg.appendChild(edgeLayer);
+
+  const nodeLayer = el("g");
+  const nodeEls = new Map();
+  nodes.forEach(n => {
+    const g = el("g", { class: "node-group" });
+    const x = nodeX(n), y = nodeY(n);
+    const r = n.isSample ? R_SAMPLE : R;
+    const color = laneColor(n.lane);
+
+    const dot = el("circle", {
+      class: "node-dot" + (n.isFounder ? " founder-ring" : ""),
+      cx: x, cy: y, r,
+      fill: n.isFounder ? "none" : color,
+      stroke: n.isSample ? "var(--ink)" : color,
+    });
+    if (n.isSample) dot.setAttribute("stroke-width", "2.5");
+    g.appendChild(dot);
+
+    const preLabel = el("text", { class: "pre-label " + (n.isFounder ? "on-ring" : "on-fill"), x, y: y + 3.3 });
+    preLabel.textContent = n.id;
+    g.appendChild(preLabel);
+
+    if (n.post !== null) {
+      const bx = x + r * 0.78, by = y - r * 0.78;
+      const bg = el("circle", { class: "post-badge-bg", cx: bx, cy: by, r: 7.5 });
+      const txt = el("text", { class: "post-badge", x: bx, y: by + 2.9 });
+      txt.textContent = n.post;
+      g.appendChild(bg);
+      g.appendChild(txt);
+    }
+
+    const hit = el("circle", { class: "node-hit", cx: x, cy: y, r: r + 4 });
+    g.appendChild(hit);
+
+    nodeLayer.appendChild(g);
+    nodeEls.set(n.id, { g, dot, x, y });
+
+    hit.addEventListener("mouseenter", (ev) => showTooltip(n, ev));
+    hit.addEventListener("mousemove", (ev) => moveTooltip(ev));
+    hit.addEventListener("mouseleave", hideTooltip);
+    hit.addEventListener("click", (ev) => { ev.stopPropagation(); selectNode(n.id); });
+  });
+  svg.appendChild(nodeLayer);
+
+  const tooltip = document.getElementById("tooltip");
+  function showTooltip(n, ev) {
+    const lane = n.lane === null ? "unknown" : n.lane + 1;
+    tooltip.innerHTML = `
+      <b>node ${n.id}</b>${n.post !== null ? ` <span class="tt-muted">(post-simplify ${n.post})</span>` : ""}<br>
+      ${n.isFounder ? "founder" : "gen " + n.gen} &middot; host slot ${lane}${n.recomb !== null ? " &middot; recomb " + n.recomb : ""}
+    `;
+    tooltip.style.opacity = 1;
+    moveTooltip(ev);
+  }
+  function moveTooltip(ev) {
+    const pad = 14;
+    tooltip.style.transform = `translate(${ev.clientX + pad}px, ${ev.clientY + pad}px)`;
+  }
+  function hideTooltip() { tooltip.style.opacity = 0; }
+
+  const clearBtn = document.getElementById("clearBtn");
+  const detail = document.getElementById("detail");
+  let selectedId = null;
+
+  function ancestorsOf(id) {
+    const seen = new Set([id]);
+    let frontier = [id];
+    while (frontier.length) {
+      const next = [];
+      frontier.forEach(f => (parentsOf.get(f) || []).forEach(p => { if (!seen.has(p)) { seen.add(p); next.push(p); } }));
+      frontier = next;
+    }
+    seen.delete(id);
+    return seen;
+  }
+  function descendantsOf(id) {
+    const seen = new Set([id]);
+    let frontier = [id];
+    while (frontier.length) {
+      const next = [];
+      frontier.forEach(f => (childrenOf.get(f) || []).forEach(c => { if (!seen.has(c)) { seen.add(c); next.push(c); } }));
+      frontier = next;
+    }
+    seen.delete(id);
+    return seen;
+  }
+
+  function clearSelection() {
+    selectedId = null;
+    nodeEls.forEach(({ g }) => g.classList.remove("hi", "dimmed"));
+    edgeEls.forEach(p => p.classList.remove("hi", "dimmed"));
+    clearBtn.disabled = true;
+    detail.innerHTML = `<p class="detail-empty">Click any strain in the map to see its identity, host, and full lineage — ancestors traced back to the founders, descendants traced forward to today.</p>`;
+  }
+
+  function selectNode(id) {
+    if (selectedId === id) { clearSelection(); return; }
+    selectedId = id;
+    const n = byId.get(id);
+    const ancestors = ancestorsOf(id);
+    const descendants = descendantsOf(id);
+    const highlighted = new Set([id, ...ancestors, ...descendants]);
+
+    nodeEls.forEach(({ g }, nid) => {
+      g.classList.toggle("hi", highlighted.has(nid));
+      g.classList.toggle("dimmed", !highlighted.has(nid));
+    });
+    edgeEls.forEach(p => {
+      const c = Number(p.dataset.child), pa = Number(p.dataset.parent);
+      const on = highlighted.has(c) && highlighted.has(pa);
+      p.classList.toggle("hi", on);
+      p.classList.toggle("dimmed", !on);
+    });
+    clearBtn.disabled = false;
+
+    const lane = n.lane === null ? "unknown" : n.lane + 1;
+    const directParents = parentsOf.get(id) || [];
+    const directChildren = childrenOf.get(id) || [];
+
+    function chipList(ids, emptyText) {
+      if (!ids.length) return `<span class="none">${emptyText}</span>`;
+      return ids.map(pid => {
+        const pn = byId.get(pid);
+        const c = laneColor(pn.lane);
+        return `<span class="rel-chip"><span class="dot" style="background:${c}"></span>node ${pid}${pn.post !== null ? ` <span class="tt-muted">(→${pn.post})</span>` : ""}</span>`;
+      }).join("");
+    }
+
+    detail.innerHTML = `
+      <div class="detail-card">
+        <div class="id-row">
+          <span class="id-big mono">${id}</span>
+          ${n.post !== null ? `<span class="id-tag post">post-simplify: ${n.post}</span>` : `<span class="id-tag">not in final ts</span>`}
+        </div>
+        <dl class="kv">
+          <dt>Generation</dt><dd>${n.isFounder ? "founder (gen " + T + ")" : "gen " + n.gen}</dd>
+          <dt>Host slot</dt><dd>${lane}</dd>
+          ${n.recomb !== null ? `<dt>Recomb ID</dt><dd>${n.recomb}</dd>` : ""}
+        </dl>
+        <div class="stat-row">
+          <div class="stat"><div class="n mono">${ancestors.size}</div><div class="l">Ancestors</div></div>
+          <div class="stat"><div class="n mono">${descendants.size}</div><div class="l">Descendants</div></div>
+        </div>
+        <div>
+          <h2 style="margin-bottom:6px">Direct parent(s)</h2>
+          <div class="rel-list">${chipList(directParents, "none — this is a founder")}</div>
+        </div>
+        <div>
+          <h2 style="margin-bottom:6px">Direct child(ren)</h2>
+          <div class="rel-list">${chipList(directChildren, "none — never sampled as a parent")}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  clearBtn.addEventListener("click", clearSelection);
+  svg.addEventListener("click", clearSelection);
+
+  const rawBody = document.getElementById("rawBody");
+  const rowsByChild = new Map();
+  edges.forEach(e => {
+    const c = byId.get(e.child), p = byId.get(e.parent);
+    if (!rowsByChild.has(e.child)) rowsByChild.set(e.child, []);
+    rowsByChild.get(e.child).push({ c, p });
+  });
+  [...nodes].sort((a, b) => b.gen - a.gen || a.id - b.id).forEach(n => {
+    const rows = rowsByChild.get(n.id);
+    if (!rows) return;
+    rows.forEach(({ c, p }) => {
+      const tr = document.createElement("tr");
+      if (c.isSample) tr.className = "sample-row";
+      tr.innerHTML = `
+        <td class="mono">${c.gen}</td>
+        <td class="mono">${c.id}</td>
+        <td class="mono">${c.post !== null ? c.post : "—"}</td>
+        <td class="mono">${c.recomb !== null ? c.recomb : "—"}</td>
+        <td class="mono">${p.id}</td>
+        <td class="mono">${p.post !== null ? p.post : "—"}</td>
+      `;
+      rawBody.appendChild(tr);
+    });
+  });
+})();
+</script>
+"""
+
+
+def save_transmission_map(lineage, node_map, sim_id, output_dir="."):
+    """
+    Render an interactive, self-contained HTML transmission map for one
+    simulation run and write it to disk.
+
+    Parameters
+    ----------
+    lineage : pd.DataFrame
+        As written by output.lineage.save_lineage for this sim_id.
+    node_map : pd.DataFrame
+        As written by output.node_id_map.save_node_id_map for this sim_id.
+    sim_id : int
+        Simulation / random seed identifier.
+    output_dir : str
+        Directory to write the HTML file to.
+    """
+    import json
+
+    data = _build_viz_data(lineage, node_map)
+    seed = str(sim_id)
+    html = (_HTML_TEMPLATE
+            .replace("__DATA_JSON__", json.dumps(data))
+            .replace("__SEED__", seed))
+
+    output_path = os.path.join(output_dir, f"transmission_map_{sim_id}.html")
+    with open(output_path, "w") as f:
+        f.write(html)
+
+    logging.info(f"sim_id={sim_id} | wrote transmission map to {output_path}")
+    return output_path

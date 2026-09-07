@@ -1,0 +1,12 @@
+# Simulation parameters
+Nh: 3                        # number of human hosts
+T: 10                        # number of generations
+K: 2                         # number of parasite strains
+chi: 0.18                    # superinfection probability (0.0 - 1.0)
+C: 1                         # number of oocysts per mosquito
+recombination_rate: 7.4e-7  # per bp recombination rate
+random_seed: 123             # for reproducibility
+
+# Optional - remove these lines to use P. falciparum defaults
+# genome_length: 23568951
+# comp_breakpoints: [657463, 1627369, 2716924, 3903212]

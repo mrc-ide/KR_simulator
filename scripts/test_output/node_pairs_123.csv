@@ -1,0 +1,4 @@
+sim_id,node_id,paired_node_id
+123,2,3
+123,4,5
+123,15,16
