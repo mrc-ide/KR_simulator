@@ -8,15 +8,11 @@ Five stages, each producing files consumed by the next:
   4. run_vcf_strain.py — write per-strain VCF from mutated tree sequence
   5. run_vcf_host.py  — aggregate to host level with Dirichlet-Multinomial sampling
 
-Plus two pedigree-based extras:
-  - run_transmission_map.py — renders an interactive HTML pedigree diagram
-    from Stage 1's --save_lineage output alone; runs immediately after
-    simulation, before mutations/VCFs, so you can look at the raw
-    transmission history right away.
-  - run_relate_strain_genome.py — genome-wide pairwise relatedness, one row
-    per (sample pair, tree interval), read straight off Stage 3's coal_T
-    (annotated with mirror-pair info from Stage 1's lineage); run last,
-    since it needs coal_T to exist.
+Plus two pedigree-based extras, both run right after simulation since they
+only need Stage 1's --save_lineage output:
+  - run_transmission_map.py — renders an interactive HTML pedigree diagram.
+  - run_pairwise_coalescence.py — renders an interactive HTML page for
+    tracing any two strains back to their shared pedigree ancestor(s).
 
 Usage (from repo root):
     python examples/run_example.py
@@ -66,6 +62,12 @@ run("Transmission map: visualize simulated pedigree", [
     "--output_dir",  OUTPUT_DIR,
 ])
 
+run("Pairwise coalescence: trace two strains to a shared ancestor", [
+    sys.executable, "run_pairwise_coalescence.py",
+    "--random_seed", str(SEED),
+    "--output_dir",  OUTPUT_DIR,
+])
+
 run("Stage 2: add mutations", [
     sys.executable, "run_mut.py",
     "--ts",           TS_FILE,
@@ -95,12 +97,6 @@ run("Stage 5: host VCF + strain proportions", [
     "--depth",       "10",
     "--output_dir",  OUTPUT_DIR,
     "--save_proportions",
-])
-
-run("Pedigree relatedness (genome-wide)", [
-    sys.executable, "run_relate_strain_genome.py",
-    "--random_seed", str(SEED),
-    "--output_dir",  OUTPUT_DIR,
 ])
 
 print(f"\nDone. Outputs written to {OUTPUT_DIR}/")
