@@ -36,6 +36,12 @@ python "$REPO_ROOT/run_transmission_map.py" \
     --output_dir "$OUT_DIR"
 
 echo
+echo "=== Pairwise coalescence (only needs Stage 1's --save_lineage) ==="
+python "$REPO_ROOT/run_pairwise_coalescence.py" \
+    --random_seed "$SEED" \
+    --output_dir "$OUT_DIR"
+
+echo
 echo "=== Stage 2: add mutations ==="
 python "$REPO_ROOT/run_mut.py" \
     --ts "$TS_FILE" \
@@ -112,6 +118,10 @@ head -5 "$OUT_DIR/node_id_map_${SEED}.csv"
 echo
 echo "=== transmission_map_${SEED}.html ==="
 ls -lh "$OUT_DIR/transmission_map_${SEED}.html"
+
+echo
+echo "=== pairwise_coalescence_${SEED}.html ==="
+ls -lh "$OUT_DIR/pairwise_coalescence_${SEED}.html"
 
 echo
 echo "=== pedigree_relate_strain_genome_${SEED}.csv (first 10 rows) ==="
