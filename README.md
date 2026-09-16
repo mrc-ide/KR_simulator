@@ -38,13 +38,14 @@ pip install -r requirements.txt
 
 ## Pipeline
 
-The core simulation is split into five independent stages, plus two pedigree-based tools: `run_transmission_map.py`, which branches directly off Stage 1 and only needs its `--save_lineage` output; and `run_relate_strain_genome.py`, which needs both Stage 1's `--save_lineage` output and Stage 3's `coal_T`. Each stage reads the previous stage's output from disk, so you can stop, inspect, and resume at any point.
+The core simulation is split into five independent stages, plus three pedigree-based tools: `run_transmission_map.py` and `run_pairwise_coalescence.py`, which both branch directly off Stage 1 and only need its `--save_lineage` output; and `run_relate_strain_genome.py`, which needs both Stage 1's `--save_lineage` output and Stage 3's `coal_T`. Each stage reads the previous stage's output from disk, so you can stop, inspect, and resume at any point.
 
 ```mermaid
 graph TD
     sim["run_sim.py"]
     mut["run_mut.py"]
     tmap["run_transmission_map.py"]
+    pairwise["run_pairwise_coalescence.py"]
     coal["run_coal_mut_t.py"]
     relate["run_relate_strain_genome.py"]
     vcfs["run_vcf_strain.py"]
@@ -52,13 +53,14 @@ graph TD
 
     sim --> mut
     sim --> tmap
+    sim --> pairwise
     mut --> coal
     mut --> vcfs
     coal --> relate
     vcfs --> vcfh
 ```
 
-`run_transmission_map.py` hangs directly off `run_sim.py` and doesn't depend on anything else. `run_relate_strain_genome.py` needs `coal_T_{seed}.csv`, so it can only run once Stage 3 has produced it — `examples/run_example.py` runs it last for that reason, not as a scripting choice.
+`run_transmission_map.py` and `run_pairwise_coalescence.py` both hang directly off `run_sim.py` and don't depend on anything else. `run_relate_strain_genome.py` needs `coal_T_{seed}.csv`, so it can only run once Stage 3 has produced it — `examples/run_example.py` runs it last for that reason, not as a scripting choice.
 
 Coalescence-time relatedness and the hmmIBD benchmark are optional, separate tools — see [Extras](#extras) below.
 
@@ -97,6 +99,18 @@ python run_transmission_map.py \
 ```
 
 Needs `--save_lineage` from Stage 1. Renders an interactive, self-contained `transmission_map_{seed}.html` — a generation-by-generation pedigree diagram (founders at top, current samples at bottom, one lane per host) built from the pre-simplify `lineage_{seed}.csv`, so it shows the true parentage that `simplify()` compresses away. Each strain is labeled with its pre-simplify ID (with its post-simplify ID as a small corner badge, where one exists); clicking a strain traces and highlights its full ancestry and descendants. Open the file directly in a browser — no server or dependencies needed. Intended for small debug runs (a handful of hosts, a few dozen generations); it warns in-page and degrades gracefully past that, but isn't meant for production-scale runs (`--Nh 100`, etc.). Runs right after Stage 1 in `examples/run_example.py`, before mutations/VCFs, so you can inspect the raw transmission history immediately.
+
+### Pairwise coalescence — trace two strains back to their shared ancestor
+
+```bash
+python run_pairwise_coalescence.py \
+    --random_seed 42 \
+    --output_dir results/
+```
+
+Also only needs `--save_lineage` from Stage 1 — same inputs as the transmission map. Renders `pairwise_coalescence_{seed}.html`: pick any two current-generation strains (dropdowns, or click two strains in the diagram) and it traces each one's full ancestry back through the pedigree, drawing strain 1's lineage in one color and strain 2's in another. Where the two colors overlap is a shared ancestor; the *most recent* shared ancestor(s) are highlighted as the coalescence point(s), with the number of generations back reported for each strain. Because a strain can have up to two immediate parents (one per gamete in the oocyst that produced it), there can be more than one coalescence point — the two ancestries can independently merge via more than one path.
+
+This is a **pedigree** trace, not a genomic one: a shared ancestor here means the two strains' host lineages shared a parasite at that generation, not that any specific genomic region was actually inherited from it — recombination can replace a segment with DNA from the other parent at every step. For the true, recombination-aware, per-genomic-interval coalescence time, use `coal_T_{seed}.csv` / `pedigree_relate_strain_genome_{seed}.csv` instead (see [Pedigree-based relatedness](#pedigree-based-relatedness) below). Same small-debug-run scope as the transmission map.
 
 ### Stage 2 — Add mutations
 
@@ -230,6 +244,7 @@ cd hmmIBD && gcc -o hmmibd hmmIBD.c -lm
 | `host_proportions_{seed}.csv` | 5 | Dirichlet proportions and read counts per host |
 | `pedigree_relate_strain_genome_{seed}.csv` | additional | Genome-wide pairwise relatedness, one row per (pair, tree interval), from `coal_T` (0.5ⁿ, `n`=coal_time) |
 | `transmission_map_{seed}.html` | additional | Interactive transmission-map visualization |
+| `pairwise_coalescence_{seed}.html` | additional | Interactive pedigree coalescence trace for any two strains |
 | `relate_strain_{seed}.csv` | extras | Pairwise strain IBD fraction (`extras/relate_t_strain.py`) |
 | `relate_host_{seed}.csv` | extras | Average pairwise IBD fraction per host, most recent generation only (`extras/relate_t_host.py`) |
 | `hmmibd_hap_{seed}.txt` | extras | hmmIBD hap input file (genotypes) |
@@ -251,11 +266,13 @@ KR_SIM/
 ├── run_vcf_strain.py     # Stage 4: strain-level VCF
 ├── run_vcf_host.py           # Stage 5: host-level VCF
 ├── run_transmission_map.py   # Interactive transmission-map HTML (needs only Stage 1's --save_lineage)
+├── run_pairwise_coalescence.py # Interactive pairwise pedigree coalescence HTML (needs only Stage 1's --save_lineage)
 ├── run_relate_strain_genome.py # Pedigree-based relatedness (genome-wide; needs Stage 1's --save_lineage + Stage 3's coal_T)
 │
 ├── extras/               # Optional tools, not run by run_example.py — run manually
 │   ├── relate_t_strain.py    #   Coalescence-time IBD fraction (needs coal_T from Stage 3)
 │   ├── relate_t_host.py      #   Host-level average of relate_t_strain.py's output
+│   ├── run_relate_strain.py  #   Pedigree relatedness, single value per pair (superseded by run_relate_strain_genome.py)
 │   └── benchmark_hmmibd.py   #   hmmIBD vs simulation ground truth
 │
 ├── sim/                  # Core simulation engine
@@ -270,6 +287,7 @@ KR_SIM/
 │   ├── lineage.py        #   Builds lineage_{seed}.csv (pre-simplify)
 │   ├── node_id_map.py    #   Builds node_id_map_{seed}.csv
 │   ├── transmission_map.py #   Renders transmission_map_{seed}.html
+│   ├── pairwise_coalescence.py #   Renders pairwise_coalescence_{seed}.html
 │   ├── vcf_strain_single.py
 │   └── vcf_host_single.py
 │
