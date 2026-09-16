@@ -2,7 +2,7 @@
 # Smoke test for the full simulation pipeline.
 #
 # Runs run_sim.py (with --save_lineage) to produce a tree sequence plus the
-# pedigree-tracing outputs, then the transmission map + pedigree relatedness
+# pedigree-tracing outputs, then the transmission map + pairwise coalescence
 # tools (which only need Stage 1), then mutations, coalescence/mutation time
 # tables, strain/host VCFs, and the coalescence-time relatedness extras --
 # printing the resulting files so you can eyeball that each stage worked.
@@ -55,12 +55,6 @@ echo
 echo "=== Stage 3: coalescence & mutation time tables ==="
 python "$REPO_ROOT/run_coal_mut_t.py" \
     --ts "$MUT_TS_FILE" \
-    --random_seed "$SEED" \
-    --output_dir "$OUT_DIR"
-
-echo
-echo "=== Pedigree relatedness (genome-wide, needs Stage 3's coal_T) ==="
-python "$REPO_ROOT/run_relate_strain_genome.py" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
 
@@ -122,10 +116,6 @@ ls -lh "$OUT_DIR/transmission_map_${SEED}.html"
 echo
 echo "=== pairwise_coalescence_${SEED}.html ==="
 ls -lh "$OUT_DIR/pairwise_coalescence_${SEED}.html"
-
-echo
-echo "=== pedigree_relate_strain_genome_${SEED}.csv (first 10 rows) ==="
-head -10 "$OUT_DIR/pedigree_relate_strain_genome_${SEED}.csv"
 
 echo
 echo "=== tree sequence summary (pre-mutation) ==="
