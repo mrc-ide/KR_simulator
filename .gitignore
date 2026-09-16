@@ -1,2 +1,5 @@
 __pycache__/
 *.py[cod]
+
+# Local Claude Code session logs (detailed convo history, not shared)
+.claude/sessions/
