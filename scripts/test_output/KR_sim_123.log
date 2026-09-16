@@ -1,21 +1,21 @@
-2026-09-08 17:30:27  ========================================
-2026-09-08 17:30:27  ========== RUNNING run_sim.py ==========
-2026-09-08 17:30:27  ========================================
-2026-09-08 17:30:27  Simulation parameters: {'Nh': 3, 'T': 10, 'K': 2, 'chi': 0.18, 'C': 1, 'recombination_rate': 7.4e-07, 'random_seed': 123, 'out_dir': '/data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output', 'save_ts': True, 'save_ID': True, 'save_pairs': True, 'save_lineage': True}
-2026-09-08 17:30:27  Simulation COMPLETED in 0.0s
-2026-09-08 17:30:27  ### tree sequence - /data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output/ts_123.trees
-2026-09-08 17:30:27  sim_id=123 | wrote 22 rows
-2026-09-08 17:30:27  ### individual-node mapping - /data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output/sim_ind_node_map_123.csv
-2026-09-08 17:30:27  sim_id=123 | wrote 3 node-pair rows
-2026-09-08 17:30:27  ### recombinant node pairs - /data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output/node_pairs_123.csv
-2026-09-08 17:30:27  sim_id=123 | wrote 120 lineage rows
-2026-09-08 17:30:27  ### strain lineage - /data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output/lineage_123.csv
-2026-09-08 17:30:27  sim_id=123 | wrote 84 node ID mapping rows
-2026-09-08 17:30:27  ### node ID map (pre/post simplify) - /data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output/node_id_map_123.csv
-2026-09-08 17:30:28  
-2026-09-08 17:30:28  ========================================
-2026-09-08 17:30:28  ========== RUNNING run_mut.py ==========
-2026-09-08 17:30:28  ========================================
-2026-09-08 17:30:28  mutations added at rate 1e-06
-2026-09-08 17:30:28  ### mutated tree sequence - /data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output/mutated_123.trees
-2026-09-08 17:30:28  run_mut.py COMPLETED in 0.0s
+2026-09-16 14:21:01  ========================================
+2026-09-16 14:21:01  ========== RUNNING run_sim.py ==========
+2026-09-16 14:21:01  ========================================
+2026-09-16 14:21:01  Simulation parameters: {'Nh': 3, 'T': 10, 'K': 2, 'chi': 0.18, 'C': 1, 'recombination_rate': 7.4e-07, 'random_seed': 123, 'out_dir': '/data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output', 'save_ts': True, 'save_ID': True, 'save_pairs': True, 'save_lineage': True}
+2026-09-16 14:21:01  Simulation COMPLETED in 0.0s
+2026-09-16 14:21:01  ### tree sequence - /data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output/ts_123.trees
+2026-09-16 14:21:01  sim_id=123 | wrote 22 rows
+2026-09-16 14:21:01  ### individual-node mapping - /data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output/sim_ind_node_map_123.csv
+2026-09-16 14:21:01  sim_id=123 | wrote 3 node-pair rows
+2026-09-16 14:21:01  ### recombinant node pairs - /data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output/node_pairs_123.csv
+2026-09-16 14:21:01  sim_id=123 | wrote 120 lineage rows
+2026-09-16 14:21:01  ### strain lineage - /data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output/lineage_123.csv
+2026-09-16 14:21:01  sim_id=123 | wrote 84 node ID mapping rows
+2026-09-16 14:21:01  ### node ID map (pre/post simplify) - /data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output/node_id_map_123.csv
+2026-09-16 14:21:03  
+2026-09-16 14:21:03  ========================================
+2026-09-16 14:21:03  ========== RUNNING run_mut.py ==========
+2026-09-16 14:21:03  ========================================
+2026-09-16 14:21:03  mutations added at rate 1e-06
+2026-09-16 14:21:03  ### mutated tree sequence - /data/home/bty208/IMPERIAL/MRC_IDE/git/KR_simulator/scripts/test_output/mutated_123.trees
+2026-09-16 14:21:03  run_mut.py COMPLETED in 0.0s
