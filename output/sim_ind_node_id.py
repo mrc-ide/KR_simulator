@@ -31,5 +31,5 @@ def append_ind_node_map(ts, sim_id, output_dir="."):
         df = pd.concat([existing, df], ignore_index=True)
 
     df.to_csv(output_path, index=False)
-    logging.info(f"sim_id={sim_id} | wrote {len(df)} rows")
+    logging.debug(f"sim_id={sim_id} | wrote {len(df)} rows")
     return df

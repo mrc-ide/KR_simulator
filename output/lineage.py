@@ -59,5 +59,5 @@ def save_lineage(tables, sim_id, output_dir="."):
         lineage = pd.concat([existing, lineage], ignore_index=True)
 
     lineage.to_csv(output_path, index=False)
-    logging.info(f"sim_id={sim_id} | wrote {len(lineage)} lineage rows")
+    logging.debug(f"sim_id={sim_id} | wrote {len(lineage)} lineage rows")
     return lineage

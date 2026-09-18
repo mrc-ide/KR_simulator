@@ -41,36 +41,31 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
 
     log_path = os.path.join(args.output_dir, f"KR_sim_{args.random_seed}.log")
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s  %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        handlers=[
-            logging.FileHandler(log_path),
-            logging.StreamHandler(),
-        ]
-    )
 
-    logging.info("")
-    logging.info("========================================")
-    logging.info("========== RUNNING run_mut.py ==========")
-    logging.info("========================================")
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s  %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
+    stream_handler.setFormatter(logging.Formatter("%(message)s"))
+
+    logging.basicConfig(level=logging.DEBUG, handlers=[file_handler, stream_handler])
 
     # load tree sequence
     ts = tskit.load(args.ts)
-    # logging.info(f"loaded tree sequence from {args.ts}")
 
     # add mutations
     ts = msprime.sim_mutations(ts, rate=args.mutation_rate, random_seed=args.random_seed)
-    logging.info(f"mutations added at rate {args.mutation_rate}")
+    logging.debug(f"mutations added at rate {args.mutation_rate}")
 
     # save mutated tree sequence
     out_path = os.path.join(args.output_dir, f"mutated_{args.random_seed}.trees")
     ts.dump(out_path)
-    logging.info(f"### mutated tree sequence - {out_path}")
+    logging.info(f"### mutated tree sequence - {os.path.basename(out_path)}")
 
     elapsed = time.time() - start_time
-    logging.info(f"run_mut.py COMPLETED in {_format_elapsed(elapsed)}")
+    logging.debug(f"run_mut.py COMPLETED in {_format_elapsed(elapsed)}")
 
 
 if __name__ == "__main__":

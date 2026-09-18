@@ -113,7 +113,7 @@ def build_hap_file(vcf_path, out_path, chrom=None):
         f.write("\t".join(["chrom", "pos"] + samples) + "\n")
         for r in rows:
             f.write("\t".join([r["chrom"], r["pos"]] + [str(g) for g in r["gts"]]) + "\n")
-    logging.info(f"hap file: {len(rows)} sites on chrom {chrom}, {len(samples)} samples -> {out_path}")
+    logging.debug(f"hap file: {len(rows)} sites on chrom {chrom}, {len(samples)} samples -> {out_path}")
     return samples, rows
 
 
@@ -130,7 +130,7 @@ def build_freq_file(samples, rows, out_path):
             called = [g for g in r["gts"] if g != -1]
             freq   = sum(called) / len(called) if called else 0.5
             f.write(f"{r['chrom']}\t{r['pos']}\t{n}\t{freq:.6f}\n")
-    logging.info(f"freq file written -> {out_path}")
+    logging.debug(f"freq file written -> {out_path}")
 
 
 # ---------------------------------------------------------------------------
@@ -139,17 +139,17 @@ def build_freq_file(samples, rows, out_path):
 
 def run_hmmibd(hmmibd_bin, hap_path, freq_path, prefix):
     cmd = [hmmibd_bin, "-i", hap_path, "-f", freq_path, "-o", prefix]
-    logging.info(f"running: {' '.join(cmd)}")
+    logging.debug(f"running: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.stdout:
-        logging.info(result.stdout.strip())
+        logging.debug(result.stdout.strip())
     if result.returncode != 0:
         logging.error(result.stderr)
         raise RuntimeError(
             f"hmmIBD exited with code {result.returncode}.\n"
             f"stderr: {result.stderr}"
         )
-    logging.info("hmmIBD completed")
+    logging.debug("hmmIBD completed")
 
 
 # ---------------------------------------------------------------------------
@@ -170,7 +170,7 @@ def parse_hmmibd_fract(prefix):
         )
 
     df = pd.read_csv(fract_path, sep="\t")
-    logging.info(f"hmmIBD fract: {len(df)} pairs in {fract_path}")
+    logging.debug(f"hmmIBD fract: {len(df)} pairs in {fract_path}")
 
     # find the IBD fraction column — robust to version differences
     ibd_col = None
@@ -240,7 +240,8 @@ def build_comparison(truth_csv, hmmibd_df, samples):
     comp = all_df[["s1", "s2", "true_frac_IBD", "inferred_frac_IBD"]].copy()
     comp.columns = ["sample_1", "sample_2", "true_frac_IBD", "inferred_frac_IBD"]
 
-    r     = np.corrcoef(comp["true_frac_IBD"], comp["inferred_frac_IBD"])[0, 1]
+    with np.errstate(invalid="ignore", divide="ignore"):
+        r = np.corrcoef(comp["true_frac_IBD"], comp["inferred_frac_IBD"])[0, 1]
     rmse  = np.sqrt(np.mean((comp["true_frac_IBD"] - comp["inferred_frac_IBD"]) ** 2))
     logging.info(f"benchmark: n_pairs={len(comp)}, Pearson r={r:.3f}, RMSE={rmse:.4f}")
 
@@ -280,7 +281,6 @@ def scatter_plot(comp, r, rmse, seed, out_path):
     plt.tight_layout()
     plt.savefig(out_path, dpi=150)
     plt.close()
-    logging.info(f"scatter plot saved to {out_path}")
 
 
 # ---------------------------------------------------------------------------
@@ -294,17 +294,16 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
 
     log_path = os.path.join(args.output_dir, f"KR_sim_{args.random_seed}.log")
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s  %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        handlers=[logging.FileHandler(log_path, mode="a"), logging.StreamHandler()],
-    )
 
-    logging.info("")
-    logging.info("========================================")
-    logging.info("==== RUNNING extras/benchmark_hmmibd.py ===")
-    logging.info("========================================")
+    file_handler = logging.FileHandler(log_path, mode="a")
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s  %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
+    stream_handler.setFormatter(logging.Formatter("%(message)s"))
+
+    logging.basicConfig(level=logging.DEBUG, handlers=[file_handler, stream_handler])
 
     # check hmmIBD binary
     check = subprocess.run(["which", args.hmmibd], capture_output=True)
@@ -338,14 +337,14 @@ def main():
 
     comp_path = os.path.join(args.output_dir, f"ibd_benchmark_{seed}.csv")
     comp.to_csv(comp_path, index=False)
-    logging.info(f"### comparison table - {comp_path}")
+    logging.info(f"### comparison table - {os.path.basename(comp_path)}")
 
     # step 5 — scatter plot
     plot_path = os.path.join(args.output_dir, f"ibd_benchmark_{seed}.png")
     scatter_plot(comp, r, rmse, seed, plot_path)
-    logging.info(f"### scatter plot - {plot_path}")
+    logging.info(f"### scatter plot - {os.path.basename(plot_path)}")
 
-    logging.info(f"extras/benchmark_hmmibd.py COMPLETED in {_format_elapsed(time.time() - start)}")
+    logging.debug(f"extras/benchmark_hmmibd.py COMPLETED in {_format_elapsed(time.time() - start)}")
 
 
 if __name__ == "__main__":
