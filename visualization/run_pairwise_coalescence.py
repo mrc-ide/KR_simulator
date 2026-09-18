@@ -4,7 +4,7 @@ import logging
 import argparse
 import pandas as pd
 
-from output.pairwise_coalescence import save_pairwise_coalescence
+from pairwise_coalescence import save_pairwise_coalescence
 
 
 def parse_args():

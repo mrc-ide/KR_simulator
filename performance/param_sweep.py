@@ -1,12 +1,12 @@
 """
-Time every stage of the pipeline (as run by scripts/test_sim_mut.sh) across a
+Time every stage of the pipeline (as run by tests/test_sim_mut.sh) across a
 one-parameter-at-a-time sweep around the standard test set
 (--Nh 3 --T 10 --K 2 --chi 0.18 --C 1), and plot how each stage's runtime
 scales with each parameter.
 
 Usage (from repo root):
-    python scripts/benchmark_params.py
-    python scripts/benchmark_params.py --output_dir scripts/benchmark_output --seed 42
+    python performance/param_sweep.py
+    python performance/param_sweep.py --output_dir ~/IMPERIAL/MRC_IDE/kr_sim_runs/benchmark_output --seed 42
 """
 
 import os

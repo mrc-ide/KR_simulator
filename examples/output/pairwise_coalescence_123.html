@@ -122,16 +122,31 @@
   #traceBtn[disabled] { opacity: 0.4; cursor: default; }
   .picker-hint { font-size: 11.5px; color: var(--ink-muted); }
 
-  .stage { display: grid; grid-template-columns: minmax(0, 1fr) 300px; }
-  @media (max-width: 900px) { .stage { grid-template-columns: 1fr; } }
+  .stage { display: flex; flex-direction: column; }
 
-  .canvas-scroll { overflow-x: auto; padding: 18px 10px 22px; }
+  .canvas-scroll { position: relative; overflow: auto; max-height: 78vh; padding: 18px 10px 22px; }
+
+  .zoom-toolbar {
+    position: sticky; top: 8px; left: 8px; z-index: 5; width: fit-content;
+    display: inline-flex; align-items: center; gap: 4px; margin-bottom: 8px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 4px 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  }
+  .zoom-toolbar button {
+    font: inherit; font-size: 13px; font-weight: 600; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 5px; width: 24px; height: 24px; line-height: 1;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .zoom-toolbar button:hover { border-color: var(--ink-muted); }
+  .zoom-toolbar #zoomResetBtn { width: auto; padding: 0 8px; font-size: 11px; }
+  #zoomLevel { font-size: 11.5px; color: var(--ink-2); min-width: 38px; text-align: center; }
+  #zoomWrap { display: inline-block; transform-origin: 0 0; }
 
   .side {
-    border-left: 1px solid var(--border); padding: 16px;
-    display: flex; flex-direction: column; gap: 14px; min-height: 320px;
+    border-bottom: 1px solid var(--border); padding: 14px 16px;
+    display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 14px 24px;
   }
-  @media (max-width: 900px) { .side { border-left: none; border-top: 1px solid var(--border); } }
+  @media (max-width: 700px) { .side { flex-direction: column; } }
 
   .side h2 {
     font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
@@ -140,18 +155,22 @@
 
   .detail-empty { font-size: 13px; color: var(--ink-muted); line-height: 1.6; }
 
-  .sample-card { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; padding: 8px 10px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); }
+  #detail { display: flex; flex-direction: row; flex-wrap: wrap; gap: 14px 24px; align-items: flex-start; flex: 1; }
+  .full-row { flex-basis: 100%; }
+
+  .sample-card { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; padding: 8px 10px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); min-width: 140px; }
   .sample-card .id-big { font-size: 18px; font-weight: 650; }
   .sample-card .id-tag { font-size: 10.5px; color: var(--ink-muted); }
 
-  .mrca-list { display: flex; flex-direction: column; gap: 8px; }
-  .mrca-card { font-size: 12.5px; padding: 8px 10px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); }
+  .mrca-section { flex: 1 1 320px; min-width: 260px; }
+  .mrca-list { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; }
+  .mrca-card { flex: 1 1 170px; min-width: 170px; max-width: 240px; font-size: 12.5px; padding: 8px 10px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); }
   .mrca-card .id-big { font-size: 15px; font-weight: 650; color: var(--mrca-color); }
   .mrca-card dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 6px 0 0; font-size: 12px; }
   .mrca-card dt { color: var(--ink-muted); }
   .mrca-card dd { margin: 0; color: var(--ink); font-weight: 500; }
 
-  .stat-row { display: flex; gap: 10px; }
+  .stat-row { display: flex; gap: 10px; min-width: 190px; flex: 0 0 auto; }
   .stat { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
   .stat .n { font-size: 18px; font-weight: 650; }
   .stat .l { font-size: 10.5px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -230,12 +249,20 @@
       </div>
 
       <div class="stage">
-        <div class="canvas-scroll">
-          <svg id="canvas"></svg>
-        </div>
         <div class="side">
           <h2>Pair</h2>
           <div id="detail"><p class="detail-empty">Choose two strains above (or click two current-generation strains in the diagram) and hit "Trace coalescence".</p></div>
+        </div>
+        <div class="canvas-scroll">
+          <div class="zoom-toolbar">
+            <button id="zoomOutBtn" type="button" aria-label="Zoom out">&minus;</button>
+            <span id="zoomLevel" class="mono">100%</span>
+            <button id="zoomInBtn" type="button" aria-label="Zoom in">+</button>
+            <button id="zoomResetBtn" type="button">Reset</button>
+          </div>
+          <div id="zoomWrap">
+            <svg id="canvas"></svg>
+          </div>
         </div>
       </div>
     </div>
@@ -315,6 +342,41 @@
   svg.setAttribute("width", width);
   svg.setAttribute("height", height);
   svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+
+  // ---- zoom ----
+  const canvasScroll = document.querySelector(".canvas-scroll");
+  const zoomWrap = document.getElementById("zoomWrap");
+  const zoomLevelEl = document.getElementById("zoomLevel");
+  let zoom = 1;
+  const ZOOM_MIN = 0.2, ZOOM_MAX = 3, ZOOM_STEP = 0.2;
+
+  function zoomAt(newZoom, clientX, clientY) {
+    newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, newZoom));
+    if (newZoom === zoom) return;
+    const rect = canvasScroll.getBoundingClientRect();
+    const px = clientX - rect.left, py = clientY - rect.top;
+    const ratio = newZoom / zoom;
+    const newScrollLeft = (canvasScroll.scrollLeft + px) * ratio - px;
+    const newScrollTop  = (canvasScroll.scrollTop  + py) * ratio - py;
+    zoom = newZoom;
+    zoomWrap.style.transform = `scale(${zoom})`;
+    zoomLevelEl.textContent = Math.round(zoom * 100) + "%";
+    canvasScroll.scrollLeft = newScrollLeft;
+    canvasScroll.scrollTop  = newScrollTop;
+  }
+  function zoomAtCenter(newZoom) {
+    const rect = canvasScroll.getBoundingClientRect();
+    zoomAt(newZoom, rect.left + rect.width / 2, rect.top + rect.height / 2);
+  }
+  document.getElementById("zoomInBtn").addEventListener("click", () => zoomAtCenter(zoom + ZOOM_STEP));
+  document.getElementById("zoomOutBtn").addEventListener("click", () => zoomAtCenter(zoom - ZOOM_STEP));
+  document.getElementById("zoomResetBtn").addEventListener("click", () => zoomAtCenter(1));
+  canvasScroll.addEventListener("wheel", (ev) => {
+    if (!ev.ctrlKey && !ev.metaKey) return;
+    ev.preventDefault();
+    const factor = ev.deltaY < 0 ? 1.1 : 1 / 1.1;
+    zoomAt(zoom * factor, ev.clientX, ev.clientY);
+  }, { passive: false });
 
   const NS = "http://www.w3.org/2000/svg";
   function el(tag, attrs) {
@@ -536,7 +598,7 @@
     }
 
     detail.innerHTML = `
-      <div class="sample-card-row" style="display:flex; flex-direction:column; gap:8px;">
+      <div class="sample-card-row" style="display:flex; flex-direction:row; flex-wrap:wrap; gap:8px;">
         ${sampleCard(nA, "a", "Strain 1")}
         ${sampleCard(nB, "b", "Strain 2")}
       </div>
@@ -544,11 +606,11 @@
         <div class="stat"><div class="n mono">${common.size}</div><div class="l">Shared ancestors</div></div>
         <div class="stat"><div class="n mono">${mrcas.length}</div><div class="l">Coalescence pt${mrcas.length === 1 ? "" : "s"}</div></div>
       </div>
-      <div>
+      <div class="mrca-section">
         <h2 style="margin-bottom:6px">Most recent common ancestor${mrcas.length === 1 ? "" : "s"}</h2>
         ${mrcaHTML}
       </div>
-      ${mrcas.length > 1 ? `<p class="detail-empty">More than one coalescence point means the two strains' ancestries merge along more than one independent path (e.g. via different recombined parents) — consistent with each strain having up to two immediate parents.</p>` : ""}
+      ${mrcas.length > 1 ? `<p class="detail-empty full-row">More than one coalescence point means the two strains' ancestries merge along more than one independent path (e.g. via different recombined parents) — consistent with each strain having up to two immediate parents.</p>` : ""}
     `;
   }
 

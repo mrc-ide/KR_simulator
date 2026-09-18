@@ -5,13 +5,13 @@ Compare pipeline outputs against a set of blessed expected outputs.
 Usage
 -----
 Run pipeline first, then compare:
-    python scripts/compare_outputs.py
+    python tests/compare_outputs.py
 
 Promote current test_output/ to the new expected baseline:
-    python scripts/compare_outputs.py --bless
+    python tests/compare_outputs.py --bless
 
 Override directories or seed:
-    python scripts/compare_outputs.py --actual scripts/test_output --expected scripts/expected --seed 123
+    python tests/compare_outputs.py --actual tests/test_output --expected tests/expected --seed 123
 """
 
 import argparse
@@ -166,10 +166,10 @@ def compare_file(name, exp_path, act_path):
 
 def main():
     parser = argparse.ArgumentParser(description="Compare pipeline outputs against expected outputs")
-    parser.add_argument("--expected", default="scripts/expected",
-                        help="Directory of blessed expected outputs (default: scripts/expected)")
-    parser.add_argument("--actual",   default="scripts/test_output",
-                        help="Directory of outputs from the latest run (default: scripts/test_output)")
+    parser.add_argument("--expected", default="tests/expected",
+                        help="Directory of blessed expected outputs (default: tests/expected)")
+    parser.add_argument("--actual",   default="tests/test_output",
+                        help="Directory of outputs from the latest run (default: tests/test_output)")
     parser.add_argument("--bless", action="store_true",
                         help="Copy actual/ -> expected/ to set a new baseline (skips log files)")
     args = parser.parse_args()

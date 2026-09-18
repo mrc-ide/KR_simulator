@@ -227,16 +227,31 @@ _HTML_TEMPLATE = r"""<title>Transmission map — sim __SEED__</title>
   #clearBtn:hover { border-color: var(--ink-muted); }
   #clearBtn[disabled] { opacity: 0.4; cursor: default; }
 
-  .stage { display: grid; grid-template-columns: minmax(0, 1fr) 280px; }
-  @media (max-width: 860px) { .stage { grid-template-columns: 1fr; } }
+  .stage { display: flex; flex-direction: column; }
 
-  .canvas-scroll { overflow-x: auto; padding: 18px 10px 22px; }
+  .canvas-scroll { position: relative; overflow: auto; max-height: 78vh; padding: 18px 10px 22px; }
+
+  .zoom-toolbar {
+    position: sticky; top: 8px; left: 8px; z-index: 5; width: fit-content;
+    display: inline-flex; align-items: center; gap: 4px; margin-bottom: 8px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 4px 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  }
+  .zoom-toolbar button {
+    font: inherit; font-size: 13px; font-weight: 600; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 5px; width: 24px; height: 24px; line-height: 1;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .zoom-toolbar button:hover { border-color: var(--ink-muted); }
+  .zoom-toolbar #zoomResetBtn { width: auto; padding: 0 8px; font-size: 11px; }
+  #zoomLevel { font-size: 11.5px; color: var(--ink-2); min-width: 38px; text-align: center; }
+  #zoomWrap { display: inline-block; transform-origin: 0 0; }
 
   .side {
-    border-left: 1px solid var(--border); padding: 16px;
-    display: flex; flex-direction: column; gap: 14px; min-height: 320px;
+    border-bottom: 1px solid var(--border); padding: 14px 16px;
+    display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 14px 24px;
   }
-  @media (max-width: 860px) { .side { border-left: none; border-top: 1px solid var(--border); } }
+  @media (max-width: 700px) { .side { flex-direction: column; } }
 
   .side h2 {
     font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
@@ -245,7 +260,10 @@ _HTML_TEMPLATE = r"""<title>Transmission map — sim __SEED__</title>
 
   .detail-empty { font-size: 13px; color: var(--ink-muted); line-height: 1.6; }
 
-  .detail-card { display: flex; flex-direction: column; gap: 12px; }
+  #detail { display: flex; flex-direction: row; flex-wrap: wrap; gap: 14px 24px; align-items: flex-start; flex: 1; }
+
+  .detail-card { display: flex; flex-direction: row; flex-wrap: wrap; gap: 14px 24px; align-items: flex-start; }
+  .detail-section { flex: 1 1 170px; min-width: 150px; }
   .id-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .id-big { font-size: 26px; font-weight: 650; }
   .id-tag {
@@ -254,7 +272,7 @@ _HTML_TEMPLATE = r"""<title>Transmission map — sim __SEED__</title>
   }
   .id-tag.post { color: var(--ink); border-color: var(--ink); }
 
-  .kv { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; font-size: 12.5px; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; font-size: 12.5px; margin-top: 8px; }
   .kv dt { color: var(--ink-muted); }
   .kv dd { margin: 0; color: var(--ink); font-weight: 500; }
 
@@ -263,7 +281,7 @@ _HTML_TEMPLATE = r"""<title>Transmission map — sim __SEED__</title>
   .rel-chip { display: inline-flex; align-items: center; gap: 5px; padding: 1px 0; }
   .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
 
-  .stat-row { display: flex; gap: 10px; }
+  .stat-row { display: flex; gap: 10px; min-width: 170px; flex: 0 0 auto; }
   .stat { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
   .stat .n { font-size: 18px; font-weight: 650; }
   .stat .l { font-size: 10.5px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -349,12 +367,20 @@ _HTML_TEMPLATE = r"""<title>Transmission map — sim __SEED__</title>
       </div>
 
       <div class="stage">
-        <div class="canvas-scroll">
-          <svg id="canvas"></svg>
-        </div>
         <div class="side">
           <h2>Selection</h2>
           <div id="detail"><p class="detail-empty">Click any strain in the map to see its identity, host, and full lineage — ancestors traced back to the founders, descendants traced forward to today.</p></div>
+        </div>
+        <div class="canvas-scroll">
+          <div class="zoom-toolbar">
+            <button id="zoomOutBtn" type="button" aria-label="Zoom out">&minus;</button>
+            <span id="zoomLevel" class="mono">100%</span>
+            <button id="zoomInBtn" type="button" aria-label="Zoom in">+</button>
+            <button id="zoomResetBtn" type="button">Reset</button>
+          </div>
+          <div id="zoomWrap">
+            <svg id="canvas"></svg>
+          </div>
         </div>
       </div>
 
@@ -472,6 +498,41 @@ __DATA_JSON__
   svg.setAttribute("width", width);
   svg.setAttribute("height", height);
   svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+
+  // ---- zoom ----
+  const canvasScroll = document.querySelector(".canvas-scroll");
+  const zoomWrap = document.getElementById("zoomWrap");
+  const zoomLevelEl = document.getElementById("zoomLevel");
+  let zoom = 1;
+  const ZOOM_MIN = 0.2, ZOOM_MAX = 3, ZOOM_STEP = 0.2;
+
+  function zoomAt(newZoom, clientX, clientY) {
+    newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, newZoom));
+    if (newZoom === zoom) return;
+    const rect = canvasScroll.getBoundingClientRect();
+    const px = clientX - rect.left, py = clientY - rect.top;
+    const ratio = newZoom / zoom;
+    const newScrollLeft = (canvasScroll.scrollLeft + px) * ratio - px;
+    const newScrollTop  = (canvasScroll.scrollTop  + py) * ratio - py;
+    zoom = newZoom;
+    zoomWrap.style.transform = `scale(${zoom})`;
+    zoomLevelEl.textContent = Math.round(zoom * 100) + "%";
+    canvasScroll.scrollLeft = newScrollLeft;
+    canvasScroll.scrollTop  = newScrollTop;
+  }
+  function zoomAtCenter(newZoom) {
+    const rect = canvasScroll.getBoundingClientRect();
+    zoomAt(newZoom, rect.left + rect.width / 2, rect.top + rect.height / 2);
+  }
+  document.getElementById("zoomInBtn").addEventListener("click", () => zoomAtCenter(zoom + ZOOM_STEP));
+  document.getElementById("zoomOutBtn").addEventListener("click", () => zoomAtCenter(zoom - ZOOM_STEP));
+  document.getElementById("zoomResetBtn").addEventListener("click", () => zoomAtCenter(1));
+  canvasScroll.addEventListener("wheel", (ev) => {
+    if (!ev.ctrlKey && !ev.metaKey) return;
+    ev.preventDefault();
+    const factor = ev.deltaY < 0 ? 1.1 : 1 / 1.1;
+    zoomAt(zoom * factor, ev.clientX, ev.clientY);
+  }, { passive: false });
 
   const NS = "http://www.w3.org/2000/svg";
   function el(tag, attrs) {
@@ -639,24 +700,26 @@ __DATA_JSON__
 
     detail.innerHTML = `
       <div class="detail-card">
-        <div class="id-row">
-          <span class="id-big mono">${id}</span>
-          ${n.post !== null ? `<span class="id-tag post">post-simplify: ${n.post}</span>` : `<span class="id-tag">not in final ts</span>`}
+        <div class="detail-section">
+          <div class="id-row">
+            <span class="id-big mono">${id}</span>
+            ${n.post !== null ? `<span class="id-tag post">post-simplify: ${n.post}</span>` : `<span class="id-tag">not in final ts</span>`}
+          </div>
+          <dl class="kv">
+            <dt>Generation</dt><dd>${n.isFounder ? "founder (gen " + T + ")" : "gen " + n.gen}</dd>
+            <dt>Host slot</dt><dd>${lane}</dd>
+            ${n.recomb !== null ? `<dt>Recomb ID</dt><dd>${n.recomb}</dd>` : ""}
+          </dl>
         </div>
-        <dl class="kv">
-          <dt>Generation</dt><dd>${n.isFounder ? "founder (gen " + T + ")" : "gen " + n.gen}</dd>
-          <dt>Host slot</dt><dd>${lane}</dd>
-          ${n.recomb !== null ? `<dt>Recomb ID</dt><dd>${n.recomb}</dd>` : ""}
-        </dl>
         <div class="stat-row">
           <div class="stat"><div class="n mono">${ancestors.size}</div><div class="l">Ancestors</div></div>
           <div class="stat"><div class="n mono">${descendants.size}</div><div class="l">Descendants</div></div>
         </div>
-        <div>
+        <div class="detail-section">
           <h2 style="margin-bottom:6px">Direct parent(s)</h2>
           <div class="rel-list">${chipList(directParents, "none — this is a founder")}</div>
         </div>
-        <div>
+        <div class="detail-section">
           <h2 style="margin-bottom:6px">Direct child(ren)</h2>
           <div class="rel-list">${chipList(directChildren, "none — never sampled as a parent")}</div>
         </div>

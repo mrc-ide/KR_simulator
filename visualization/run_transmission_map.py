@@ -4,7 +4,7 @@ import logging
 import argparse
 import pandas as pd
 
-from output.transmission_map import save_transmission_map
+from transmission_map import save_transmission_map
 
 
 def parse_args():

@@ -38,14 +38,14 @@ pip install -r requirements.txt
 
 ## Pipeline
 
-The core simulation is split into five independent stages, plus two pedigree-based tools, `run_transmission_map.py` and `run_pairwise_coalescence.py`, which both branch directly off Stage 1 and only need its `--save_lineage` output. Each stage reads the previous stage's output from disk, so you can stop, inspect, and resume at any point.
+The core simulation is split into five independent stages, plus two pedigree-based visualization tools, `visualization/run_transmission_map.py` and `visualization/run_pairwise_coalescence.py`, which both branch directly off Stage 1 and only need its `--save_lineage` output. Each stage reads the previous stage's output from disk, so you can stop, inspect, and resume at any point.
 
 ```mermaid
 graph TD
     sim["run_sim.py"]
     mut["run_mut.py"]
-    tmap["run_transmission_map.py"]
-    pairwise["run_pairwise_coalescence.py"]
+    tmap["visualization/run_transmission_map.py"]
+    pairwise["visualization/run_pairwise_coalescence.py"]
     coal["run_coal_mut_t.py"]
     vcfs["run_vcf_strain.py"]
     vcfh["run_vcf_host.py"]
@@ -58,7 +58,7 @@ graph TD
     vcfs --> vcfh
 ```
 
-`run_transmission_map.py` and `run_pairwise_coalescence.py` both hang directly off `run_sim.py` and don't depend on anything else.
+`visualization/run_transmission_map.py` and `visualization/run_pairwise_coalescence.py` both hang directly off `run_sim.py` and don't depend on anything else.
 
 Coalescence-time relatedness and the hmmIBD benchmark are optional, separate tools — see [Extras](#extras) below.
 
@@ -91,7 +91,7 @@ python run_sim.py \
 ### Transmission map — visualize the pedigree
 
 ```bash
-python run_transmission_map.py \
+python visualization/run_transmission_map.py \
     --random_seed 42 \
     --output_dir results/
 ```
@@ -101,7 +101,7 @@ Needs `--save_lineage` from Stage 1. Renders an interactive, self-contained `tra
 ### Pairwise coalescence — trace two strains back to their shared ancestor
 
 ```bash
-python run_pairwise_coalescence.py \
+python visualization/run_pairwise_coalescence.py \
     --random_seed 42 \
     --output_dir results/
 ```
@@ -243,8 +243,12 @@ KR_SIM/
 ├── run_coal_mut_t.py     # Stage 3: coalescence & mutation times
 ├── run_vcf_strain.py     # Stage 4: strain-level VCF
 ├── run_vcf_host.py           # Stage 5: host-level VCF
-├── run_transmission_map.py   # Interactive transmission-map HTML (needs only Stage 1's --save_lineage)
-├── run_pairwise_coalescence.py # Interactive pairwise pedigree coalescence HTML (needs only Stage 1's --save_lineage)
+│
+├── visualization/        # Interactive pedigree visualization tools (not part of the core pipeline)
+│   ├── run_transmission_map.py   #   CLI: renders transmission_map_{seed}.html (needs only Stage 1's --save_lineage)
+│   ├── run_pairwise_coalescence.py # CLI: renders pairwise_coalescence_{seed}.html (needs only Stage 1's --save_lineage)
+│   ├── transmission_map.py      #   Rendering logic for run_transmission_map.py
+│   └── pairwise_coalescence.py  #   Rendering logic for run_pairwise_coalescence.py
 │
 ├── extras/               # Optional tools, not run by run_example.py — run manually
 │   ├── relate_t_strain.py    #   Coalescence-time IBD fraction (needs coal_T from Stage 3)
@@ -262,8 +266,6 @@ KR_SIM/
 │   ├── node_pairs.py
 │   ├── lineage.py        #   Builds lineage_{seed}.csv (pre-simplify)
 │   ├── node_id_map.py    #   Builds node_id_map_{seed}.csv
-│   ├── transmission_map.py #   Renders transmission_map_{seed}.html
-│   ├── pairwise_coalescence.py #   Renders pairwise_coalescence_{seed}.html
 │   ├── vcf_strain_single.py
 │   └── vcf_host_single.py
 │
@@ -272,10 +274,13 @@ KR_SIM/
 │   ├── run_example.py    #   Script to run the full example pipeline
 │   └── README.md         #   Output file descriptions
 │
-├── scripts/              # Testing and regression tools
+├── tests/                # Testing and regression tools
 │   ├── test_sim_mut.sh   #   Run full pipeline + regression check
 │   ├── compare_outputs.py#   Diff outputs against expected/
 │   └── expected/         #   Committed reference outputs (blessed baseline)
+│
+├── performance/         # Parameter-sweep timing/RAM benchmarks (not test infra)
+│   └── param_sweep.py #  Sweeps Nh/T/K/chi/C, plots wall-time and RAM per stage
 │
 ├── config.yml            # Example parameter file
 ├── environment.yml       # Conda environment
@@ -297,10 +302,10 @@ Then open `examples/example.ipynb` to explore all outputs interactively.
 ## Running tests
 
 ```bash
-bash scripts/test_sim_mut.sh
+bash tests/test_sim_mut.sh
 ```
 
-Runs the full pipeline with seed 123, prints a summary of every output file, then diffs the results against `scripts/expected/`. Answer `y` at the prompt to promote the current outputs as the new baseline.
+Runs the full pipeline with seed 123, prints a summary of every output file, then diffs the results against `tests/expected/`. Answer `y` at the prompt to promote the current outputs as the new baseline.
 
 ---
 
