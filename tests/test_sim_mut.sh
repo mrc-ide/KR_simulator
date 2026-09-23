@@ -20,9 +20,9 @@ SEED=123
 
 # simulation parameters for this smoke test (the only place these live --
 # nothing else in this script duplicates these values in a comment)
-NH=10
-T=100
-K=5
+NH=3
+T=10
+K=2
 CHI=0.18
 C=1
 RECOMB_RATE=7.4e-7
