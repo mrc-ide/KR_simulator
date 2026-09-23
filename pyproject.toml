@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "krsim"
+version = "0.1.0"
+description = "Forward simulator of Plasmodium falciparum recombination and transmission dynamics"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "tskit",
+    "msprime",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "pyyaml",
+]
+
+[project.scripts]
+krsim = "krsim.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

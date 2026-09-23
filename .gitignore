@@ -3,3 +3,8 @@ __pycache__/
 
 # Local Claude Code session logs (detailed convo history, not shared)
 .claude/sessions/
+
+# Python packaging build artefacts
+*.egg-info/
+build/
+dist/
