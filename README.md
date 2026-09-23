@@ -142,7 +142,7 @@ krsim strain-transmission-map \
     --output_dir results/
 ```
 
-Needs `--save_lineage` from Stage 1. Renders an interactive, self-contained `strain_transmission_map_{seed}.html` — a generation-by-generation pedigree diagram (founders at top, current samples at bottom, one lane per host) built from the pre-simplify `lineage_{seed}.csv`, so it shows the true parentage that `simplify()` compresses away. Each strain is labeled with its pre-simplify ID (with its post-simplify ID as a small corner badge, where one exists); clicking a strain traces and highlights its full ancestry and descendants. Open the file directly in a browser — no server or dependencies needed. Intended for small debug runs (a handful of hosts, a few dozen generations); it warns in-page and degrades gracefully past that, but isn't meant for production-scale runs (`--Nh 100`, etc.). Runs right after Stage 1 in `examples/run_example.py`, before mutations/VCFs, so you can inspect the raw transmission history immediately.
+Needs `--save_lineage` from Stage 1. Renders an interactive, self-contained `strain_transmission_map_{seed}.html` — a generation-by-generation pedigree diagram (founders at top, current samples at bottom, one lane per host) built from the pre-simplify `lineage_{seed}.csv`, so it shows the true parentage that `simplify()` compresses away. Each strain is labeled with its pre-simplify ID (with its post-simplify ID as a small corner badge, where one exists); clicking a strain traces and highlights its full ancestry and descendants. Open the file directly in a browser — no server or dependencies needed. Intended for small debug runs (a handful of hosts, a few dozen generations); it warns in-page and degrades gracefully past that, but isn't meant for production-scale runs (`--Nh 100`, etc.). It only needs Stage 1, so you can inspect the raw transmission history before running mutations or VCFs.
 
 ### Pairwise strain pedigree map — trace two strains back to their shared ancestor
 
@@ -215,7 +215,7 @@ Outputs `output_{seed}_host.vcf`. With `--save_proportions`, also writes `host_p
 
 ## Relatedness statistics
 
-Optional ground-truth relatedness, computed from Stage 3's `coal_T` table. Not run by `examples/run_example.py` — run these when you need true IBD.
+Optional ground-truth relatedness, computed from Stage 3's `coal_T` table. Not part of the tutorial — run these when you need true IBD.
 
 ```bash
 krsim relate-strain \
@@ -288,11 +288,10 @@ KR_SIM/
 │   │   └── pairwise_strain_pedigree_map.py
 │   └── config.py         #   Load SimParams from a YAML file
 │
-├── examples/             # Worked example with seed 123
-│   ├── example.ipynb     #   Notebook walkthrough of all outputs
-│   ├── run_example.py    #   Script to run the full example pipeline
-│   ├── config.yml        #   Example parameter file
-│   └── README.md         #   Output file descriptions
+├── examples/             # Tutorial
+│   ├── tutorial.ipynb    #   Runs every command on a small simulation, with outputs
+│   ├── output/           #   Files the tutorial produces
+│   └── README.md         #   How to open the tutorial
 │
 ├── tests/                # Testing and regression tools
 │   ├── test_sim_mut.sh   #   Run full pipeline + regression check
@@ -305,13 +304,15 @@ KR_SIM/
 
 ---
 
-## Quick start (worked example)
+## Quick start (tutorial)
+
+[`examples/tutorial.ipynb`](examples/tutorial.ipynb) runs every `krsim` command on a small simulation and shows what each one writes. It is saved with its outputs, so you can read it on GitHub without running anything, or open it yourself after installing krsim:
 
 ```bash
-python examples/run_example.py
+pip install notebook      # Jupyter isn't installed with krsim
+cd examples
+jupyter notebook tutorial.ipynb
 ```
-
-Then open `examples/example.ipynb` to explore all outputs interactively.
 
 ---
 
