@@ -53,7 +53,9 @@ def run(args):
     os.makedirs(args.out_dir, exist_ok=True)
 
     setup_run_logging(args.out_dir, args.random_seed)
-    logging.debug(f"Simulation parameters: {vars(args)}")
+    # drop the entries argparse adds for subcommand dispatch
+    sim_args = {k: v for k, v in vars(args).items() if k not in ("command", "func")}
+    logging.debug(f"Simulation parameters: {sim_args}")
 
     # run simulation
     params = SimParams(
