@@ -6,7 +6,7 @@ import logging
 
 from krsim.cli._common import format_elapsed
 
-HELP = "Stage 5: per-host VCF (mixes each host's strains into reads)"
+HELP = "Stage 5: per-host VCF"
 
 EPILOG = """\
 Outputs:
@@ -24,7 +24,7 @@ def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
     required.add_argument("--strain_vcf", type=str, required=True, metavar="FILE",
-                          help="Strain VCF from `krsim vcf-strain`")
+                          help="Strain VCF from `krsim vcf-strain` (output_<seed>_strain.vcf)")
     required.add_argument("--ind_node_map_csv", type=str, required=True, metavar="FILE",
                           help="Host-strain map from `krsim simulate` (sim_ind_node_map_<seed>.csv)")
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
