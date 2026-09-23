@@ -50,8 +50,6 @@ def parse_args():
                         help="Directory for the timing CSV, plots, and per-config run artifacts. "
                              "Kept outside the repo since output here is machine-specific and can run into GBs.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed used for every run (only speed is measured).")
-    parser.add_argument("--hmmibd", type=str, default=os.environ.get("HMMIBD", "/data/home/bty208/hmmIBD_org/hmmIBD/hmmibd"),
-                        help="Path to the hmmIBD binary; the benchmark stage is skipped if this isn't runnable.")
     parser.add_argument("--replicates", type=int, default=REPLICATES,
                         help="Repeats per unique parameter combination, plotted as mean with min/max error bars.")
     return parser.parse_args()
@@ -67,7 +65,7 @@ def _run(cmd, cwd):
     return time.perf_counter() - start
 
 
-def run_pipeline(cfg, workdir, seed, hmmibd_bin):
+def run_pipeline(cfg, workdir, seed):
     """Run one full pipeline (Stage 1-5 + relatedness extras) for this
     parameter combination and return {stage_name: elapsed_seconds}."""
     os.makedirs(workdir, exist_ok=True)
@@ -130,17 +128,10 @@ def run_pipeline(cfg, workdir, seed, hmmibd_bin):
         "--random_seed", str(seed), "--output_dir", workdir,
     ], REPO_ROOT)
 
-    if hmmibd_bin and (os.path.isfile(hmmibd_bin) and os.access(hmmibd_bin, os.X_OK)):
-        timings["10_hmmibd_benchmark"] = _run([
-            py, "extras/benchmark_hmmibd.py",
-            "--strain_vcf", strain_vcf, "--relate_strain", relate_strain_csv,
-            "--random_seed", str(seed), "--output_dir", workdir, "--hmmibd", hmmibd_bin,
-        ], REPO_ROOT)
-
     return timings
 
 
-def collect_timings(output_dir, seed, hmmibd_bin, replicates):
+def collect_timings(output_dir, seed, replicates):
     runs_dir = os.path.join(output_dir, "runs")
     unique_configs = {}
     for pname, values in SWEEPS.items():
@@ -159,7 +150,7 @@ def collect_timings(output_dir, seed, hmmibd_bin, replicates):
             done += 1
             print(f"[{done}/{total}] rep {rep + 1}/{replicates}  {cfg}")
             try:
-                results[key].append(run_pipeline(cfg, os.path.join(runs_dir, f"{label}_r{rep}"), seed, hmmibd_bin))
+                results[key].append(run_pipeline(cfg, os.path.join(runs_dir, f"{label}_r{rep}"), seed))
             except subprocess.CalledProcessError as e:
                 print(f"  FAILED: {e.cmd}\n  stderr: {e.stderr[-2000:]}")
                 results[key].append({})
@@ -242,7 +233,7 @@ def main():
     REPLICATES = args.replicates
     os.makedirs(args.output_dir, exist_ok=True)
 
-    df = collect_timings(args.output_dir, args.seed, args.hmmibd, args.replicates)
+    df = collect_timings(args.output_dir, args.seed, args.replicates)
     csv_path = os.path.join(args.output_dir, "timings.csv")
     df.to_csv(csv_path, index=False)
     print(f"wrote {csv_path}")

@@ -60,7 +60,7 @@ graph TD
 
 `visualization/run_transmission_map.py` and `visualization/run_pairwise_coalescence.py` both hang directly off `run_sim.py` and don't depend on anything else.
 
-Coalescence-time relatedness and the hmmIBD benchmark are optional, separate tools — see [Extras](#extras) below.
+Coalescence-time relatedness is an optional, separate tool — see [Extras](#extras) below.
 
 ### Stage 1 — Simulate genealogy
 
@@ -185,25 +185,6 @@ python extras/relate_t_host.py \
 
 `relate_t_host.py`: for each currently-infected host (from `sim_ind_node_map_{seed}.csv`, restricted to `time == 0`, i.e. the most recent generation), takes every pairwise combination of that host's strain nodes and averages their `frac_IBD` from `relate_strain_{seed}.csv`. Pairs missing from that table (no recorded coalescence) are treated as `frac_IBD = 0`. Hosts with fewer than two strains get an empty average. Outputs `relate_host_{seed}.csv` (`host`, `avg_frac_IBD`).
 
-### hmmIBD benchmark
-
-```bash
-python extras/benchmark_hmmibd.py \
-    --strain_vcf  results/output_42_strain.vcf \
-    --relate_strain results/relate_strain_42.csv \
-    --random_seed 42 \
-    --output_dir  results/
-```
-
-Converts the strain VCF to hmmIBD's hap + freq input format, runs hmmIBD, then compares its inferred pairwise IBD fractions against the simulation ground truth from `relate_strain_{seed}.csv`. Outputs a comparison CSV and a scatter plot (true vs inferred).
-
-Requires hmmIBD to be installed:
-```bash
-git clone https://github.com/glipsnort/hmmIBD.git
-cd hmmIBD && gcc -o hmmibd hmmIBD.c -lm
-# add to PATH, or pass --hmmibd /path/to/hmmibd
-```
-
 ---
 
 ## Output files
@@ -225,11 +206,6 @@ cd hmmIBD && gcc -o hmmibd hmmIBD.c -lm
 | `pairwise_coalescence_{seed}.html` | additional | Interactive pedigree coalescence trace for any two strains |
 | `relate_strain_{seed}.csv` | extras | Pairwise strain IBD fraction (`extras/relate_t_strain.py`) |
 | `relate_host_{seed}.csv` | extras | Average pairwise IBD fraction per host, most recent generation only (`extras/relate_t_host.py`) |
-| `hmmibd_hap_{seed}.txt` | extras | hmmIBD hap input file (genotypes) |
-| `hmmibd_freq_{seed}.txt` | extras | hmmIBD freq input file (allele frequencies) |
-| `hmmibd_{seed}.hmm_fract.txt` | extras | hmmIBD raw pairwise IBD output |
-| `ibd_benchmark_{seed}.csv` | extras | True vs inferred IBD for all strain pairs |
-| `ibd_benchmark_{seed}.png` | extras | Scatter plot — true vs inferred IBD |
 | `KR_sim_{seed}.log` | 1–2 | Accumulated log — only `run_sim.py` and `run_mut.py` currently write to it |
 
 ---
@@ -252,8 +228,7 @@ KR_SIM/
 │
 ├── extras/               # Optional tools, not run by run_example.py — run manually
 │   ├── relate_t_strain.py    #   Coalescence-time IBD fraction (needs coal_T from Stage 3)
-│   ├── relate_t_host.py      #   Host-level average of relate_t_strain.py's output
-│   └── benchmark_hmmibd.py   #   hmmIBD vs simulation ground truth
+│   └── relate_t_host.py      #   Host-level average of relate_t_strain.py's output
 │
 ├── sim/                  # Core simulation engine
 │   ├── params.py         #   SimParams dataclass + genome constants

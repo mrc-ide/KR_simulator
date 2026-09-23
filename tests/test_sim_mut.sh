@@ -181,26 +181,6 @@ preview_csv "relate_host_${SEED}.csv"      "$OUT_DIR/relate_host_${SEED}.csv"
 echo
 echo "${GREEN}${BOLD}Pipeline completed successfully.${RESET} Output in: $OUT_DIR"
 
-HMMIBD_BIN="${HMMIBD:-/data/home/bty208/hmmIBD_org/hmmIBD/hmmibd}"
-if command -v "$HMMIBD_BIN" &>/dev/null || [ -x "$HMMIBD_BIN" ]; then
-    run_stage "Benchmark (optional): hmmIBD vs ground truth" \
-        python "$REPO_ROOT/extras/benchmark_hmmibd.py" \
-        --strain_vcf    "$STRAIN_VCF" \
-        --relate_strain "$OUT_DIR/relate_strain_${SEED}.csv" \
-        --random_seed   "$SEED" \
-        --output_dir    "$OUT_DIR" \
-        --hmmibd        "$HMMIBD_BIN"
-
-    preview_csv "ibd_benchmark_${SEED}.csv" "$OUT_DIR/ibd_benchmark_${SEED}.csv" 10
-    echo "(scatter plot saved to $OUT_DIR/ibd_benchmark_${SEED}.png)"
-else
-    echo
-    echo "${YELLOW}SKIP${RESET}: hmmIBD not found ('$HMMIBD_BIN'). To run the benchmark:"
-    echo "  git clone https://github.com/glipsnort/hmmIBD.git"
-    echo "  cd hmmIBD && gcc -o hmmibd hmmIBD.c -lm"
-    echo "  Then re-run with: HMMIBD=/path/to/hmmibd bash tests/test_sim_mut.sh"
-fi
-
 echo
 echo "${BOLD}=== Regression check ===${RESET}"
 compare_exit=0
