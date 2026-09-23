@@ -1,10 +1,8 @@
 """krsim vcf-strain — Stage 4: per-strain VCF."""
 
 import os
-import time
-import logging
 
-from krsim.cli._common import format_elapsed
+from krsim.cli._common import Run
 
 HELP = "Stage 4: per-strain VCF"
 
@@ -34,12 +32,10 @@ def run(args):
     import tskit
     from krsim.output.vcf_strain_single import process_vcf
 
-    start_time = time.time()
+    run = Run("vcf-strain", args.output_dir, args.random_seed)
 
-    os.makedirs(args.output_dir, exist_ok=True)
-
-    # load mutated tree sequence
     ts = tskit.load(args.ts)
+    run.detail(f"read {args.ts} ({ts.num_samples} samples, {ts.num_sites} variant sites)")
 
     raw_vcf = os.path.join(args.output_dir, f"output_temp_{args.random_seed}.vcf")
     final_vcf = os.path.join(args.output_dir, f"output_{args.random_seed}_strain.vcf")
@@ -48,7 +44,6 @@ def run(args):
         ts.write_vcf(f)
 
     process_vcf(ts, input_vcf=raw_vcf, output_vcf=final_vcf)
-    logging.info(f"### strain VCF - {final_vcf}")
+    run.wrote(final_vcf)
 
-    elapsed = time.time() - start_time
-    logging.info(f"krsim vcf-strain COMPLETED in {format_elapsed(elapsed)}")
+    run.done()

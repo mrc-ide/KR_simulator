@@ -1,8 +1,11 @@
 """The `krsim` command: one entry point, one subcommand per pipeline step."""
 
 import argparse
+import sys
 
 from rich_argparse import RawDescriptionRichHelpFormatter
+
+from krsim.cli._common import KrsimError, Run
 
 from krsim.cli import (
     simulate,
@@ -79,7 +82,8 @@ def main(argv=None):
         prog="krsim",
         usage="krsim <command> [options]",
         description="KR Malaria Transmission Simulator",
-        epilog="Run `krsim <command> --help` to see a command's options.",
+        epilog="Run `krsim <command> --help` to see a command's options.\n"
+               "Every command records what it did in <output_dir>/KR_sim_<seed>.log.",
         formatter_class=HelpFormatter,
         add_help=False,
     )
@@ -103,4 +107,23 @@ def main(argv=None):
     parser._action_groups.sort(key=lambda group: group.title != "commands")
 
     args = parser.parse_args(argv)
-    args.func(args)
+    try:
+        args.func(args)
+    except Exception as exc:
+        _report_error(exc)
+        sys.exit(1)
+
+
+def _report_error(exc):
+    """One line on screen; the traceback goes to the run's log file (if it got that far)."""
+    if isinstance(exc, FileNotFoundError) and exc.filename:
+        message = f"input file not found: {exc.filename}"
+    elif isinstance(exc, KrsimError):
+        message = str(exc)
+    else:
+        message = f"{type(exc).__name__}: {exc}"
+
+    if Run.current is not None:
+        Run.current.fail(message)
+    else:
+        print(f"\n  error: {message}\n", file=sys.stderr)

@@ -1,10 +1,8 @@
 """krsim vcf-host — Stage 5: per-host VCF."""
 
 import os
-import time
-import logging
 
-from krsim.cli._common import format_elapsed
+from krsim.cli._common import Run
 
 HELP = "Stage 5: per-host VCF"
 
@@ -43,9 +41,7 @@ def run(args):
     # (these pull in numpy/pandas/tskit/msprime)
     from krsim.output.vcf_host_single import process_host_vcf
 
-    start_time = time.time()
-
-    os.makedirs(args.output_dir, exist_ok=True)
+    run = Run("vcf-host", args.output_dir, args.random_seed)
 
     host_vcf = os.path.join(args.output_dir, f"output_{args.random_seed}_host.vcf")
     proportions_out = None
@@ -61,9 +57,8 @@ def run(args):
         random_seed=args.random_seed,
         proportions_out=proportions_out,
     )
-    logging.info(f"### host VCF - {host_vcf}")
+    run.wrote(host_vcf)
     if proportions_out:
-        logging.info(f"### host proportions - {proportions_out}")
+        run.wrote(proportions_out)
 
-    elapsed = time.time() - start_time
-    logging.info(f"krsim vcf-host COMPLETED in {format_elapsed(elapsed)}")
+    run.done()

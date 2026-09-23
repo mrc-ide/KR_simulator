@@ -1,10 +1,8 @@
 """krsim relate-strain — true pairwise IBD fraction between strains."""
 
 import os
-import time
-import logging
 
-from krsim.cli._common import format_elapsed
+from krsim.cli._common import Run
 
 HELP = "True pairwise IBD fraction between strains"
 
@@ -37,15 +35,14 @@ def run(args):
     import pandas as pd
     from krsim.stats.relate_strain import strain_ibd_fractions
 
-    start_time = time.time()
+    run = Run("relate-strain", args.output_dir, args.random_seed)
 
-    os.makedirs(args.output_dir, exist_ok=True)
+    coal = pd.read_csv(args.coal_csv)
+    run.detail(f"read {args.coal_csv} ({len(coal):,} rows); IBD if coal_time <= {args.time_boundary}")
 
-    pairs = strain_ibd_fractions(pd.read_csv(args.coal_csv), args.time_boundary)
-
+    pairs = strain_ibd_fractions(coal, args.time_boundary)
     out_path = os.path.join(args.output_dir, f"relate_strain_{args.random_seed}.csv")
     pairs.to_csv(out_path, index=False)
-    logging.info(f"### IBD fractions - {out_path}")
+    run.wrote(out_path, rows=len(pairs))
 
-    elapsed = time.time() - start_time
-    logging.info(f"krsim relate-strain COMPLETED in {format_elapsed(elapsed)}")
+    run.done()

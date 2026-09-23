@@ -1,6 +1,8 @@
 import os
 import csv
 import logging
+
+log = logging.getLogger(__name__)
 import numpy as np
 from collections import defaultdict
 
@@ -35,8 +37,7 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
                 node_to_ind[int(row["node_id"])] = int(row["ind_id"])
 
     if not node_to_ind:
-        logging.error(f"no entries found for sim_id={sim_id} in {ind_node_map_csv}; aborting host VCF")
-        return
+        raise ValueError(f"no hosts for seed {sim_id} in {ind_node_map_csv}")
 
     # --- read node-level VCF ---
     with open(input_vcf) as f:
@@ -50,8 +51,7 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
             break
 
     if header_cols is None:
-        logging.error("no #CHROM header found in input VCF; aborting host VCF")
-        return
+        raise ValueError(f"no #CHROM header line in {input_vcf}")
 
     # col_idx (0-based within samples) -> node_id
     col_to_node = {idx: int(name) for idx, name in enumerate(header_cols[9:])}
@@ -64,7 +64,7 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
             ind_to_cols[ind_id].append(col_idx)
 
     ind_ids = sorted(ind_to_cols.keys())
-    logging.info(f"sim_id={sim_id} | {len(col_to_node)} nodes -> {len(ind_ids)} individuals | depth={depth}")
+    log.debug(f"{len(col_to_node)} strains -> {len(ind_ids)} hosts | depth={depth}")
 
     # --- sample Dirichlet proportions and Multinomial read counts once per host ---
     # reads[ind_id][i] = number of reads from strain i (the i-th column in ind_to_cols[ind_id])
@@ -77,7 +77,7 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
         proportions = rng.dirichlet(np.ones(n_strains))
         reads[ind_id] = rng.multinomial(depth, proportions)
         proportions_store[ind_id] = (node_ids, proportions, reads[ind_id])
-        logging.info(
+        log.debug(
             f"  ind {ind_id}: {n_strains} strains | "
             f"proportions={np.round(proportions, 3)} | reads={reads[ind_id]}"
         )
@@ -96,7 +96,6 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
                     str([round(float(p), 6) for p in proportions]),
                     str(list(int(r) for r in read_counts)),
                 ])
-        logging.info(f"strain proportions written to {proportions_out}")
 
     # --- write host-level VCF ---
     new_header = header_cols[:9] + [str(ind_id) for ind_id in ind_ids]
@@ -157,7 +156,5 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
             cols[8] = "GT:AD:DP"
             fout.write("\t".join(cols[:9] + sample_fields) + "\n")
 
-    if os.path.exists(output_vcf) and os.path.getsize(output_vcf) > 0:
-        logging.info(f"host-level VCF written to {output_vcf}")
-    else:
-        logging.error(f"host-level VCF not created properly: {output_vcf}")
+    if not (os.path.exists(output_vcf) and os.path.getsize(output_vcf) > 0):
+        raise RuntimeError(f"host VCF not created properly: {output_vcf}")

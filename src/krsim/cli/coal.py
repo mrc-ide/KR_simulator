@@ -2,6 +2,8 @@
 
 import os
 
+from krsim.cli._common import Run
+
 HELP = "Stage 3: coalescence-time and mutation-time tables"
 
 EPILOG = """\
@@ -30,13 +32,19 @@ def run(args):
     import tskit
     from krsim.output.coal_mut_times import mutation_table, coalescence_table
 
-    os.makedirs(args.output_dir, exist_ok=True)
+    run = Run("coal", args.output_dir, args.random_seed)
 
-    # load tree sequence
     ts = tskit.load(args.ts)
+    run.detail(f"read {args.ts} ({ts.num_samples} samples, {ts.num_trees} trees, {ts.num_mutations} mutations)")
 
-    mut_csv_path = os.path.join(args.output_dir, f"mut_T_{args.random_seed}.csv")
-    mutation_table(ts).to_csv(mut_csv_path, index=False)
-
+    coal = coalescence_table(ts)
     coal_csv_path = os.path.join(args.output_dir, f"coal_T_{args.random_seed}.csv")
-    coalescence_table(ts).to_csv(coal_csv_path, index=False)
+    coal.to_csv(coal_csv_path, index=False)
+    run.wrote(coal_csv_path, rows=len(coal))
+
+    mut = mutation_table(ts)
+    mut_csv_path = os.path.join(args.output_dir, f"mut_T_{args.random_seed}.csv")
+    mut.to_csv(mut_csv_path, index=False)
+    run.wrote(mut_csv_path, rows=len(mut))
+
+    run.done()

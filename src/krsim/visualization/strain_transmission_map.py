@@ -1,5 +1,4 @@
 import os
-import logging
 from collections import defaultdict
 
 import pandas as pd
@@ -759,7 +758,7 @@ __DATA_JSON__
 """
 
 
-def save_transmission_map(lineage, node_map, sim_id, output_dir="."):
+def save_strain_transmission_map(lineage, node_map, sim_id, output_dir="."):
     """
     Render an interactive, self-contained HTML transmission map for one
     simulation run and write it to disk.
@@ -787,5 +786,4 @@ def save_transmission_map(lineage, node_map, sim_id, output_dir="."):
     with open(output_path, "w") as f:
         f.write(html)
 
-    logging.info(f"sim_id={sim_id} | wrote strain transmission map to {output_path}")
     return output_path

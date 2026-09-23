@@ -1,10 +1,8 @@
 """krsim simulate — Stage 1: simulate the genealogy."""
 
 import os
-import time
-import logging
 
-from krsim.cli._common import format_elapsed, setup_run_logging
+from krsim.cli._common import Run
 from krsim.defaults import RECOMBINATION_RATE
 
 HELP = "Stage 1: simulate the transmission genealogy"
@@ -59,17 +57,8 @@ def run(args):
     from krsim.output.lineage import save_lineage
     from krsim.output.node_id_map import save_node_id_map
 
-    start_time = time.time()
+    run = Run("simulate", args.output_dir, args.random_seed)
 
-    # create output directory if it doesn't exist
-    os.makedirs(args.output_dir, exist_ok=True)
-
-    setup_run_logging(args.output_dir, args.random_seed)
-    # drop the entries argparse adds for subcommand dispatch
-    sim_args = {k: v for k, v in vars(args).items() if k not in ("command", "func")}
-    logging.debug(f"Simulation parameters: {sim_args}")
-
-    # run simulation
     params = SimParams(
         Nh=args.Nh,
         T=args.T,
@@ -79,32 +68,29 @@ def run(args):
         recombination_rate=args.recombination_rate,
         random_seed=args.random_seed
     )
+    run.detail(f"parameters: Nh={params.Nh} T={params.T} K={params.K} chi={params.chi} C={params.C} "
+               f"recombination_rate={params.recombination_rate} random_seed={params.random_seed}")
 
-    sim = KRSimulator(params)
-    ts, raw_tables, node_map = sim.run(capture_lineage=args.save_lineage)
-
-    elapsed = time.time() - start_time
-    logging.debug(f"Simulation COMPLETED in {format_elapsed(elapsed)}")
-
-    ### OUPUT FILES ###
+    ts, raw_tables, node_map = KRSimulator(params).run(capture_lineage=args.save_lineage)
+    run.detail(f"simulated {params.T} generations -> {ts.num_nodes} nodes after simplify")
 
     # always save the tree sequence: every downstream stage starts from it
     trees_path = os.path.join(args.output_dir, f"ts_{args.random_seed}.trees")
     ts.dump(trees_path)
-    logging.info(f"### tree sequence - {os.path.basename(trees_path)}")
+    run.wrote(trees_path)
 
     # always save the individual-node mapping: vcf-host and relate-host need it
-    append_ind_node_map(ts, sim_id=args.random_seed, output_dir=args.output_dir)
-    logging.info(f"### individual-node mapping - sim_ind_node_map_{args.random_seed}.csv")
+    df = append_ind_node_map(ts, sim_id=args.random_seed, output_dir=args.output_dir)
+    run.wrote(os.path.join(args.output_dir, f"sim_ind_node_map_{args.random_seed}.csv"), rows=len(df))
 
-    # save node pairs
-    if args.save_pairs:
-        save_node_pairs(ts, sim_id=args.random_seed, output_dir=args.output_dir)
-        logging.info(f"### recombinant node pairs - node_pairs_{args.random_seed}.csv")
-
-    # save per-generation child-parent lineage
     if args.save_lineage:
-        save_lineage(raw_tables, sim_id=args.random_seed, output_dir=args.output_dir)
-        logging.info(f"### strain lineage - lineage_{args.random_seed}.csv")
-        save_node_id_map(node_map, sim_id=args.random_seed, output_dir=args.output_dir)
-        logging.info(f"### node ID map (pre/post simplify) - node_id_map_{args.random_seed}.csv")
+        df = save_lineage(raw_tables, sim_id=args.random_seed, output_dir=args.output_dir)
+        run.wrote(os.path.join(args.output_dir, f"lineage_{args.random_seed}.csv"), rows=len(df))
+        df = save_node_id_map(node_map, sim_id=args.random_seed, output_dir=args.output_dir)
+        run.wrote(os.path.join(args.output_dir, f"node_id_map_{args.random_seed}.csv"), rows=len(df))
+
+    if args.save_pairs:
+        df = save_node_pairs(ts, sim_id=args.random_seed, output_dir=args.output_dir)
+        run.wrote(os.path.join(args.output_dir, f"node_pairs_{args.random_seed}.csv"), rows=len(df))
+
+    run.done()

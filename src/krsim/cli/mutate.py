@@ -1,10 +1,8 @@
 """krsim mutate — Stage 2: add mutations to a tree sequence."""
 
 import os
-import time
-import logging
 
-from krsim.cli._common import format_elapsed, setup_run_logging
+from krsim.cli._common import Run
 from krsim.defaults import MUTATION_RATE
 
 HELP = "Stage 2: add mutations to a tree sequence"
@@ -38,23 +36,16 @@ def run(args):
     import tskit
     import msprime
 
-    start_time = time.time()
+    run = Run("mutate", args.output_dir, args.random_seed)
 
-    os.makedirs(args.output_dir, exist_ok=True)
-
-    setup_run_logging(args.output_dir, args.random_seed)
-
-    # load tree sequence
     ts = tskit.load(args.ts)
+    run.detail(f"read {args.ts} ({ts.num_samples} samples, {ts.num_trees} trees)")
 
-    # add mutations
     ts = msprime.sim_mutations(ts, rate=args.mutation_rate, random_seed=args.random_seed)
-    logging.debug(f"mutations added at rate {args.mutation_rate}")
+    run.detail(f"added {ts.num_mutations} mutations at rate {args.mutation_rate}")
 
-    # save mutated tree sequence
     out_path = os.path.join(args.output_dir, f"mutated_{args.random_seed}.trees")
     ts.dump(out_path)
-    logging.info(f"### mutated tree sequence - {os.path.basename(out_path)}")
+    run.wrote(out_path)
 
-    elapsed = time.time() - start_time
-    logging.debug(f"krsim mutate COMPLETED in {format_elapsed(elapsed)}")
+    run.done()

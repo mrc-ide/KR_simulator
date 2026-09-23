@@ -1,6 +1,8 @@
 import os
 import logging
 
+log = logging.getLogger(__name__)
+
 # -----------------------------
 # CHROMOSOME BOUNDARIES
 # -----------------------------
@@ -39,7 +41,7 @@ def process_vcf(ts, input_vcf, output_vcf):
 
     # verify node order matches VCF column order
     sample_nodes = list(ts.samples())
-    logging.info(f"sample nodes (VCF column order): {sample_nodes}")
+    log.debug(f"sample nodes (VCF column order): {sample_nodes}")
 
     # read raw VCF
     with open(input_vcf) as fin:
@@ -54,7 +56,7 @@ def process_vcf(ts, input_vcf, output_vcf):
     # log mapping of original column names to node IDs
     original_samples = header[9:]
     for orig, node_id in zip(original_samples, sample_nodes):
-        logging.info(f"  column {orig} -> node_{node_id}")
+        log.debug(f"  column {orig} -> node_{node_id}")
 
     # build new sample column names from node IDs
     new_samples = [f"{node_id}" for node_id in sample_nodes]
@@ -102,8 +104,7 @@ def process_vcf(ts, input_vcf, output_vcf):
 
     # confirm output and clean up
     if os.path.exists(output_vcf) and os.path.getsize(output_vcf) > 0:
-        logging.info(f"VCF written to {output_vcf}")
         os.remove(input_vcf)
-        logging.info(f"deleted raw VCF: {input_vcf}")
+        log.debug(f"deleted raw VCF: {input_vcf}")
     else:
-        logging.error(f"output VCF not created properly — raw VCF NOT deleted: {input_vcf}")
+        raise RuntimeError(f"strain VCF not created properly; raw VCF kept: {input_vcf}")

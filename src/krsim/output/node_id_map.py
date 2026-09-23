@@ -1,5 +1,4 @@
 import os
-import logging
 import numpy as np
 import pandas as pd
 import tskit
@@ -34,5 +33,4 @@ def save_node_id_map(node_map, sim_id, output_dir="."):
         df = pd.concat([existing, df], ignore_index=True)
 
     df.to_csv(output_path, index=False)
-    logging.debug(f"sim_id={sim_id} | wrote {len(df)} node ID mapping rows")
     return df

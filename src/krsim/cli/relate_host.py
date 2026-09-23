@@ -1,10 +1,8 @@
 """krsim relate-host — per-host average of the true strain IBD fraction."""
 
 import os
-import time
-import logging
 
-from krsim.cli._common import format_elapsed
+from krsim.cli._common import Run
 
 HELP = "True average IBD between the strains in each current host"
 
@@ -38,17 +36,13 @@ def run(args):
     import pandas as pd
     from krsim.stats.relate_host import host_average_ibd
 
-    start_time = time.time()
-
-    os.makedirs(args.output_dir, exist_ok=True)
+    run = Run("relate-host", args.output_dir, args.random_seed)
 
     host_relatedness = host_average_ibd(
         pd.read_csv(args.relate_csv), pd.read_csv(args.ind_node_map_csv), sim_id=args.random_seed
     )
-
     out_path = os.path.join(args.output_dir, f"relate_host_{args.random_seed}.csv")
     host_relatedness.to_csv(out_path, index=False)
-    logging.info(f"### host relatedness - {out_path}")
+    run.wrote(out_path, rows=len(host_relatedness))
 
-    elapsed = time.time() - start_time
-    logging.info(f"krsim relate-host COMPLETED in {format_elapsed(elapsed)}")
+    run.done()

@@ -1,10 +1,8 @@
 """krsim pairwise-strain-pedigree-map — interactive HTML pedigree coalescence trace."""
 
 import os
-import time
-import logging
 
-from krsim.cli._common import format_elapsed, require_lineage_files
+from krsim.cli._common import Run, require_lineage_files
 
 HELP = "Interactive HTML trace of two strains' shared pedigree ancestors"
 
@@ -38,17 +36,13 @@ def run(args):
     import pandas as pd
     from krsim.visualization.pairwise_strain_pedigree_map import save_pairwise_strain_pedigree_map
 
-    start_time = time.time()
-
-    os.makedirs(args.output_dir, exist_ok=True)
+    run = Run("pairwise-strain-pedigree-map", args.output_dir, args.random_seed)
 
     require_lineage_files(args.lineage_csv, args.node_id_map_csv)
-
     lineage = pd.read_csv(args.lineage_csv)
     node_map = pd.read_csv(args.node_id_map_csv)
 
     out_path = save_pairwise_strain_pedigree_map(lineage, node_map, sim_id=args.random_seed, output_dir=args.output_dir)
-    logging.info(f"### pairwise strain pedigree map - {out_path}")
+    run.wrote(out_path)
 
-    elapsed = time.time() - start_time
-    logging.info(f"krsim pairwise-strain-pedigree-map COMPLETED in {format_elapsed(elapsed)}")
+    run.done()

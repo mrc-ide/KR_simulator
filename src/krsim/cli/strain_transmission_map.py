@@ -1,10 +1,8 @@
 """krsim strain-transmission-map — interactive HTML transmission map."""
 
 import os
-import time
-import logging
 
-from krsim.cli._common import format_elapsed, require_lineage_files
+from krsim.cli._common import Run, require_lineage_files
 
 HELP = "Interactive HTML map of who infected whom"
 
@@ -36,19 +34,15 @@ def run(args):
     # imported here rather than at module level so `krsim --help` stays fast
     # (these pull in numpy/pandas/tskit/msprime)
     import pandas as pd
-    from krsim.visualization.strain_transmission_map import save_transmission_map
+    from krsim.visualization.strain_transmission_map import save_strain_transmission_map
 
-    start_time = time.time()
-
-    os.makedirs(args.output_dir, exist_ok=True)
+    run = Run("strain-transmission-map", args.output_dir, args.random_seed)
 
     require_lineage_files(args.lineage_csv, args.node_id_map_csv)
-
     lineage = pd.read_csv(args.lineage_csv)
     node_map = pd.read_csv(args.node_id_map_csv)
 
-    out_path = save_transmission_map(lineage, node_map, sim_id=args.random_seed, output_dir=args.output_dir)
-    logging.info(f"### strain transmission map - {out_path}")
+    out_path = save_strain_transmission_map(lineage, node_map, sim_id=args.random_seed, output_dir=args.output_dir)
+    run.wrote(out_path)
 
-    elapsed = time.time() - start_time
-    logging.info(f"krsim strain-transmission-map COMPLETED in {format_elapsed(elapsed)}")
+    run.done()

@@ -102,7 +102,7 @@ flowchart TD
     linkStyle 5,6 stroke:#94a3b8,stroke-width:1.6px
 ```
 
-**How to read it:** each blue box is a `krsim` command, and the white boxes inside it are the files it writes. A solid box is always written; a dashed one only when you pass the flag shown in it. An arrow from a file into another stage's box means that command reads that file — a solid arrow for files that are always there, a dashed arrow where the file needs a flag. So to run any command, follow its incoming arrows back to see which earlier steps (and flags) it needs. `krsim simulate` and `krsim mutate` also write a run log, `KR_sim_{seed}.log`.
+**How to read it:** each blue box is a `krsim` command, and the white boxes inside it are the files it writes. A solid box is always written; a dashed one only when you pass the flag shown in it. An arrow from a file into another stage's box means that command reads that file — a solid arrow for files that are always there, a dashed arrow where the file needs a flag. So to run any command, follow its incoming arrows back to see which earlier steps (and flags) it needs. Every command also adds a record of what it ran and wrote to `KR_sim_{seed}.log` in its `--output_dir`.
 
 Each stage reads the previous stage's output from disk, so you can stop, inspect, and resume at any point. The relatedness commands are described under [Relatedness statistics](#relatedness-statistics) below.
 
@@ -256,7 +256,7 @@ krsim relate-host \
 | `pairwise_strain_pedigree_map_{seed}.html` | additional | Interactive pedigree coalescence trace for any two strains |
 | `relate_strain_{seed}.csv` | stats | Pairwise strain IBD fraction (`krsim relate-strain`) |
 | `relate_host_{seed}.csv` | stats | Average pairwise IBD fraction per host, most recent generation only (`krsim relate-host`) |
-| `KR_sim_{seed}.log` | 1–2 | Accumulated log — only `krsim simulate` and `krsim mutate` currently write to it |
+| `KR_sim_{seed}.log` | all | Run log — every command adds a block with the time, krsim version, exact command line, files written and run time (and the full error details if it fails) |
 
 ---
 

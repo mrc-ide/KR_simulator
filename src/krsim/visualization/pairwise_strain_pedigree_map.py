@@ -1,5 +1,4 @@
 import os
-import logging
 
 from krsim.visualization.strain_transmission_map import _build_viz_data
 
@@ -666,5 +665,4 @@ def save_pairwise_strain_pedigree_map(lineage, node_map, sim_id, output_dir=".")
     with open(output_path, "w") as f:
         f.write(html)
 
-    logging.info(f"sim_id={sim_id} | wrote pairwise strain pedigree map to {output_path}")
     return output_path
