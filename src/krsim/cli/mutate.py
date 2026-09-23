@@ -5,6 +5,7 @@ import time
 import logging
 
 from krsim.cli._common import format_elapsed, setup_run_logging
+from krsim.defaults import MUTATION_RATE
 
 HELP = "Stage 2: add mutations to a tree sequence"
 
@@ -15,13 +16,15 @@ def add_arguments(parser):
     # --- required parameters ---
     required.add_argument("--ts", type=str, required=True,
                           help="Path to tree sequence (.trees) file")
-    required.add_argument("--mutation_rate", type=float, required=True,
-                          help="Per bp mutation rate (e.g. 1e-6)")
     required.add_argument("--random_seed", type=int, required=True,
                           help="Random seed for reproducibility")
 
     required.add_argument("--output_dir", type=str, required=True,
                           help="Directory to write output files.")
+
+    # --- optional parameters ---
+    parser.add_argument("--mutation_rate", type=float, default=MUTATION_RATE,
+                        help=f"Per bp mutation rate (default: {MUTATION_RATE})")
 
 
 def run(args):
