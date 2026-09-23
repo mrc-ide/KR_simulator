@@ -24,6 +24,9 @@ def add_arguments(parser):
                           help="Superinfection probability (0.0 - 1.0)")
     required.add_argument("--C", type=int, required=True,
                           help="Number of oocysts per mosquito")
+    # model parameter, but falls back to the P. falciparum value if not given
+    required.add_argument("--recombination_rate", type=float, default=RECOMBINATION_RATE,
+                          help=f"Per bp recombination rate (default if not given: {RECOMBINATION_RATE})")
     required.add_argument("--random_seed", type=int, required=True,
                           help="Random seed for reproducibility")
 
@@ -31,8 +34,6 @@ def add_arguments(parser):
                           help="Directory to write output files to.")
 
     # --- optional parameters ---
-    parser.add_argument("--recombination_rate", type=float, default=RECOMBINATION_RATE,
-                        help=f"Per bp recombination rate (default: {RECOMBINATION_RATE})")
     parser.add_argument("--save_ts", action="store_true",
                         help="If set, saves the tree sequence object to a .trees file.")
     parser.add_argument("--save_ID", action="store_true",

@@ -86,7 +86,7 @@ krsim simulate \
 | `--K` | Parasite strains per transmission event |
 | `--chi` | Superinfection probability (0–1) |
 | `--C` | Oocysts per mosquito |
-| `--recombination_rate` | Per-bp recombination rate — optional, default `7.4e-7` (*P. falciparum*) |
+| `--recombination_rate` | Per-bp recombination rate — uses `7.4e-7` (*P. falciparum*) if not given |
 | `--random_seed` | Seed for reproducibility |
 | `--out_dir` | Output directory |
 | `--save_ts` | Save tree sequence to `ts_{seed}.trees` |
@@ -126,7 +126,7 @@ krsim mutate \
     --output_dir results/
 ```
 
-`--mutation_rate` is optional (default `1e-6` per bp). Outputs `mutated_{seed}.trees`. All stages from here onwards use the mutated tree sequence.
+If `--mutation_rate` is not given, `1e-6` per bp is used. Outputs `mutated_{seed}.trees`. All stages from here onwards use the mutated tree sequence.
 
 ### Stage 3 — Coalescence & mutation times
 

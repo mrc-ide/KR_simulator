@@ -16,15 +16,14 @@ def add_arguments(parser):
     # --- required parameters ---
     required.add_argument("--ts", type=str, required=True,
                           help="Path to tree sequence (.trees) file")
+    # model parameter, but falls back to the P. falciparum value if not given
+    required.add_argument("--mutation_rate", type=float, default=MUTATION_RATE,
+                          help=f"Per bp mutation rate (default if not given: {MUTATION_RATE})")
     required.add_argument("--random_seed", type=int, required=True,
                           help="Random seed for reproducibility")
 
     required.add_argument("--output_dir", type=str, required=True,
                           help="Directory to write output files.")
-
-    # --- optional parameters ---
-    parser.add_argument("--mutation_rate", type=float, default=MUTATION_RATE,
-                        help=f"Per bp mutation rate (default: {MUTATION_RATE})")
 
 
 def run(args):
