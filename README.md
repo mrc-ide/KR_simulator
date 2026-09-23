@@ -123,7 +123,7 @@ Always writes the tree sequence `ts_{seed}.trees`, which every later stage start
 |---|---|
 | `--Nh` | Number of human hosts |
 | `--T` | Transmission generations |
-| `--K` | Parasite strains per human host (2K if superinfected) |
+| `--K` | Parasites transmitted per mosquito bite |
 | `--chi` | Superinfection probability (0–1) |
 | `--C` | Oocysts per mosquito |
 | `--recombination_rate` | Per-bp recombination rate — uses `7.4e-7` (*P. falciparum*) if not given |

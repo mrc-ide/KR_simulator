@@ -30,7 +30,7 @@ def add_arguments(parser):
     required.add_argument("--T", type=int, required=True, metavar="N",
                           help="Number of generations")
     required.add_argument("--K", type=int, required=True, metavar="N",
-                          help="Parasite strains per human host (2K if superinfected)")
+                          help="Parasites transmitted per mosquito bite")
     required.add_argument("--chi", type=float, required=True, metavar="P",
                           help="Superinfection probability (0-1)")
     required.add_argument("--C", type=int, required=True, metavar="N",
