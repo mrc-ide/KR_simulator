@@ -7,54 +7,46 @@ import logging
 from krsim.cli._common import format_elapsed, setup_run_logging
 from krsim.defaults import RECOMBINATION_RATE
 
-HELP = "Stage 1: simulate the transmission genealogy (tree sequence)"
+HELP = "Stage 1: simulate the transmission genealogy"
 
 EPILOG = """\
-Outputs (written to --output_dir):
-  Always:
-    ts_<seed>.trees               tree sequence — input to `krsim mutate`
-    sim_ind_node_map_<seed>.csv   host → strain mapping — needed by vcf-host, relate-host
-    KR_sim_<seed>.log             run log
-  With --save_lineage:
-    lineage_<seed>.csv, node_id_map_<seed>.csv
-                                  true pedigree — needed by transmission-map, pairwise-coalescence
-  With --save_pairs:
-    node_pairs_<seed>.csv         same-meiosis strain pairs (not used by other commands)
+Outputs:
+  always          ts_<seed>.trees, sim_ind_node_map_<seed>.csv, KR_sim_<seed>.log
+  --save_lineage  lineage_<seed>.csv, node_id_map_<seed>.csv
+  --save_pairs    node_pairs_<seed>.csv
+
+Example:
+  krsim simulate --Nh 10 --T 50 --K 2 --chi 0.18 --C 1 \\
+      --random_seed 42 --output_dir results/ --save_lineage
 """
+
 
 
 def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
-    # --- required parameters ---
-    required.add_argument("--Nh", type=int, required=True,
+    required.add_argument("--Nh", type=int, required=True, metavar="N",
                           help="Number of human hosts")
-    required.add_argument("--T", type=int, required=True,
+    required.add_argument("--T", type=int, required=True, metavar="N",
                           help="Number of generations")
-    required.add_argument("--K", type=int, required=True,
-                          help="Number of parasite strains per transmission")
-    required.add_argument("--chi", type=float, required=True,
-                          help="Superinfection probability (0.0 - 1.0)")
-    required.add_argument("--C", type=int, required=True,
-                          help="Number of oocysts per mosquito")
+    required.add_argument("--K", type=int, required=True, metavar="N",
+                          help="Parasite strains per transmission")
+    required.add_argument("--chi", type=float, required=True, metavar="P",
+                          help="Superinfection probability (0-1)")
+    required.add_argument("--C", type=int, required=True, metavar="N",
+                          help="Oocysts per mosquito")
     # model parameter, but falls back to the P. falciparum value if not given
-    required.add_argument("--recombination_rate", type=float, default=RECOMBINATION_RATE,
-                          help=f"Per bp recombination rate (default if not given: {RECOMBINATION_RATE})")
-    required.add_argument("--random_seed", type=int, required=True,
+    required.add_argument("--recombination_rate", type=float, default=RECOMBINATION_RATE, metavar="R",
+                          help=f"Per bp recombination rate (default: {RECOMBINATION_RATE})")
+    required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
                           help="Random seed for reproducibility")
+    required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
+                          help="Where to write the output files")
 
-    required.add_argument("--output_dir", type=str, required=True,
-                          help="Directory to write output files to.")
-
-    # --- optional parameters ---
-    parser.add_argument("--save_pairs", action="store_true",
-                        help="Save node_pairs_<seed>.csv: pairs of strains produced by the same meiosis, "
-                             "across all generations (e.g. for locating recombination breakpoints). "
-                             "Not needed by any other krsim command.")
     parser.add_argument("--save_lineage", action="store_true",
-                        help="Save the true generation-by-generation pedigree (lineage_<seed>.csv + "
-                             "node_id_map_<seed>.csv). Needed by transmission-map and "
-                             "pairwise-coalescence. Uses extra memory on large runs.")
+                        help="Also save the true pedigree (for the visualizations)")
+    parser.add_argument("--save_pairs", action="store_true",
+                        help="Also save same-meiosis strain pairs")
 
 
 def run(args):

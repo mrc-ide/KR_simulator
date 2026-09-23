@@ -6,23 +6,31 @@ import logging
 
 from krsim.cli._common import format_elapsed, require_lineage_files
 
-HELP = "Render an interactive HTML page for tracing pedigree coalescence between two strains"
+HELP = "Interactive HTML trace of two strains back to shared pedigree ancestors"
+
+EPILOG = """\
+Needs `krsim simulate --save_lineage`.
+
+Outputs:
+  always  pairwise_coalescence_<seed>.html
+
+Example:
+  krsim pairwise-coalescence --random_seed 42 --output_dir results/
+"""
 
 
 def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
-    # --- required parameters ---
-    required.add_argument("--random_seed", type=int, required=True,
-                          help="Random seed for reproducibility (also used as sim_id)")
+    required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
+                          help="Seed of the run (finds and names its files)")
 
-    # --- optional parameters ---
-    parser.add_argument("--lineage_csv", type=str, default=None,
-                        help="Path to lineage CSV (default: <output_dir>/lineage_<random_seed>.csv)")
-    parser.add_argument("--node_id_map_csv", type=str, default=None,
-                        help="Path to node ID map CSV (default: <output_dir>/node_id_map_<random_seed>.csv)")
-    parser.add_argument("--output_dir", type=str, default=".",
-                        help="Directory to write output files to (default: current directory).")
+    parser.add_argument("--lineage_csv", type=str, default=None, metavar="FILE",
+                        help="Pedigree table (default: <output_dir>/lineage_<seed>.csv)")
+    parser.add_argument("--node_id_map_csv", type=str, default=None, metavar="FILE",
+                        help="Node ID map (default: <output_dir>/node_id_map_<seed>.csv)")
+    parser.add_argument("--output_dir", type=str, default=".", metavar="DIR",
+                        help="Where to read and write files (default: current directory)")
 
 
 def run(args):

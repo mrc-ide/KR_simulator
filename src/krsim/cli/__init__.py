@@ -17,7 +17,7 @@ from krsim.cli import (
 )
 
 # subcommand name -> module providing HELP, add_arguments(parser), run(args)
-# and optionally EPILOG (extra text shown at the end of its --help)
+# and EPILOG (outputs + example, shown at the end of its --help)
 COMMANDS = {
     "simulate": simulate,
     "mutate": mutate,
@@ -31,23 +31,52 @@ COMMANDS = {
 }
 
 
+class HelpFormatter(RawDescriptionRichHelpFormatter):
+    """Raw* keeps the line layout of each command's EPILOG (outputs + example);
+    the wider flag column stops most flags pushing their description onto a new line."""
+
+    def __init__(self, prog, **kwargs):
+        kwargs.setdefault("max_help_position", 30)
+        super().__init__(prog, **kwargs)
+
+    def add_argument(self, action):
+        super().add_argument(action)
+        # argparse sizes the column without the extra indent of the command list,
+        # which pushes the longest command name's description onto its own line
+        if isinstance(action, argparse._SubParsersAction):
+            self._action_max_length += self._indent_increment
+
+
+def _add_help(parser):
+    parser.add_argument("-h", "--help", action="help", help="Show this help and exit")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="krsim",
+        usage="krsim <command> [options]",
         description="KR Malaria Transmission Simulator",
-        formatter_class=RawDescriptionRichHelpFormatter,
+        epilog="Run `krsim <command> --help` to see a command's options.",
+        formatter_class=HelpFormatter,
+        add_help=False,
     )
-    subparsers = parser.add_subparsers(dest="command", required=True, metavar="<command>")
+    _add_help(parser)
+    subparsers = parser.add_subparsers(title="commands", dest="command", required=True, metavar="<command>")
 
     for name, module in COMMANDS.items():
-        # Raw* keeps the line layout of each command's optional EPILOG (e.g. its outputs list)
         sub = subparsers.add_parser(name, help=module.HELP, description=module.HELP,
+                                    usage=f"krsim {name} [options]",
                                     epilog=getattr(module, "EPILOG", None),
-                                    formatter_class=RawDescriptionRichHelpFormatter)
+                                    formatter_class=HelpFormatter,
+                                    add_help=False)
+        _add_help(sub)
         module.add_arguments(sub)
         # list the "required arguments" section before argparse's built-in optional one
         sub._action_groups.sort(key=lambda group: group.title != "required arguments")
         sub.set_defaults(func=module.run)
+
+    # list the commands before the -h/--help option
+    parser._action_groups.sort(key=lambda group: group.title != "commands")
 
     args = parser.parse_args(argv)
     args.func(args)

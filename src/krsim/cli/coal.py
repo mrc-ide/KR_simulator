@@ -2,19 +2,26 @@
 
 import os
 
-HELP = "Stage 3: write the coalescence-time (coal_T) and mutation-time (mut_T) tables"
+HELP = "Stage 3: coalescence-time and mutation-time tables"
+
+EPILOG = """\
+Outputs:
+  always  coal_T_<seed>.csv, mut_T_<seed>.csv
+
+Example:
+  krsim coal --ts results/mutated_42.trees --random_seed 42 --output_dir results/
+"""
 
 
 def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
-    # --- required parameters ---
-    required.add_argument("--ts", type=str, required=True,
-                          help="Path to tree sequence (.trees) file")
-    required.add_argument("--random_seed", type=int, required=True,
-                          help="Random seed for reproducibility")
-    required.add_argument("--output_dir", type=str, required=True,
-                          help="Directory to write output files.")
+    required.add_argument("--ts", type=str, required=True, metavar="FILE",
+                          help="Mutated tree sequence from `krsim mutate` (mutated_<seed>.trees)")
+    required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
+                          help="Seed of the run (names the output files)")
+    required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
+                          help="Where to write the output files")
 
 
 def run(args):

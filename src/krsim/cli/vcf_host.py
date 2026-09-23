@@ -6,27 +6,35 @@ import logging
 
 from krsim.cli._common import format_elapsed
 
-HELP = "Stage 5: aggregate a per-strain VCF to per-host (individual) level"
+HELP = "Stage 5: per-host VCF (mixes each host's strains into reads)"
+
+EPILOG = """\
+Outputs:
+  always              output_<seed>_host.vcf
+  --save_proportions  host_proportions_<seed>.csv
+
+Example:
+  krsim vcf-host --strain_vcf results/output_42_strain.vcf --random_seed 42 \\
+      --depth 10 --output_dir results/
+"""
 
 
 def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
-    # --- required parameters ---
-    required.add_argument("--strain_vcf", type=str, required=True,
-                          help="Path to the per-strain VCF file (output of `krsim vcf-strain`)")
-    required.add_argument("--random_seed", type=int, required=True,
-                          help="Random seed for reproducibility (also used as sim_id)")
-    required.add_argument("--depth", type=int, required=True,
-                          help="Total reads drawn per host per site (Multinomial depth)")
+    required.add_argument("--strain_vcf", type=str, required=True, metavar="FILE",
+                          help="Strain VCF from `krsim vcf-strain`")
+    required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
+                          help="Seed of the run (also seeds the read sampling)")
+    required.add_argument("--depth", type=int, required=True, metavar="N",
+                          help="Reads drawn per host per site")
 
-    # --- optional parameters ---
-    parser.add_argument("--ind_node_map_csv", type=str, default=None,
-                        help="Path to sim_ind_node_map CSV (default: <output_dir>/sim_ind_node_map_<random_seed>.csv)")
-    parser.add_argument("--output_dir", type=str, default=".",
-                        help="Directory to write output files to (default: current directory).")
+    parser.add_argument("--ind_node_map_csv", type=str, default=None, metavar="FILE",
+                        help="Host-strain map (default: <output_dir>/sim_ind_node_map_<seed>.csv)")
+    parser.add_argument("--output_dir", type=str, default=".", metavar="DIR",
+                        help="Where to write the output files (default: current directory)")
     parser.add_argument("--save_proportions", action="store_true",
-                        help="If set, saves a CSV of per-host Dirichlet strain proportions and read counts.")
+                        help="Also save per-host strain proportions and read counts")
 
 
 def run(args):

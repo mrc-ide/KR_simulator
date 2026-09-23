@@ -6,24 +6,29 @@ import logging
 
 from krsim.cli._common import format_elapsed
 
-HELP = ("Per-host average pairwise IBD fraction from strain-level relatedness, "
-        "restricted to the most recent (currently sampled) human hosts")
+HELP = "True average IBD between the strains in each current host"
+
+EPILOG = """\
+Outputs:
+  always  relate_host_<seed>.csv
+
+Example:
+  krsim relate-host --random_seed 42 --output_dir results/
+"""
 
 
 def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
-    # --- required parameters ---
-    required.add_argument("--random_seed", type=int, required=True,
-                          help="Random seed for reproducibility (also used as sim_id)")
+    required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
+                          help="Seed of the run (finds and names its files)")
 
-    # --- optional parameters ---
-    parser.add_argument("--relate_csv", type=str, default=None,
-                        help="Path to relate_strain CSV (default: <output_dir>/relate_strain_<random_seed>.csv)")
-    parser.add_argument("--ind_node_map_csv", type=str, default=None,
-                        help="Path to sim_ind_node_map CSV (default: <output_dir>/sim_ind_node_map_<random_seed>.csv)")
-    parser.add_argument("--output_dir", type=str, default=".",
-                        help="Directory to write output files to (default: current directory).")
+    parser.add_argument("--relate_csv", type=str, default=None, metavar="FILE",
+                        help="Strain IBD table (default: <output_dir>/relate_strain_<seed>.csv)")
+    parser.add_argument("--ind_node_map_csv", type=str, default=None, metavar="FILE",
+                        help="Host-strain map (default: <output_dir>/sim_ind_node_map_<seed>.csv)")
+    parser.add_argument("--output_dir", type=str, default=".", metavar="DIR",
+                        help="Where to read and write files (default: current directory)")
 
 
 def run(args):

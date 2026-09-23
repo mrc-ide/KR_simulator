@@ -6,23 +6,29 @@ import logging
 
 from krsim.cli._common import format_elapsed
 
-HELP = "True pairwise strain IBD fraction from the coalescence time table"
+HELP = "True pairwise IBD fraction between strains"
+
+EPILOG = """\
+Outputs:
+  always  relate_strain_<seed>.csv
+
+Example:
+  krsim relate-strain --random_seed 42 --time_boundary 2 --output_dir results/
+"""
 
 
 def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
-    # --- required parameters ---
-    required.add_argument("--random_seed", type=int, required=True,
-                          help="Random seed for reproducibility (also used as sim_id)")
-    required.add_argument("--time_boundary", type=float, required=True,
-                          help="Coalescence time threshold; segments with coal_time <= this are counted as IBD")
+    required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
+                          help="Seed of the run (finds and names its files)")
+    required.add_argument("--time_boundary", type=float, required=True, metavar="T",
+                          help="Segments that coalesce within T generations count as IBD")
 
-    # --- optional parameters ---
-    parser.add_argument("--coal_csv", type=str, default=None,
-                        help="Path to coal_T CSV (default: <output_dir>/coal_T_<random_seed>.csv)")
-    parser.add_argument("--output_dir", type=str, default=".",
-                        help="Directory to write output files to (default: current directory).")
+    parser.add_argument("--coal_csv", type=str, default=None, metavar="FILE",
+                        help="Coalescence table (default: <output_dir>/coal_T_<seed>.csv)")
+    parser.add_argument("--output_dir", type=str, default=".", metavar="DIR",
+                        help="Where to read and write files (default: current directory)")
 
 
 def run(args):

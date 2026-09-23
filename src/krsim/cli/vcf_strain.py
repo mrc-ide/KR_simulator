@@ -6,19 +6,27 @@ import logging
 
 from krsim.cli._common import format_elapsed
 
-HELP = "Stage 4: write a per-strain VCF from a mutated tree sequence"
+HELP = "Stage 4: per-strain VCF"
+
+EPILOG = """\
+Outputs:
+  always  output_<seed>_strain.vcf
+
+Example:
+  krsim vcf-strain --ts results/mutated_42.trees --random_seed 42 --output_dir results/
+"""
 
 
 def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
-    # --- required parameters ---
-    required.add_argument("--ts", type=str, required=True,
-                          help="Path to mutated tree sequence (.trees) file")
-    required.add_argument("--random_seed", type=int, required=True,
-                          help="Random seed for reproducibility")
-    parser.add_argument("--output_dir", type=str, default=".",
-                        help="Directory to write output files to (default: current directory).")
+    required.add_argument("--ts", type=str, required=True, metavar="FILE",
+                          help="Mutated tree sequence from `krsim mutate` (mutated_<seed>.trees)")
+    required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
+                          help="Seed of the run (names the output files)")
+
+    parser.add_argument("--output_dir", type=str, default=".", metavar="DIR",
+                        help="Where to write the output files (default: current directory)")
 
 
 def run(args):
