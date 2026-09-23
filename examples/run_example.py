@@ -61,12 +61,16 @@ run("Stage 1: simulate", [
 
 run("Transmission map: visualize simulated pedigree", [
     *KRSIM, "transmission-map",
+    "--lineage_csv",     os.path.join(OUTPUT_DIR, f"lineage_{SEED}.csv"),
+    "--node_id_map_csv", os.path.join(OUTPUT_DIR, f"node_id_map_{SEED}.csv"),
     "--random_seed", str(SEED),
     "--output_dir",  OUTPUT_DIR,
 ])
 
 run("Pairwise coalescence: trace two strains to a shared ancestor", [
     *KRSIM, "pairwise-coalescence",
+    "--lineage_csv",     os.path.join(OUTPUT_DIR, f"lineage_{SEED}.csv"),
+    "--node_id_map_csv", os.path.join(OUTPUT_DIR, f"node_id_map_{SEED}.csv"),
     "--random_seed", str(SEED),
     "--output_dir",  OUTPUT_DIR,
 ])
@@ -96,6 +100,7 @@ run("Stage 4: strain VCF", [
 run("Stage 5: host VCF + strain proportions", [
     *KRSIM, "vcf-host",
     "--strain_vcf",  STRAIN_VCF,
+    "--ind_node_map_csv", os.path.join(OUTPUT_DIR, f"sim_ind_node_map_{SEED}.csv"),
     "--random_seed", str(SEED),
     "--depth",       "10",
     "--output_dir",  OUTPUT_DIR,

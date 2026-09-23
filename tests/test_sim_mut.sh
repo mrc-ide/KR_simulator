@@ -63,11 +63,15 @@ TS_FILE="$OUT_DIR/ts_${SEED}.trees"
 
 run_stage "Transmission map (only needs Stage 1's --save_lineage)" \
     krsim transmission-map \
+    --lineage_csv "$OUT_DIR/lineage_${SEED}.csv" \
+    --node_id_map_csv "$OUT_DIR/node_id_map_${SEED}.csv" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
 
 run_stage "Pairwise coalescence (only needs Stage 1's --save_lineage)" \
     krsim pairwise-coalescence \
+    --lineage_csv "$OUT_DIR/lineage_${SEED}.csv" \
+    --node_id_map_csv "$OUT_DIR/node_id_map_${SEED}.csv" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
 
@@ -97,6 +101,7 @@ STRAIN_VCF="$OUT_DIR/output_${SEED}_strain.vcf"
 run_stage "Stage 5: Host VCF" \
     krsim vcf-host \
     --strain_vcf "$STRAIN_VCF" \
+    --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \
     --random_seed "$SEED" \
     --depth 10 \
     --output_dir "$OUT_DIR" \
@@ -104,12 +109,15 @@ run_stage "Stage 5: Host VCF" \
 
 run_stage "Extras: pairwise IBD fractions (krsim relate-strain)" \
     krsim relate-strain \
+    --coal_csv "$OUT_DIR/coal_T_${SEED}.csv" \
     --random_seed "$SEED" \
     --time_boundary 2 \
     --output_dir "$OUT_DIR"
 
 run_stage "Extras: host relatedness (krsim relate-host)" \
     krsim relate-host \
+    --relate_csv "$OUT_DIR/relate_strain_${SEED}.csv" \
+    --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
 

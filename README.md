@@ -136,6 +136,8 @@ Always writes the tree sequence `ts_{seed}.trees`, which every later stage start
 
 ```bash
 krsim transmission-map \
+    --lineage_csv results/lineage_42.csv \
+    --node_id_map_csv results/node_id_map_42.csv \
     --random_seed 42 \
     --output_dir results/
 ```
@@ -146,6 +148,8 @@ Needs `--save_lineage` from Stage 1. Renders an interactive, self-contained `tra
 
 ```bash
 krsim pairwise-coalescence \
+    --lineage_csv results/lineage_42.csv \
+    --node_id_map_csv results/node_id_map_42.csv \
     --random_seed 42 \
     --output_dir results/
 ```
@@ -193,6 +197,7 @@ Outputs `output_{seed}_strain.vcf` — one sample column per parasite strain (no
 ```bash
 krsim vcf-host \
     --strain_vcf results/output_42_strain.vcf \
+    --ind_node_map_csv results/sim_ind_node_map_42.csv \
     --random_seed 42 \
     --depth 10 \
     --output_dir results/ \
@@ -214,11 +219,14 @@ Optional ground-truth relatedness, computed from Stage 3's `coal_T` table. Not r
 
 ```bash
 krsim relate-strain \
+    --coal_csv results/coal_T_42.csv \
     --random_seed 42 \
     --time_boundary 2 \
     --output_dir results/
 
 krsim relate-host \
+    --relate_csv results/relate_strain_42.csv \
+    --ind_node_map_csv results/sim_ind_node_map_42.csv \
     --random_seed 42 \
     --output_dir results/
 ```

@@ -13,22 +13,23 @@ Outputs:
   always  relate_host_<seed>.csv
 
 Example:
-  krsim relate-host --random_seed 42 --output_dir results/
+  krsim relate-host --relate_csv results/relate_strain_42.csv \\
+      --ind_node_map_csv results/sim_ind_node_map_42.csv \\
+      --random_seed 42 --output_dir results/
 """
 
 
 def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
+    required.add_argument("--relate_csv", type=str, required=True, metavar="FILE",
+                          help="Strain IBD table from `krsim relate-strain` (relate_strain_<seed>.csv)")
+    required.add_argument("--ind_node_map_csv", type=str, required=True, metavar="FILE",
+                          help="Host-strain map from `krsim simulate` (sim_ind_node_map_<seed>.csv)")
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
-                          help="Seed of the run (finds and names its files)")
+                          help="Seed of the run (selects its hosts, names the output file)")
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
-                          help="Where to read and write files")
-
-    parser.add_argument("--relate_csv", type=str, default=None, metavar="FILE",
-                        help="Strain IBD table (default: <output_dir>/relate_strain_<seed>.csv)")
-    parser.add_argument("--ind_node_map_csv", type=str, default=None, metavar="FILE",
-                        help="Host-strain map (default: <output_dir>/sim_ind_node_map_<seed>.csv)")
+                          help="Where to write the output file")
 
 
 def run(args):
@@ -41,16 +42,8 @@ def run(args):
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    relate_csv = args.relate_csv
-    if relate_csv is None:
-        relate_csv = os.path.join(args.output_dir, f"relate_strain_{args.random_seed}.csv")
-
-    ind_node_map_csv = args.ind_node_map_csv
-    if ind_node_map_csv is None:
-        ind_node_map_csv = os.path.join(args.output_dir, f"sim_ind_node_map_{args.random_seed}.csv")
-
     host_relatedness = host_average_ibd(
-        pd.read_csv(relate_csv), pd.read_csv(ind_node_map_csv), sim_id=args.random_seed
+        pd.read_csv(args.relate_csv), pd.read_csv(args.ind_node_map_csv), sim_id=args.random_seed
     )
 
     out_path = os.path.join(args.output_dir, f"relate_host_{args.random_seed}.csv")

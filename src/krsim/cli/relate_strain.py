@@ -13,22 +13,22 @@ Outputs:
   always  relate_strain_<seed>.csv
 
 Example:
-  krsim relate-strain --random_seed 42 --time_boundary 2 --output_dir results/
+  krsim relate-strain --coal_csv results/coal_T_42.csv --random_seed 42 \\
+      --time_boundary 2 --output_dir results/
 """
 
 
 def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
+    required.add_argument("--coal_csv", type=str, required=True, metavar="FILE",
+                          help="Coalescence table from `krsim coal` (coal_T_<seed>.csv)")
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
-                          help="Seed of the run (finds and names its files)")
+                          help="Seed of the run (names the output file)")
     required.add_argument("--time_boundary", type=float, required=True, metavar="T",
                           help="Segments that coalesce within T generations count as IBD")
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
-                          help="Where to read and write files")
-
-    parser.add_argument("--coal_csv", type=str, default=None, metavar="FILE",
-                        help="Coalescence table (default: <output_dir>/coal_T_<seed>.csv)")
+                          help="Where to write the output file")
 
 
 def run(args):
@@ -41,11 +41,7 @@ def run(args):
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    coal_csv = args.coal_csv
-    if coal_csv is None:
-        coal_csv = os.path.join(args.output_dir, f"coal_T_{args.random_seed}.csv")
-
-    pairs = strain_ibd_fractions(pd.read_csv(coal_csv), args.time_boundary)
+    pairs = strain_ibd_fractions(pd.read_csv(args.coal_csv), args.time_boundary)
 
     out_path = os.path.join(args.output_dir, f"relate_strain_{args.random_seed}.csv")
     pairs.to_csv(out_path, index=False)

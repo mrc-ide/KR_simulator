@@ -14,8 +14,9 @@ Outputs:
   --save_proportions  host_proportions_<seed>.csv
 
 Example:
-  krsim vcf-host --strain_vcf results/output_42_strain.vcf --random_seed 42 \\
-      --depth 10 --output_dir results/
+  krsim vcf-host --strain_vcf results/output_42_strain.vcf \\
+      --ind_node_map_csv results/sim_ind_node_map_42.csv \\
+      --random_seed 42 --depth 10 --output_dir results/
 """
 
 
@@ -24,6 +25,8 @@ def add_arguments(parser):
 
     required.add_argument("--strain_vcf", type=str, required=True, metavar="FILE",
                           help="Strain VCF from `krsim vcf-strain`")
+    required.add_argument("--ind_node_map_csv", type=str, required=True, metavar="FILE",
+                          help="Host-strain map from `krsim simulate` (sim_ind_node_map_<seed>.csv)")
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
                           help="Seed of the run (also seeds the read sampling)")
     required.add_argument("--depth", type=int, required=True, metavar="N",
@@ -31,8 +34,6 @@ def add_arguments(parser):
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
                           help="Where to write the output files")
 
-    parser.add_argument("--ind_node_map_csv", type=str, default=None, metavar="FILE",
-                        help="Host-strain map (default: <output_dir>/sim_ind_node_map_<seed>.csv)")
     parser.add_argument("--save_proportions", action="store_true",
                         help="Also save per-host strain proportions and read counts")
 
@@ -46,10 +47,6 @@ def run(args):
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    ind_node_map_csv = args.ind_node_map_csv
-    if ind_node_map_csv is None:
-        ind_node_map_csv = os.path.join(args.output_dir, f"sim_ind_node_map_{args.random_seed}.csv")
-
     host_vcf = os.path.join(args.output_dir, f"output_{args.random_seed}_host.vcf")
     proportions_out = None
     if args.save_proportions:
@@ -58,7 +55,7 @@ def run(args):
     process_host_vcf(
         sim_id=args.random_seed,
         input_vcf=args.strain_vcf,
-        ind_node_map_csv=ind_node_map_csv,
+        ind_node_map_csv=args.ind_node_map_csv,
         output_vcf=host_vcf,
         depth=args.depth,
         random_seed=args.random_seed,
