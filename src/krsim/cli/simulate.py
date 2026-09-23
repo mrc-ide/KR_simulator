@@ -35,7 +35,9 @@ def add_arguments(parser):
 
     # --- optional parameters ---
     parser.add_argument("--save_pairs", action="store_true",
-                        help="If set, saves a CSV of recombinant node pairs across all generations.")
+                        help="Save node_pairs_<seed>.csv: pairs of strains produced by the same meiosis, "
+                             "across all generations (e.g. for locating recombination breakpoints). "
+                             "Not needed by any other krsim command.")
     parser.add_argument("--save_lineage", action="store_true",
                         help="Save the true generation-by-generation pedigree (lineage_<seed>.csv + "
                              "node_id_map_<seed>.csv). Needed by transmission-map and "
