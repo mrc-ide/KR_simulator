@@ -23,7 +23,7 @@ def add_arguments(parser):
     required.add_argument("--ts", type=str, required=True, metavar="FILE",
                           help="Mutated tree sequence from `krsim mutate` (mutated_<seed>.trees)")
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
-                          help="Seed of the run (names the output files)")
+                          help="Random seed")
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
                           help="Where to write the output files")
 

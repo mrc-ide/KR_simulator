@@ -27,7 +27,7 @@ def add_arguments(parser):
     required.add_argument("--ind_node_map_csv", type=str, required=True, metavar="FILE",
                           help="Host-strain map from `krsim simulate` (sim_ind_node_map_<seed>.csv)")
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
-                          help="Seed of the run (selects its hosts, names the output file)")
+                          help="Random seed")
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
                           help="Where to write the output file")
 
