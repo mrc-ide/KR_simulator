@@ -44,29 +44,67 @@ Check it worked with `krsim --help`, which lists every command.
 
 ## Pipeline
 
-Everything runs through the `krsim` command, one subcommand per step (`krsim <command> --help` shows each one's flags). The core simulation is split into five independent stages, plus two pedigree-based visualization tools, `krsim transmission-map` and `krsim pairwise-coalescence`, which both branch directly off Stage 1 and only need its `--save_lineage` output. Each stage reads the previous stage's output from disk, so you can stop, inspect, and resume at any point.
+Everything runs through the `krsim` command, one subcommand per step (`krsim <command> --help` shows each one's flags). The core simulation is split into five stages, plus two pedigree visualizations. The diagram shows each of these commands, the files it writes, and which later commands read them.
 
 ```mermaid
-graph TD
-    sim["krsim simulate"]
-    mut["krsim mutate"]
-    tmap["krsim transmission-map"]
-    pairwise["krsim pairwise-coalescence"]
-    coal["krsim coal"]
-    vcfs["krsim vcf-strain"]
-    vcfh["krsim vcf-host"]
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif", "fontSize": "14px", "lineColor": "#475569"}, "flowchart": {"curve": "basis", "nodeSpacing": 30, "rankSpacing": 50, "padding": 16}}}%%
+flowchart TD
+    subgraph SIM["Stage 1 · krsim simulate"]
+        ts("ts_{seed}.trees"):::file
+        sinm("sim_ind_node_map_{seed}.csv"):::file
+        lin("lineage_{seed}.csv<br/>node_id_map_{seed}.csv<br/><i>with --save_lineage</i>"):::optfile
+        pairs("node_pairs_{seed}.csv<br/><i>with --save_pairs</i>"):::optfile
+    end
 
-    sim --> mut
-    sim --> tmap
-    sim --> pairwise
-    mut --> coal
-    mut --> vcfs
-    vcfs --> vcfh
+    subgraph MUT["Stage 2 · krsim mutate"]
+        mts("mutated_{seed}.trees"):::file
+    end
+
+    subgraph COAL["Stage 3 · krsim coal"]
+        coalT("coal_T_{seed}.csv"):::file
+        mutT("mut_T_{seed}.csv"):::file
+    end
+
+    subgraph VCFS["Stage 4 · krsim vcf-strain"]
+        svcf("output_{seed}_strain.vcf"):::file
+    end
+
+    subgraph VCFH["Stage 5 · krsim vcf-host"]
+        hvcf("output_{seed}_host.vcf"):::file
+        props("host_proportions_{seed}.csv<br/><i>with --save_proportions</i>"):::optfile
+    end
+
+    subgraph VIS["Pedigree visualizations · optional"]
+        subgraph TMAP["krsim transmission-map"]
+            tmapH("transmission_map_{seed}.html"):::file
+        end
+        subgraph PW["krsim pairwise-coalescence"]
+            pwH("pairwise_coalescence_{seed}.html"):::file
+        end
+    end
+
+    %% arrows point at the files inside each stage (not the stage box itself),
+    %% which keeps mermaid from stretching the boxes
+    ts --> mts
+    mts --> coalT
+    mts --> svcf
+    svcf --> hvcf
+    sinm --> hvcf
+    lin -.-> tmapH
+    lin -.-> pwH
+
+    classDef file fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a
+    classDef optfile fill:#ffffff,stroke:#94a3b8,stroke-width:1px,stroke-dasharray:4 3,color:#334155
+    classDef stage fill:#eff6ff,stroke:#3b82f6,stroke-width:1.5px,color:#1e3a8a
+    class SIM,MUT,COAL,VCFS,VCFH,TMAP,PW stage
+    style VIS fill:#f8fafc,stroke:#94a3b8,stroke-width:1px,stroke-dasharray:4 3,color:#475569
+    linkStyle default stroke:#475569,stroke-width:1.6px
+    linkStyle 5,6 stroke:#94a3b8,stroke-width:1.6px
 ```
 
-`krsim transmission-map` and `krsim pairwise-coalescence` both hang directly off `krsim simulate` and don't depend on anything else.
+**How to read it:** each blue box is a `krsim` command, and the white boxes inside it are the files it writes. A solid box is always written; a dashed one only when you pass the flag shown in it. An arrow from a file into another stage's box means that command reads that file — a solid arrow for files that are always there, a dashed arrow where the file needs a flag. So to run any command, follow its incoming arrows back to see which earlier steps (and flags) it needs. `krsim simulate` and `krsim mutate` also write a run log, `KR_sim_{seed}.log`.
 
-Coalescence-time (true IBD) relatedness is optional — see [Relatedness statistics](#relatedness-statistics) below.
+Each stage reads the previous stage's output from disk, so you can stop, inspect, and resume at any point. The relatedness commands are described under [Relatedness statistics](#relatedness-statistics) below.
 
 ### Stage 1 — Simulate genealogy
 
