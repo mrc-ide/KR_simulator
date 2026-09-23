@@ -1,6 +1,6 @@
 # krsim — Malaria Transmission Simulator
 
-A forward simulator of *Plasmodium falciparum* transmission and recombination between human hosts and mosquitoes. It records the full genealogy as a tree sequence, and from it produces mutations, coalescence times, and VCFs at both the parasite-strain and human-host level.
+A forward simulator that brings together malaria modelling and population genetics to model parasite transmission. Whole-genome information is tracked through every recombination event as an ancestral recombination graph, stored efficiently with [tskit](https://tskit.dev). From the recorded genealogy (a tree sequence), krsim overlays mutations and outputs coalescence times across the genome and VCF files at the strain level and at the (observed) host level.
 
 ## Installation
 
