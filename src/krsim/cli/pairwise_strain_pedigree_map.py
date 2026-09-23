@@ -23,9 +23,9 @@ def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
     required.add_argument("--lineage_csv", type=str, required=True, metavar="FILE",
-                          help="Pedigree table (lineage_<seed>.csv, from simulate --save_lineage)")
+                          help="Pedigree from `krsim simulate --save_lineage` (lineage_<seed>.csv)")
     required.add_argument("--node_id_map_csv", type=str, required=True, metavar="FILE",
-                          help="Node ID map (node_id_map_<seed>.csv, from simulate --save_lineage)")
+                          help="Node IDs from `krsim simulate --save_lineage` (node_id_map_<seed>.csv)")
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
                           help="Random seed")
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
