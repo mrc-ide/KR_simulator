@@ -28,7 +28,7 @@ krsim simulate \
     --Nh 3 --T 10 --K 2 --chi 0.18 --C 1 \
     --recombination_rate 7.4e-7 --random_seed 123 \
     --output_dir examples/output \
-    --save_ID --save_pairs
+    --save_pairs
 
 # Stage 2: add mutations
 krsim mutate \

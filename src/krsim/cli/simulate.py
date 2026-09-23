@@ -34,8 +34,6 @@ def add_arguments(parser):
                           help="Directory to write output files to.")
 
     # --- optional parameters ---
-    parser.add_argument("--save_ID", action="store_true",
-                        help="If set, saves a CSV of simulation, individual and node mapping across all generations.")
     parser.add_argument("--save_pairs", action="store_true",
                         help="If set, saves a CSV of recombinant node pairs across all generations.")
     parser.add_argument("--save_lineage", action="store_true",
@@ -86,10 +84,9 @@ def run(args):
     ts.dump(trees_path)
     logging.info(f"### tree sequence - {os.path.basename(trees_path)}")
 
-    # save individual-node mapping
-    if args.save_ID:
-        append_ind_node_map(ts, sim_id=args.random_seed, output_dir=args.output_dir)
-        logging.info(f"### individual-node mapping - sim_ind_node_map_{args.random_seed}.csv")
+    # always save the individual-node mapping: vcf-host and relate-host need it
+    append_ind_node_map(ts, sim_id=args.random_seed, output_dir=args.output_dir)
+    logging.info(f"### individual-node mapping - sim_ind_node_map_{args.random_seed}.csv")
 
     # save node pairs
     if args.save_pairs:
