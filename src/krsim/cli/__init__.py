@@ -42,6 +42,8 @@ def main(argv=None):
         sub = subparsers.add_parser(name, help=module.HELP, description=module.HELP,
                                     formatter_class=RichHelpFormatter)
         module.add_arguments(sub)
+        # list the "required arguments" section before argparse's built-in optional one
+        sub._action_groups.sort(key=lambda group: group.title != "required arguments")
         sub.set_defaults(func=module.run)
 
     args = parser.parse_args(argv)

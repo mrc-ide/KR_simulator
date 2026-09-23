@@ -11,9 +11,11 @@ HELP = ("Per-host average pairwise IBD fraction from strain-level relatedness, "
 
 
 def add_arguments(parser):
+    required = parser.add_argument_group("required arguments")
+
     # --- required parameters ---
-    parser.add_argument("--random_seed", type=int, required=True,
-                        help="Random seed for reproducibility (also used as sim_id)")
+    required.add_argument("--random_seed", type=int, required=True,
+                          help="Random seed for reproducibility (also used as sim_id)")
 
     # --- optional parameters ---
     parser.add_argument("--relate_csv", type=str, default=None,

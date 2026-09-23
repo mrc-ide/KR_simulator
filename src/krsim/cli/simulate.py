@@ -10,24 +10,26 @@ HELP = "Stage 1: simulate the transmission genealogy (tree sequence)"
 
 
 def add_arguments(parser):
-    # --- required parameters ---
-    parser.add_argument("--Nh", type=int, required=True,
-                        help="Number of human hosts")
-    parser.add_argument("--T", type=int, required=True,
-                        help="Number of generations")
-    parser.add_argument("--K", type=int, required=True,
-                        help="Number of parasite strains per transmission")
-    parser.add_argument("--chi", type=float, required=True,
-                        help="Superinfection probability (0.0 - 1.0)")
-    parser.add_argument("--C", type=int, required=True,
-                        help="Number of oocysts per mosquito")
-    parser.add_argument("--recombination_rate", type=float, required=True,
-                        help="Per bp recombination rate")
-    parser.add_argument("--random_seed", type=int, required=True,
-                        help="Random seed for reproducibility")
+    required = parser.add_argument_group("required arguments")
 
-    parser.add_argument("--out_dir", type=str, required=True,
-                        help="Directory to write output files to.")
+    # --- required parameters ---
+    required.add_argument("--Nh", type=int, required=True,
+                          help="Number of human hosts")
+    required.add_argument("--T", type=int, required=True,
+                          help="Number of generations")
+    required.add_argument("--K", type=int, required=True,
+                          help="Number of parasite strains per transmission")
+    required.add_argument("--chi", type=float, required=True,
+                          help="Superinfection probability (0.0 - 1.0)")
+    required.add_argument("--C", type=int, required=True,
+                          help="Number of oocysts per mosquito")
+    required.add_argument("--recombination_rate", type=float, required=True,
+                          help="Per bp recombination rate")
+    required.add_argument("--random_seed", type=int, required=True,
+                          help="Random seed for reproducibility")
+
+    required.add_argument("--out_dir", type=str, required=True,
+                          help="Directory to write output files to.")
 
     # --- optional parameters ---
     parser.add_argument("--save_ts", action="store_true",

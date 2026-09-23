@@ -10,11 +10,13 @@ HELP = "Stage 4: write a per-strain VCF from a mutated tree sequence"
 
 
 def add_arguments(parser):
+    required = parser.add_argument_group("required arguments")
+
     # --- required parameters ---
-    parser.add_argument("--ts", type=str, required=True,
-                        help="Path to mutated tree sequence (.trees) file")
-    parser.add_argument("--random_seed", type=int, required=True,
-                        help="Random seed for reproducibility")
+    required.add_argument("--ts", type=str, required=True,
+                          help="Path to mutated tree sequence (.trees) file")
+    required.add_argument("--random_seed", type=int, required=True,
+                          help="Random seed for reproducibility")
     parser.add_argument("--output_dir", type=str, default=".",
                         help="Directory to write output files to (default: current directory).")
 

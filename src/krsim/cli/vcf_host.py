@@ -10,13 +10,15 @@ HELP = "Stage 5: aggregate a per-strain VCF to per-host (individual) level"
 
 
 def add_arguments(parser):
+    required = parser.add_argument_group("required arguments")
+
     # --- required parameters ---
-    parser.add_argument("--strain_vcf", type=str, required=True,
-                        help="Path to the per-strain VCF file (output of `krsim vcf-strain`)")
-    parser.add_argument("--random_seed", type=int, required=True,
-                        help="Random seed for reproducibility (also used as sim_id)")
-    parser.add_argument("--depth", type=int, required=True,
-                        help="Total reads drawn per host per site (Multinomial depth)")
+    required.add_argument("--strain_vcf", type=str, required=True,
+                          help="Path to the per-strain VCF file (output of `krsim vcf-strain`)")
+    required.add_argument("--random_seed", type=int, required=True,
+                          help="Random seed for reproducibility (also used as sim_id)")
+    required.add_argument("--depth", type=int, required=True,
+                          help="Total reads drawn per host per site (Multinomial depth)")
 
     # --- optional parameters ---
     parser.add_argument("--ind_node_map_csv", type=str, default=None,

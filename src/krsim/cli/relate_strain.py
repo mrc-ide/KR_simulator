@@ -10,11 +10,13 @@ HELP = "True pairwise strain IBD fraction from the coalescence time table"
 
 
 def add_arguments(parser):
+    required = parser.add_argument_group("required arguments")
+
     # --- required parameters ---
-    parser.add_argument("--random_seed", type=int, required=True,
-                        help="Random seed for reproducibility (also used as sim_id)")
-    parser.add_argument("--time_boundary", type=float, required=True,
-                        help="Coalescence time threshold; segments with coal_time <= this are counted as IBD")
+    required.add_argument("--random_seed", type=int, required=True,
+                          help="Random seed for reproducibility (also used as sim_id)")
+    required.add_argument("--time_boundary", type=float, required=True,
+                          help="Coalescence time threshold; segments with coal_time <= this are counted as IBD")
 
     # --- optional parameters ---
     parser.add_argument("--coal_csv", type=str, default=None,

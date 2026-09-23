@@ -10,16 +10,18 @@ HELP = "Stage 2: add mutations to a tree sequence"
 
 
 def add_arguments(parser):
-    # --- required parameters ---
-    parser.add_argument("--ts", type=str, required=True,
-                        help="Path to tree sequence (.trees) file")
-    parser.add_argument("--mutation_rate", type=float, required=True,
-                        help="Per bp mutation rate (e.g. 1e-6)")
-    parser.add_argument("--random_seed", type=int, required=True,
-                        help="Random seed for reproducibility")
+    required = parser.add_argument_group("required arguments")
 
-    parser.add_argument("--output_dir", type=str, required=True,
-                        help="Directory to write output files.")
+    # --- required parameters ---
+    required.add_argument("--ts", type=str, required=True,
+                          help="Path to tree sequence (.trees) file")
+    required.add_argument("--mutation_rate", type=float, required=True,
+                          help="Per bp mutation rate (e.g. 1e-6)")
+    required.add_argument("--random_seed", type=int, required=True,
+                          help="Random seed for reproducibility")
+
+    required.add_argument("--output_dir", type=str, required=True,
+                          help="Directory to write output files.")
 
 
 def run(args):

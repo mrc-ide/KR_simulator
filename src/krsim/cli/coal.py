@@ -6,13 +6,15 @@ HELP = "Stage 3: write the coalescence-time (coal_T) and mutation-time (mut_T) t
 
 
 def add_arguments(parser):
+    required = parser.add_argument_group("required arguments")
+
     # --- required parameters ---
-    parser.add_argument("--ts", type=str, required=True,
-                        help="Path to tree sequence (.trees) file")
-    parser.add_argument("--random_seed", type=int, required=True,
-                        help="Random seed for reproducibility")
-    parser.add_argument("--output_dir", type=str, required=True,
-                        help="Directory to write output files.")
+    required.add_argument("--ts", type=str, required=True,
+                          help="Path to tree sequence (.trees) file")
+    required.add_argument("--random_seed", type=int, required=True,
+                          help="Random seed for reproducibility")
+    required.add_argument("--output_dir", type=str, required=True,
+                          help="Directory to write output files.")
 
 
 def run(args):
