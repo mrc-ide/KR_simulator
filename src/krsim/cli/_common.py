@@ -91,8 +91,7 @@ class Run:
         log.info(f"wrote  {path}", extra={"detail": f" ({rows:,} rows)" if rows is not None else None})
 
     def done(self):
-        log.info(f"done in {format_elapsed(time.time() - self.start)}",
-                 extra={"screen": f"  (log: {self.log_path})"})
+        log.info(f"done in {format_elapsed(time.time() - self.start)}")
         self._close()
 
     def fail(self, message):

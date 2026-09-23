@@ -15,7 +15,9 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUT_DIR="$REPO_ROOT/tests/test_output"
+# run from the repo root so paths print short (tests/test_output/...)
+cd "$REPO_ROOT"
+OUT_DIR="tests/test_output"
 SEED=123
 
 # simulation parameters for this smoke test (the only place these live --
@@ -34,22 +36,29 @@ else
     BOLD=""; GREEN=""; CYAN=""; YELLOW=""; RESET=""
 fi
 
-# runs a labeled stage, timing it and printing a colored banner + elapsed time
+# one-line content check printed under a stage, e.g. for the binary .trees
+# files the regression check can't compare
+check() {
+    python -c "$1" | sed "s/^/  ${GREEN}✓${RESET} /"
+    echo
+}
+
+# runs a labeled stage under a colored banner (krsim itself reports what it
+# wrote and how long it took)
 run_stage() {
     local label="$1"; shift
-    echo
     echo "${BOLD}${CYAN}=== ${label} ===${RESET}"
-    local start end elapsed
-    start=$(date +%s.%N)
     "$@"
-    end=$(date +%s.%N)
-    elapsed=$(awk -v s="$start" -v e="$end" 'BEGIN{printf "%.1f", e-s}')
-    echo "${GREEN}✓ done in ${elapsed}s${RESET}"
 }
 
 # delete and recreate the output directory
 rm -rf "$OUT_DIR"
 mkdir -p "$OUT_DIR"
+
+echo
+echo "Outputs: $OUT_DIR"
+echo "Log:     $OUT_DIR/KR_sim_${SEED}.log  (every command adds its details here)"
+echo
 
 run_stage "Stage 1: Simulate genealogy" \
     krsim simulate \
@@ -60,6 +69,10 @@ run_stage "Stage 1: Simulate genealogy" \
     --save_pairs --save_lineage
 
 TS_FILE="$OUT_DIR/ts_${SEED}.trees"
+check "
+import tskit
+ts = tskit.load('$TS_FILE')
+print(f'ts_${SEED}.trees: {ts.num_trees} trees, {ts.num_samples} samples, {ts.num_nodes} nodes')"
 
 run_stage "Strain transmission map (only needs Stage 1's --save_lineage)" \
     krsim strain-transmission-map \
@@ -83,12 +96,23 @@ run_stage "Stage 2: Add mutations" \
     --output_dir "$OUT_DIR"
 
 MUT_TS_FILE="$OUT_DIR/mutated_${SEED}.trees"
+check "
+import tskit
+ts = tskit.load('$MUT_TS_FILE')
+print(f'mutated_${SEED}.trees: {ts.num_mutations} mutations at {ts.num_sites} sites across {ts.num_trees} trees')"
 
 run_stage "Stage 3: Coalescence & mutation time tables" \
     krsim coal \
     --ts "$MUT_TS_FILE" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
+check "
+import pandas as pd
+coal = pd.read_csv('$OUT_DIR/coal_T_${SEED}.csv')
+mut = pd.read_csv('$OUT_DIR/mut_T_${SEED}.csv')
+pairs = coal[['sample_1', 'sample_2']].drop_duplicates()
+print(f'coal_T_${SEED}.csv: {len(coal):,} coalescence events (one per strain pair per tree; {len(pairs)} strain pairs coalesce)')
+print(f'mut_T_${SEED}.csv: {len(mut):,} mutations')"
 
 run_stage "Stage 4: Strain VCF" \
     krsim vcf-strain \
@@ -121,91 +145,23 @@ run_stage "Extras: host relatedness (krsim relate-host)" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
 
-# prints a bounded preview of a CSV: row count + first N data rows
-preview_csv() {
-    local label="$1" path="$2" n="${3:-5}"
-    echo
-    if [ ! -f "$path" ]; then
-        echo "${BOLD}=== ${label} (missing) ===${RESET}"
-        return
-    fi
-    echo "${BOLD}=== ${label} ($(($(wc -l < "$path") - 1)) rows) ===${RESET}"
-    head -n $((n + 1)) "$path"
-}
-
-# prints a bounded preview of a VCF, skipping the noisy ## meta-header lines
-# (writes to a temp file rather than piping into head, since `grep | head`
-# makes grep exit via SIGPIPE once head has enough lines, which aborts the
-# whole script under `set -o pipefail`)
-preview_vcf() {
-    local label="$1" path="$2" n="${3:-5}"
-    echo
-    echo "${BOLD}=== ${label} ===${RESET}"
-    local tmp
-    tmp=$(mktemp)
-    grep -v "^##" "$path" > "$tmp"
-    head -n $((n + 1)) "$tmp"
-    rm -f "$tmp"
-}
-
-echo
-echo "${BOLD}=== Output files ===${RESET}"
-ls -lh "$OUT_DIR"
-
-preview_csv "sim_ind_node_map_${SEED}.csv" "$OUT_DIR/sim_ind_node_map_${SEED}.csv"
-preview_csv "node_pairs_${SEED}.csv"       "$OUT_DIR/node_pairs_${SEED}.csv"
-preview_csv "lineage_${SEED}.csv"          "$OUT_DIR/lineage_${SEED}.csv"
-preview_csv "node_id_map_${SEED}.csv"      "$OUT_DIR/node_id_map_${SEED}.csv"
-
-echo
-echo "${BOLD}=== strain_transmission_map_${SEED}.html ===${RESET}"
-ls -lh "$OUT_DIR/strain_transmission_map_${SEED}.html"
-
-echo
-echo "${BOLD}=== pairwise_strain_pedigree_map_${SEED}.html ===${RESET}"
-ls -lh "$OUT_DIR/pairwise_strain_pedigree_map_${SEED}.html"
-
-echo
-echo "${BOLD}=== tree sequence summary (pre-mutation) ===${RESET}"
-python -c "
-import tskit
-ts = tskit.load('$TS_FILE')
-print(f'samples={ts.num_samples}, trees={ts.num_trees}, sequence_length={ts.sequence_length:.0f}')
-"
-
-echo
-echo "${BOLD}=== mutated tree sequence summary ===${RESET}"
-python -c "
-import tskit
-ts = tskit.load('$MUT_TS_FILE')
-print(f'samples={ts.num_samples}, sites={ts.num_sites}, mutations={ts.num_mutations}')
-"
-
-preview_csv "mut_T_${SEED}.csv"            "$OUT_DIR/mut_T_${SEED}.csv"
-preview_csv "coal_T_${SEED}.csv"           "$OUT_DIR/coal_T_${SEED}.csv"
-preview_vcf "output_${SEED}_strain.vcf"    "$STRAIN_VCF"
-preview_vcf "output_${SEED}_host.vcf"      "$OUT_DIR/output_${SEED}_host.vcf"
-preview_csv "host_proportions_${SEED}.csv" "$OUT_DIR/host_proportions_${SEED}.csv"
-preview_csv "relate_strain_${SEED}.csv"    "$OUT_DIR/relate_strain_${SEED}.csv"
-preview_csv "relate_host_${SEED}.csv"      "$OUT_DIR/relate_host_${SEED}.csv"
-
 echo
 echo "${GREEN}${BOLD}Pipeline completed successfully.${RESET} Output in: $OUT_DIR"
 
 echo
 echo "${BOLD}=== Regression check ===${RESET}"
 compare_exit=0
-python "$REPO_ROOT/tests/compare_outputs.py" \
+python tests/compare_outputs.py \
     --actual  "$OUT_DIR" \
-    --expected "$REPO_ROOT/tests/expected" || compare_exit=$?
+    --expected "tests/expected" || compare_exit=$?
 
 if [ -t 1 ]; then
     echo
     read -r -p "${BOLD}Update expected results with these outputs? [y/N]${RESET} " reply
     if [[ "$reply" =~ ^[Yy]$ ]]; then
-        python "$REPO_ROOT/tests/compare_outputs.py" \
+        python tests/compare_outputs.py \
             --actual   "$OUT_DIR" \
-            --expected "$REPO_ROOT/tests/expected" \
+            --expected "tests/expected" \
             --bless
     fi
 fi
