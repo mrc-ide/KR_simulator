@@ -70,7 +70,8 @@ class Parser(argparse.ArgumentParser):
 
 
 def _add_help(parser):
-    parser.add_argument("-h", "--help", action="help", help="Show this help and exit")
+    # -h/--help still works; it isn't listed, since anyone reading the help already used it
+    parser.add_argument("-h", "--help", action="help", help=argparse.SUPPRESS)
 
 
 def main(argv=None):
