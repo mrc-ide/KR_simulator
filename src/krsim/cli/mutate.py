@@ -11,7 +11,7 @@ HELP = "Stage 2: add mutations to a tree sequence"
 
 EPILOG = """\
 Outputs:
-  always  mutated_<seed>.trees (and adds to KR_sim_<seed>.log)
+  always  mutated_<seed>.trees
 
 Example:
   krsim mutate --ts results/ts_42.trees --random_seed 42 --output_dir results/
