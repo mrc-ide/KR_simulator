@@ -28,11 +28,11 @@ def add_arguments(parser):
                           help="Seed of the run (also seeds the read sampling)")
     required.add_argument("--depth", type=int, required=True, metavar="N",
                           help="Reads drawn per host per site")
+    required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
+                          help="Where to write the output files")
 
     parser.add_argument("--ind_node_map_csv", type=str, default=None, metavar="FILE",
                         help="Host-strain map (default: <output_dir>/sim_ind_node_map_<seed>.csv)")
-    parser.add_argument("--output_dir", type=str, default=".", metavar="DIR",
-                        help="Where to write the output files (default: current directory)")
     parser.add_argument("--save_proportions", action="store_true",
                         help="Also save per-host strain proportions and read counts")
 

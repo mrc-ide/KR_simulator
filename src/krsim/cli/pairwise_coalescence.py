@@ -24,13 +24,13 @@ def add_arguments(parser):
 
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
                           help="Seed of the run (finds and names its files)")
+    required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
+                          help="Where to read and write files")
 
     parser.add_argument("--lineage_csv", type=str, default=None, metavar="FILE",
                         help="Pedigree table (default: <output_dir>/lineage_<seed>.csv)")
     parser.add_argument("--node_id_map_csv", type=str, default=None, metavar="FILE",
                         help="Node ID map (default: <output_dir>/node_id_map_<seed>.csv)")
-    parser.add_argument("--output_dir", type=str, default=".", metavar="DIR",
-                        help="Where to read and write files (default: current directory)")
 
 
 def run(args):

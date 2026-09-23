@@ -24,11 +24,11 @@ def add_arguments(parser):
                           help="Seed of the run (finds and names its files)")
     required.add_argument("--time_boundary", type=float, required=True, metavar="T",
                           help="Segments that coalesce within T generations count as IBD")
+    required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
+                          help="Where to read and write files")
 
     parser.add_argument("--coal_csv", type=str, default=None, metavar="FILE",
                         help="Coalescence table (default: <output_dir>/coal_T_<seed>.csv)")
-    parser.add_argument("--output_dir", type=str, default=".", metavar="DIR",
-                        help="Where to read and write files (default: current directory)")
 
 
 def run(args):

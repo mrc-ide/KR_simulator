@@ -22,13 +22,13 @@ def add_arguments(parser):
 
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
                           help="Seed of the run (finds and names its files)")
+    required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
+                          help="Where to read and write files")
 
     parser.add_argument("--relate_csv", type=str, default=None, metavar="FILE",
                         help="Strain IBD table (default: <output_dir>/relate_strain_<seed>.csv)")
     parser.add_argument("--ind_node_map_csv", type=str, default=None, metavar="FILE",
                         help="Host-strain map (default: <output_dir>/sim_ind_node_map_<seed>.csv)")
-    parser.add_argument("--output_dir", type=str, default=".", metavar="DIR",
-                        help="Where to read and write files (default: current directory)")
 
 
 def run(args):

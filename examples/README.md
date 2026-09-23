@@ -49,7 +49,7 @@ krsim vcf-strain \
 # Stage 5: per-host VCF + strain proportions
 krsim vcf-host \
     --strain_vcf examples/output/output_123_strain.vcf \
-    --random_seed 123 --output_dir examples/output \
+    --random_seed 123 --depth 10 --output_dir examples/output \
     --save_proportions
 ```
 
