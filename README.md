@@ -288,3 +288,4 @@ Runs the full pipeline with seed 123, prints a summary of every output file, the
 - pandas
 - matplotlib
 - pyyaml
+- rich-argparse (coloured `--help` output)

@@ -2,6 +2,8 @@
 
 import argparse
 
+from rich_argparse import RichHelpFormatter
+
 from krsim.cli import (
     simulate,
     mutate,
@@ -32,11 +34,13 @@ def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="krsim",
         description="KR Malaria Transmission Simulator",
+        formatter_class=RichHelpFormatter,
     )
     subparsers = parser.add_subparsers(dest="command", required=True, metavar="<command>")
 
     for name, module in COMMANDS.items():
-        sub = subparsers.add_parser(name, help=module.HELP, description=module.HELP)
+        sub = subparsers.add_parser(name, help=module.HELP, description=module.HELP,
+                                    formatter_class=RichHelpFormatter)
         module.add_arguments(sub)
         sub.set_defaults(func=module.run)
 

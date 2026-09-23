@@ -15,6 +15,7 @@ dependencies = [
     "pandas",
     "matplotlib",
     "pyyaml",
+    "rich-argparse",
 ]
 
 [project.scripts]
