@@ -288,9 +288,8 @@ KR_SIM/
 │   │   └── pairwise_strain_pedigree_map.py
 │   └── config.py         #   Load SimParams from a YAML file
 │
-├── examples/             # Tutorial
+├── tutorial/             # Tutorial
 │   ├── tutorial.ipynb    #   Runs every command on a small simulation, with outputs
-│   ├── output/           #   Files the tutorial produces
 │   └── README.md         #   How to open the tutorial
 │
 ├── tests/                # Testing and regression tools
@@ -306,11 +305,11 @@ KR_SIM/
 
 ## Quick start (tutorial)
 
-[`examples/tutorial.ipynb`](examples/tutorial.ipynb) runs every `krsim` command on a small simulation and shows what each one writes. It is saved with its outputs, so you can read it on GitHub without running anything, or open it yourself after installing krsim:
+[`tutorial/tutorial.ipynb`](tutorial/tutorial.ipynb) runs every `krsim` command on a small simulation and shows what each one writes. It is saved with its outputs, so you can read it on GitHub without running anything, or open it yourself after installing krsim:
 
 ```bash
 pip install notebook      # Jupyter isn't installed with krsim
-cd examples
+cd tutorial
 jupyter notebook tutorial.ipynb
 ```
 
