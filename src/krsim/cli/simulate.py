@@ -30,7 +30,7 @@ def add_arguments(parser):
     required.add_argument("--random_seed", type=int, required=True,
                           help="Random seed for reproducibility")
 
-    required.add_argument("--out_dir", type=str, required=True,
+    required.add_argument("--output_dir", type=str, required=True,
                           help="Directory to write output files to.")
 
     # --- optional parameters ---
@@ -57,9 +57,9 @@ def run(args):
     start_time = time.time()
 
     # create output directory if it doesn't exist
-    os.makedirs(args.out_dir, exist_ok=True)
+    os.makedirs(args.output_dir, exist_ok=True)
 
-    setup_run_logging(args.out_dir, args.random_seed)
+    setup_run_logging(args.output_dir, args.random_seed)
     # drop the entries argparse adds for subcommand dispatch
     sim_args = {k: v for k, v in vars(args).items() if k not in ("command", "func")}
     logging.debug(f"Simulation parameters: {sim_args}")
@@ -85,23 +85,23 @@ def run(args):
 
     # save tree sequence
     if args.save_ts:
-        trees_path = os.path.join(args.out_dir, f"ts_{args.random_seed}.trees")
+        trees_path = os.path.join(args.output_dir, f"ts_{args.random_seed}.trees")
         ts.dump(trees_path)
         logging.info(f"### tree sequence - {os.path.basename(trees_path)}")
 
     # save individual-node mapping
     if args.save_ID:
-        append_ind_node_map(ts, sim_id=args.random_seed, output_dir=args.out_dir)
+        append_ind_node_map(ts, sim_id=args.random_seed, output_dir=args.output_dir)
         logging.info(f"### individual-node mapping - sim_ind_node_map_{args.random_seed}.csv")
 
     # save node pairs
     if args.save_pairs:
-        save_node_pairs(ts, sim_id=args.random_seed, output_dir=args.out_dir)
+        save_node_pairs(ts, sim_id=args.random_seed, output_dir=args.output_dir)
         logging.info(f"### recombinant node pairs - node_pairs_{args.random_seed}.csv")
 
     # save per-generation child-parent lineage
     if args.save_lineage:
-        save_lineage(raw_tables, sim_id=args.random_seed, output_dir=args.out_dir)
+        save_lineage(raw_tables, sim_id=args.random_seed, output_dir=args.output_dir)
         logging.info(f"### strain lineage - lineage_{args.random_seed}.csv")
-        save_node_id_map(node_map, sim_id=args.random_seed, output_dir=args.out_dir)
+        save_node_id_map(node_map, sim_id=args.random_seed, output_dir=args.output_dir)
         logging.info(f"### node ID map (pre/post simplify) - node_id_map_{args.random_seed}.csv")

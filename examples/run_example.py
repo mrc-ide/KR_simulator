@@ -54,7 +54,7 @@ run("Stage 1: simulate", [
     "--C",                "1",
     "--recombination_rate", "7.4e-7",
     "--random_seed",      str(SEED),
-    "--out_dir",          OUTPUT_DIR,
+    "--output_dir",       OUTPUT_DIR,
     "--save_ts",
     "--save_ID",
     "--save_pairs",
