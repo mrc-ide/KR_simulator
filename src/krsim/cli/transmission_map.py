@@ -4,7 +4,7 @@ import os
 import time
 import logging
 
-from krsim.cli._common import format_elapsed
+from krsim.cli._common import format_elapsed, require_lineage_files
 
 HELP = "Render an interactive HTML transmission map for one simulation run"
 
@@ -37,6 +37,8 @@ def run(args):
 
     lineage_csv = args.lineage_csv or os.path.join(args.output_dir, f"lineage_{args.random_seed}.csv")
     node_id_map_csv = args.node_id_map_csv or os.path.join(args.output_dir, f"node_id_map_{args.random_seed}.csv")
+
+    require_lineage_files(lineage_csv, node_id_map_csv)
 
     lineage = pd.read_csv(lineage_csv)
     node_map = pd.read_csv(node_id_map_csv)

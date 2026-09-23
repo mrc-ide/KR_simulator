@@ -1,6 +1,7 @@
 """Helpers shared by the CLI subcommands."""
 
 import os
+import sys
 import logging
 
 
@@ -11,6 +12,16 @@ def format_elapsed(seconds):
         return f"{seconds / 60:.1f}m"
     else:
         return f"{seconds / 3600:.2f}h"
+
+
+def require_lineage_files(*paths):
+    """Exit with a clear message if --save_lineage outputs are missing."""
+    missing = [p for p in paths if not os.path.exists(p)]
+    if missing:
+        sys.exit(
+            "Missing pedigree file(s): " + ", ".join(missing) + "\n"
+            "Re-run `krsim simulate` with --save_lineage to create them."
+        )
 
 
 def setup_run_logging(output_dir, random_seed):

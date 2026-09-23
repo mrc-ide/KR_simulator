@@ -92,7 +92,7 @@ Always writes the tree sequence `ts_{seed}.trees`, which every later stage start
 | `--random_seed` | Seed for reproducibility |
 | `--output_dir` | Output directory |
 | `--save_pairs` | Save recombinant node pairs to `node_pairs_{seed}.csv` |
-| `--save_lineage` | Save per-generation child→parent strain lineage to `lineage_{seed}.csv`, plus a `node_id_map_{seed}.csv` pre/post-`simplify()` ID mapping — turn this on if you want true generation-by-generation parentage (for the transmission map, pedigree relatedness, or your own analysis), since the final tree sequence alone can skip generations |
+| `--save_lineage` | Save per-generation child→parent strain lineage to `lineage_{seed}.csv`, plus a `node_id_map_{seed}.csv` pre/post-`simplify()` ID mapping — turn this on if you want true generation-by-generation parentage (for `krsim transmission-map`, `krsim pairwise-coalescence`, or your own pedigree analysis), since the final tree sequence alone can skip generations |
 
 ### Transmission map — visualize the pedigree
 

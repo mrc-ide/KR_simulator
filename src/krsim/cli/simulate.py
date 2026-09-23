@@ -37,7 +37,9 @@ def add_arguments(parser):
     parser.add_argument("--save_pairs", action="store_true",
                         help="If set, saves a CSV of recombinant node pairs across all generations.")
     parser.add_argument("--save_lineage", action="store_true",
-                        help="If set, saves a CSV of per-generation child-parent strain lineage.")
+                        help="Save the true generation-by-generation pedigree (lineage_<seed>.csv + "
+                             "node_id_map_<seed>.csv). Needed by transmission-map and "
+                             "pairwise-coalescence. Uses extra memory on large runs.")
 
 
 def run(args):
