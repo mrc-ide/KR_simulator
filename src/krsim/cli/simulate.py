@@ -1,20 +1,21 @@
+"""krsim simulate — Stage 1: simulate the genealogy."""
+
 import os
 import time
 import logging
-import argparse
-from sim.params import SimParams
-from sim.simulator import KRSimulator
-from output.sim_ind_node_id import append_ind_node_map
-from output.node_pairs import save_node_pairs
-from output.lineage import save_lineage
-from output.node_id_map import save_node_id_map
+
+from krsim.sim.params import SimParams
+from krsim.sim.simulator import KRSimulator
+from krsim.output.sim_ind_node_id import append_ind_node_map
+from krsim.output.node_pairs import save_node_pairs
+from krsim.output.lineage import save_lineage
+from krsim.output.node_id_map import save_node_id_map
+from krsim.cli._common import format_elapsed, setup_run_logging
+
+HELP = "Stage 1: simulate the transmission genealogy (tree sequence)"
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="KR Malaria Transmission Simulator"
-    )
-
+def add_arguments(parser):
     # --- required parameters ---
     parser.add_argument("--Nh", type=int, required=True,
                         help="Number of human hosts")
@@ -33,7 +34,6 @@ def parse_args():
 
     parser.add_argument("--out_dir", type=str, required=True,
                         help="Directory to write output files to.")
-    
 
     # --- optional parameters ---
     parser.add_argument("--save_ts", action="store_true",
@@ -46,40 +46,13 @@ def parse_args():
                         help="If set, saves a CSV of per-generation child-parent strain lineage.")
 
 
-    return parser.parse_args()
-
-
-def _format_elapsed(seconds):
-    if seconds < 60:
-        return f"{seconds:.1f}s"
-    elif seconds < 3600:
-        return f"{seconds / 60:.1f}m"
-    else:
-        return f"{seconds / 3600:.2f}h"
-
-
-def main():
-    args = parse_args()
+def run(args):
     start_time = time.time()
 
     # create output directory if it doesn't exist
     os.makedirs(args.out_dir, exist_ok=True)
 
-    # set up logging: full detail (including DEBUG) to the log file, only
-    # INFO-and-above to the terminal, so the terminal stays a clean list of
-    # "what got created" while the file keeps the full record
-    log_path = os.path.join(args.out_dir, f"KR_sim_{args.random_seed}.log")
-
-    file_handler = logging.FileHandler(log_path)
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(logging.Formatter("%(asctime)s  %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
-
-    stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(logging.INFO)
-    stream_handler.setFormatter(logging.Formatter("%(message)s"))
-
-    logging.basicConfig(level=logging.DEBUG, handlers=[file_handler, stream_handler])
-
+    setup_run_logging(args.out_dir, args.random_seed)
     logging.debug(f"Simulation parameters: {vars(args)}")
 
     # run simulation
@@ -92,11 +65,12 @@ def main():
         recombination_rate=args.recombination_rate,
         random_seed=args.random_seed
     )
+
     sim = KRSimulator(params)
     ts, raw_tables, node_map = sim.run(capture_lineage=args.save_lineage)
 
     elapsed = time.time() - start_time
-    logging.debug(f"Simulation COMPLETED in {_format_elapsed(elapsed)}")
+    logging.debug(f"Simulation COMPLETED in {format_elapsed(elapsed)}")
 
     ### OUPUT FILES ###
 
@@ -120,10 +94,5 @@ def main():
     if args.save_lineage:
         save_lineage(raw_tables, sim_id=args.random_seed, output_dir=args.out_dir)
         logging.info(f"### strain lineage - lineage_{args.random_seed}.csv")
-
         save_node_id_map(node_map, sim_id=args.random_seed, output_dir=args.out_dir)
         logging.info(f"### node ID map (pre/post simplify) - node_id_map_{args.random_seed}.csv")
-
-
-if __name__ == "__main__":
-    main()

@@ -1,17 +1,18 @@
+"""krsim pairwise-coalescence — interactive HTML pedigree coalescence trace."""
+
 import os
 import time
 import logging
-import argparse
+
 import pandas as pd
 
-from pairwise_coalescence import save_pairwise_coalescence
+from krsim.visualization.pairwise_coalescence import save_pairwise_coalescence
+from krsim.cli._common import format_elapsed
+
+HELP = "Render an interactive HTML page for tracing pedigree coalescence between two strains"
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Render an interactive HTML page for tracing pedigree coalescence between two strains"
-    )
-
+def add_arguments(parser):
     # --- required parameters ---
     parser.add_argument("--random_seed", type=int, required=True,
                         help="Random seed for reproducibility (also used as sim_id)")
@@ -24,20 +25,8 @@ def parse_args():
     parser.add_argument("--output_dir", type=str, default=".",
                         help="Directory to write output files to (default: current directory).")
 
-    return parser.parse_args()
 
-
-def _format_elapsed(seconds):
-    if seconds < 60:
-        return f"{seconds:.1f}s"
-    elif seconds < 3600:
-        return f"{seconds / 60:.1f}m"
-    else:
-        return f"{seconds / 3600:.2f}h"
-
-
-def main():
-    args = parse_args()
+def run(args):
     start_time = time.time()
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -52,8 +41,4 @@ def main():
     logging.info(f"### pairwise coalescence - {out_path}")
 
     elapsed = time.time() - start_time
-    logging.info(f"run_pairwise_coalescence.py COMPLETED in {_format_elapsed(elapsed)}")
-
-
-if __name__ == "__main__":
-    main()
+    logging.info(f"krsim pairwise-coalescence COMPLETED in {format_elapsed(elapsed)}")

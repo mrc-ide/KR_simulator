@@ -1,17 +1,18 @@
+"""krsim vcf-strain — Stage 4: per-strain VCF."""
+
 import os
 import time
 import logging
-import argparse
+
 import tskit
 
-from output.vcf_strain_single import process_vcf
+from krsim.output.vcf_strain_single import process_vcf
+from krsim.cli._common import format_elapsed
+
+HELP = "Stage 4: write a per-strain VCF from a mutated tree sequence"
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Write per-strain VCF from a mutated tree sequence"
-    )
-
+def add_arguments(parser):
     # --- required parameters ---
     parser.add_argument("--ts", type=str, required=True,
                         help="Path to mutated tree sequence (.trees) file")
@@ -20,20 +21,8 @@ def parse_args():
     parser.add_argument("--output_dir", type=str, default=".",
                         help="Directory to write output files to (default: current directory).")
 
-    return parser.parse_args()
 
-
-def _format_elapsed(seconds):
-    if seconds < 60:
-        return f"{seconds:.1f}s"
-    elif seconds < 3600:
-        return f"{seconds / 60:.1f}m"
-    else:
-        return f"{seconds / 3600:.2f}h"
-
-
-def main():
-    args = parse_args()
+def run(args):
     start_time = time.time()
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -51,8 +40,4 @@ def main():
     logging.info(f"### strain VCF - {final_vcf}")
 
     elapsed = time.time() - start_time
-    logging.info(f"run_vcf_strain.py COMPLETED in {_format_elapsed(elapsed)}")
-
-
-if __name__ == "__main__":
-    main()
+    logging.info(f"krsim vcf-strain COMPLETED in {format_elapsed(elapsed)}")

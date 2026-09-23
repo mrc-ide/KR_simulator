@@ -1,16 +1,18 @@
+"""krsim mutate — Stage 2: add mutations to a tree sequence."""
+
 import os
 import time
 import logging
-import argparse
+
 import tskit
 import msprime
 
+from krsim.cli._common import format_elapsed, setup_run_logging
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Add mutations to a tree sequence"
-    )
+HELP = "Stage 2: add mutations to a tree sequence"
 
+
+def add_arguments(parser):
     # --- required parameters ---
     parser.add_argument("--ts", type=str, required=True,
                         help="Path to tree sequence (.trees) file")
@@ -22,35 +24,13 @@ def parse_args():
     parser.add_argument("--output_dir", type=str, required=True,
                         help="Directory to write output files.")
 
-    return parser.parse_args()
 
-
-def _format_elapsed(seconds):
-    if seconds < 60:
-        return f"{seconds:.1f}s"
-    elif seconds < 3600:
-        return f"{seconds / 60:.1f}m"
-    else:
-        return f"{seconds / 3600:.2f}h"
-
-
-def main():
-    args = parse_args()
+def run(args):
     start_time = time.time()
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    log_path = os.path.join(args.output_dir, f"KR_sim_{args.random_seed}.log")
-
-    file_handler = logging.FileHandler(log_path)
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(logging.Formatter("%(asctime)s  %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
-
-    stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(logging.INFO)
-    stream_handler.setFormatter(logging.Formatter("%(message)s"))
-
-    logging.basicConfig(level=logging.DEBUG, handlers=[file_handler, stream_handler])
+    setup_run_logging(args.output_dir, args.random_seed)
 
     # load tree sequence
     ts = tskit.load(args.ts)
@@ -65,8 +45,4 @@ def main():
     logging.info(f"### mutated tree sequence - {os.path.basename(out_path)}")
 
     elapsed = time.time() - start_time
-    logging.debug(f"run_mut.py COMPLETED in {_format_elapsed(elapsed)}")
-
-
-if __name__ == "__main__":
-    main()
+    logging.debug(f"krsim mutate COMPLETED in {format_elapsed(elapsed)}")

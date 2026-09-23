@@ -1,55 +1,16 @@
-import os
-import time
-import logging
-import argparse
-import pandas as pd
+"""True pairwise IBD fraction between strains, from the coalescence time table."""
 
 from krsim.sim.params import GENOME_LENGTH
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Compute pairwise IBD fraction from a coalescence time table"
-    )
-
-    # --- required parameters ---
-    parser.add_argument("--random_seed", type=int, required=True,
-                        help="Random seed for reproducibility (also used as sim_id)")
-    parser.add_argument("--time_boundary", type=float, required=True,
-                        help="Coalescence time threshold; segments with coal_time <= this are counted as IBD")
-
-    # --- optional parameters ---
-    parser.add_argument("--coal_csv", type=str, default=None,
-                        help="Path to coal_T CSV (default: <output_dir>/coal_T_<random_seed>.csv)")
-    parser.add_argument("--output_dir", type=str, default=".",
-                        help="Directory to write output files to (default: current directory).")
-
-    return parser.parse_args()
-
-
-def _format_elapsed(seconds):
-    if seconds < 60:
-        return f"{seconds:.1f}s"
-    elif seconds < 3600:
-        return f"{seconds / 60:.1f}m"
-    else:
-        return f"{seconds / 3600:.2f}h"
-
-
-def main():
-    args = parse_args()
-    start_time = time.time()
-
-    os.makedirs(args.output_dir, exist_ok=True)
-
-    coal_csv = args.coal_csv
-    if coal_csv is None:
-        coal_csv = os.path.join(args.output_dir, f"coal_T_{args.random_seed}.csv")
-
-    coal = pd.read_csv(coal_csv)
-
+def strain_ibd_fractions(coal, time_boundary):
+    """
+    For each strain pair in `coal` (the coal_T table), the fraction of the
+    genome whose coalescence time is <= `time_boundary`. Returns a DataFrame
+    with columns sample_1, sample_2, frac_IBD.
+    """
     # segments whose coalescence time falls at or below the boundary count as IBD
-    ibd = coal[coal["coal_time"] <= args.time_boundary].copy()
+    ibd = coal[coal["coal_time"] <= time_boundary].copy()
     ibd["segment_length"] = ibd["right"] - ibd["left"]
 
     ibd_length = ibd.groupby(["sample_1", "sample_2"])["segment_length"].sum()
@@ -59,14 +20,4 @@ def main():
         lambda row: ibd_length.get((row["sample_1"], row["sample_2"]), 0.0) / GENOME_LENGTH,
         axis=1,
     )
-
-    out_path = os.path.join(args.output_dir, f"relate_strain_{args.random_seed}.csv")
-    pairs.to_csv(out_path, index=False)
-    logging.info(f"### IBD fractions - {out_path}")
-
-    elapsed = time.time() - start_time
-    logging.info(f"relate_t_strain.py COMPLETED in {_format_elapsed(elapsed)}")
-
-
-if __name__ == "__main__":
-    main()
+    return pairs
