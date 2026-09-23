@@ -109,8 +109,10 @@ Each blue box is a `krsim` command and the files it writes; dashed files need th
 
 ## Tests
 
+To check krsim is installed correctly, run this from the repo root with your environment activated:
+
 ```bash
 bash tests/test_sim_mut.sh
 ```
 
-Runs the full pipeline on a small simulation and compares the results in `tests/output/` with `tests/baseline/`.
+It runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/`. If everything is installed correctly, it ends with `All 13 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.
