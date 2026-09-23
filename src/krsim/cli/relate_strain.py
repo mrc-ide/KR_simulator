@@ -13,8 +13,8 @@ Outputs:
   always  relate_strain_<seed>.csv
 
 Example:
-  krsim relate-strain --coal_csv results/coal_T_42.csv --random_seed 42 \\
-      --time_boundary 2 --output_dir results/
+  krsim relate-strain --coal_csv results/coal_T_42.csv --time_boundary 2 \\
+      --random_seed 42 --output_dir results/
 """
 
 
@@ -23,10 +23,10 @@ def add_arguments(parser):
 
     required.add_argument("--coal_csv", type=str, required=True, metavar="FILE",
                           help="Coalescence table from `krsim coal` (coal_T_<seed>.csv)")
-    required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
-                          help="Random seed")
     required.add_argument("--time_boundary", type=float, required=True, metavar="T",
                           help="Segments that coalesce within T generations count as IBD")
+    required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
+                          help="Random seed")
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
                           help="Output directory")
 

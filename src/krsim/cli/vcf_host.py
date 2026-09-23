@@ -16,7 +16,7 @@ Outputs:
 Example:
   krsim vcf-host --strain_vcf results/output_42_strain.vcf \\
       --ind_node_map_csv results/sim_ind_node_map_42.csv \\
-      --random_seed 42 --depth 10 --output_dir results/
+      --depth 10 --random_seed 42 --output_dir results/
 """
 
 
@@ -27,10 +27,10 @@ def add_arguments(parser):
                           help="Strain VCF from `krsim vcf-strain` (output_<seed>_strain.vcf)")
     required.add_argument("--ind_node_map_csv", type=str, required=True, metavar="FILE",
                           help="Host-strain map from `krsim simulate` (sim_ind_node_map_<seed>.csv)")
-    required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
-                          help="Random seed")
     required.add_argument("--depth", type=int, required=True, metavar="N",
                           help="Reads drawn per host per site")
+    required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
+                          help="Random seed")
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
                           help="Output directory")
 
