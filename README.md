@@ -294,8 +294,9 @@ KR_SIM/
 │
 ├── tests/                # Testing and regression tools
 │   ├── test_sim_mut.sh   #   Run full pipeline + regression check
-│   ├── compare_outputs.py#   Diff outputs against expected/
-│   └── expected/         #   Committed reference outputs (blessed baseline)
+│   ├── compare_outputs.py#   Diff outputs against baseline/
+│   ├── baseline/         #   Committed reference outputs
+│   └── output/           #   Latest test run (not committed)
 │
 ├── environment.yml       # Conda environment
 └── requirements.txt      # Exact pinned versions (for reproducing results)
@@ -321,7 +322,7 @@ jupyter notebook tutorial.ipynb
 bash tests/test_sim_mut.sh
 ```
 
-Runs the full pipeline with seed 123, prints a summary of every output file, then diffs the results against `tests/expected/`. Answer `y` at the prompt to promote the current outputs as the new baseline.
+Runs the full pipeline with seed 123, prints a summary of every output file, then diffs the results in `tests/output/` against `tests/baseline/`. Answer `y` at the prompt to promote the current outputs as the new baseline.
 
 ---
 

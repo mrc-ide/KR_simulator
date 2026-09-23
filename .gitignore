@@ -12,8 +12,8 @@ dist/
 # Virtual environment
 .venv/
 
-# Regenerated on every test run (compared against tests/expected/)
-tests/test_output/
+# Regenerated on every test run (compared against tests/baseline/)
+tests/output/
 
 # Files the tutorial writes when it is run
 tutorial/output/

@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Compare pipeline outputs against a set of blessed expected outputs.
+Compare pipeline outputs against the committed baseline.
 
 Usage
 -----
 Run pipeline first, then compare:
     python tests/compare_outputs.py
 
-Promote current test_output/ to the new expected baseline:
+Promote the current output/ to the new baseline:
     python tests/compare_outputs.py --bless
 
 Override directories or seed:
-    python tests/compare_outputs.py --actual tests/test_output --expected tests/expected --seed 123
+    python tests/compare_outputs.py --output tests/output --baseline tests/baseline --seed 123
 """
 
 import argparse
@@ -64,11 +64,11 @@ def compare_csv(name, exp_path, act_path):
 
     # shape mismatch
     if exp.shape != act.shape:
-        lines.append(f"shape: expected {exp.shape}, actual {act.shape}")
+        lines.append(f"shape: baseline {exp.shape}, output {act.shape}")
 
     # column mismatch
     if list(exp.columns) != list(act.columns):
-        lines.append(f"columns: expected {list(exp.columns)}, actual {list(act.columns)}")
+        lines.append(f"columns: baseline {list(exp.columns)}, output {list(act.columns)}")
         _fail(name, "\n".join(lines))
         return False
 
@@ -87,7 +87,7 @@ def compare_csv(name, exp_path, act_path):
                 sample = exp.loc[row_mask][col_diff][col].head(MAX_DIFF_ROWS)
                 sample_act = act.loc[row_mask][col_diff][col].head(MAX_DIFF_ROWS)
                 for idx, (e_val, a_val) in enumerate(zip(sample, sample_act)):
-                    lines.append(f"    row {sample.index[idx]}: expected={e_val}  actual={a_val}")
+                    lines.append(f"    row {sample.index[idx]}: baseline={e_val}  output={a_val}")
                 if col_diff.sum() > MAX_DIFF_ROWS:
                     lines.append(f"    ... and {col_diff.sum() - MAX_DIFF_ROWS} more")
     else:
@@ -97,10 +97,10 @@ def compare_csv(name, exp_path, act_path):
             only_exp = merged[merged["_merge"] == "left_only"].drop(columns="_merge")
             only_act = merged[merged["_merge"] == "right_only"].drop(columns="_merge")
             if not only_exp.empty:
-                lines.append(f"rows only in expected (first {MAX_DIFF_ROWS}):")
+                lines.append(f"rows only in baseline (first {MAX_DIFF_ROWS}):")
                 lines.append(only_exp.head(MAX_DIFF_ROWS).to_string(index=False))
             if not only_act.empty:
-                lines.append(f"rows only in actual (first {MAX_DIFF_ROWS}):")
+                lines.append(f"rows only in output (first {MAX_DIFF_ROWS}):")
                 lines.append(only_act.head(MAX_DIFF_ROWS).to_string(index=False))
         except Exception as e:
             lines.append(f"could not diff rows: {e}")
@@ -127,13 +127,13 @@ def compare_vcf(name, exp_path, act_path):
     only_exp = exp_set - act_set
     only_act = act_set - exp_set
 
-    lines = [f"{len(only_exp)} line(s) only in expected, {len(only_act)} line(s) only in actual"]
+    lines = [f"{len(only_exp)} line(s) only in baseline, {len(only_act)} line(s) only in output"]
     if only_exp:
-        lines.append("expected-only (first 5):")
+        lines.append("baseline-only (first 5):")
         for l in sorted(only_exp)[:5]:
             lines.append("  " + l.rstrip())
     if only_act:
-        lines.append("actual-only (first 5):")
+        lines.append("output-only (first 5):")
         for l in sorted(only_act)[:5]:
             lines.append("  " + l.rstrip())
 
@@ -165,70 +165,70 @@ def compare_file(name, exp_path, act_path):
 # ---------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="Compare pipeline outputs against expected outputs")
-    parser.add_argument("--expected", default="tests/expected",
-                        help="Directory of blessed expected outputs (default: tests/expected)")
-    parser.add_argument("--actual",   default="tests/test_output",
-                        help="Directory of outputs from the latest run (default: tests/test_output)")
+    parser = argparse.ArgumentParser(description="Compare pipeline outputs against the baseline")
+    parser.add_argument("--baseline", default="tests/baseline",
+                        help="Directory of committed baseline outputs (default: tests/baseline)")
+    parser.add_argument("--output",   default="tests/output",
+                        help="Directory of outputs from the latest run (default: tests/output)")
     parser.add_argument("--bless", action="store_true",
-                        help="Copy actual/ -> expected/ to set a new baseline (skips log files)")
+                        help="Copy output/ -> baseline/ to set a new baseline (skips log files)")
     args = parser.parse_args()
 
     if args.bless:
-        os.makedirs(args.expected, exist_ok=True)
+        os.makedirs(args.baseline, exist_ok=True)
         blessed = []
         skipped = []
-        for fname in sorted(os.listdir(args.actual)):
+        for fname in sorted(os.listdir(args.output)):
             if os.path.splitext(fname)[1].lower() in SKIP_EXTENSIONS:
                 skipped.append(fname)
                 continue
-            src = os.path.join(args.actual, fname)
-            dst = os.path.join(args.expected, fname)
+            src = os.path.join(args.output, fname)
+            dst = os.path.join(args.baseline, fname)
             shutil.copy2(src, dst)
             blessed.append(fname)
-        print(f"\nBlessed {len(blessed)} file(s) to {args.expected}/:")
+        print(f"\nBlessed {len(blessed)} file(s) to {args.baseline}/:")
         for f in blessed:
             print(f"  {f}")
         if skipped:
             print(f"Skipped {len(skipped)} log file(s): {', '.join(skipped)}")
-        print(f"\nCommit {args.expected}/ to lock in the new baseline.")
+        print(f"\nCommit {args.baseline}/ to lock in the new baseline.")
         return
 
-    if not os.path.isdir(args.expected):
-        print(f"{RED}Expected directory not found: {args.expected}{RESET}")
+    if not os.path.isdir(args.baseline):
+        print(f"{RED}Baseline directory not found: {args.baseline}{RESET}")
         print("Run with --bless after a clean pipeline run to create it.")
         sys.exit(1)
 
-    expected_files = {
-        f for f in os.listdir(args.expected)
-        if os.path.isfile(os.path.join(args.expected, f))
+    baseline_files = {
+        f for f in os.listdir(args.baseline)
+        if os.path.isfile(os.path.join(args.baseline, f))
         and os.path.splitext(f)[1].lower() not in SKIP_EXTENSIONS
     }
 
-    print(f"\n{BOLD}Comparing {args.actual}/ against {args.expected}/{RESET}\n")
+    print(f"\n{BOLD}Comparing {args.output}/ against {args.baseline}/{RESET}\n")
 
     results = []
 
-    for fname in sorted(expected_files):
-        exp_path = os.path.join(args.expected, fname)
-        act_path = os.path.join(args.actual, fname)
+    for fname in sorted(baseline_files):
+        exp_path = os.path.join(args.baseline, fname)
+        act_path = os.path.join(args.output, fname)
         if not os.path.exists(act_path):
-            _warn(fname, f"missing from {args.actual}/")
+            _warn(fname, f"missing from {args.output}/")
             results.append(False)
             continue
         results.append(compare_file(fname, exp_path, act_path))
 
-    # report files in actual that aren't in expected (new outputs, not yet blessed)
-    actual_files = {
-        f for f in os.listdir(args.actual)
-        if os.path.isfile(os.path.join(args.actual, f))
+    # report files in output that aren't in the baseline (new outputs, not yet blessed)
+    output_files = {
+        f for f in os.listdir(args.output)
+        if os.path.isfile(os.path.join(args.output, f))
         and os.path.splitext(f)[1].lower() not in SKIP_EXTENSIONS
     }
-    new_files = actual_files - expected_files
+    new_files = output_files - baseline_files
     if new_files:
         print()
         for f in sorted(new_files):
-            _warn(f, "new output file — not yet in expected/. Answer 'y' at the bless prompt below to add it.")
+            _warn(f, "new output file — not yet in baseline/. Answer 'y' at the bless prompt below to add it.")
 
     n_pass = sum(results)
     n_fail = len(results) - n_pass

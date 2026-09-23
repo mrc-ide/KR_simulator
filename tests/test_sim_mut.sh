@@ -15,9 +15,9 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# run from the repo root so paths print short (tests/test_output/...)
+# run from the repo root so paths print short (tests/output/...)
 cd "$REPO_ROOT"
-OUT_DIR="tests/test_output"
+OUT_DIR="tests/output"
 SEED=123
 
 # simulation parameters for this smoke test (the only place these live --
@@ -152,16 +152,16 @@ echo
 echo "${BOLD}=== Regression check ===${RESET}"
 compare_exit=0
 python tests/compare_outputs.py \
-    --actual  "$OUT_DIR" \
-    --expected "tests/expected" || compare_exit=$?
+    --output   "$OUT_DIR" \
+    --baseline "tests/baseline" || compare_exit=$?
 
 if [ -t 1 ]; then
     echo
-    read -r -p "${BOLD}Update expected results with these outputs? [y/N]${RESET} " reply
+    read -r -p "${BOLD}Update the baseline with these outputs? [y/N]${RESET} " reply
     if [[ "$reply" =~ ^[Yy]$ ]]; then
         python tests/compare_outputs.py \
-            --actual   "$OUT_DIR" \
-            --expected "tests/expected" \
+            --output   "$OUT_DIR" \
+            --baseline "tests/baseline" \
             --bless
     fi
 fi
