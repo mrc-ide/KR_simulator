@@ -41,6 +41,9 @@ def run(args):
     coal_csv_path = os.path.join(args.output_dir, f"coal_T_{args.random_seed}.csv")
     coal.to_csv(coal_csv_path, index=False)
     run.wrote(coal_csv_path, rows=len(coal))
+    n_pairs = len(coal[["sample_1", "sample_2"]].drop_duplicates())
+    run.detail(f"  {len(coal):,} coalescence events (one per strain pair per tree); "
+               f"{n_pairs} of {ts.num_samples * (ts.num_samples - 1) // 2} strain pairs coalesce")
 
     mut = mutation_table(ts)
     mut_csv_path = os.path.join(args.output_dir, f"mut_T_{args.random_seed}.csv")

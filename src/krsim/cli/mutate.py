@@ -42,10 +42,11 @@ def run(args):
     run.detail(f"read {args.ts} ({ts.num_samples} samples, {ts.num_trees} trees)")
 
     ts = msprime.sim_mutations(ts, rate=args.mutation_rate, random_seed=args.random_seed)
-    run.detail(f"added {ts.num_mutations} mutations at rate {args.mutation_rate}")
 
     out_path = os.path.join(args.output_dir, f"mutated_{args.random_seed}.trees")
     ts.dump(out_path)
     run.wrote(out_path)
+    run.detail(f"  {ts.num_mutations} mutations at {ts.num_sites} sites across {ts.num_trees} trees "
+               f"(rate {args.mutation_rate})")
 
     run.done()

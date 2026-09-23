@@ -72,12 +72,12 @@ def run(args):
                f"recombination_rate={params.recombination_rate} random_seed={params.random_seed}")
 
     ts, raw_tables, node_map = KRSimulator(params).run(capture_lineage=args.save_lineage)
-    run.detail(f"simulated {params.T} generations -> {ts.num_nodes} nodes after simplify")
 
     # always save the tree sequence: every downstream stage starts from it
     trees_path = os.path.join(args.output_dir, f"ts_{args.random_seed}.trees")
     ts.dump(trees_path)
     run.wrote(trees_path)
+    run.detail(f"  {ts.num_trees} trees, {ts.num_samples} samples, {ts.num_nodes} nodes, {ts.num_edges} edges")
 
     # always save the individual-node mapping: vcf-host and relate-host need it
     df = append_ind_node_map(ts, sim_id=args.random_seed, output_dir=args.output_dir)
