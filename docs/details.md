@@ -184,7 +184,6 @@ KR_SIM/
 │   ├── visualization/    #   Interactive pedigree HTML rendering
 │   │   ├── strain_transmission_map.py
 │   │   └── pairwise_strain_pedigree_map.py
-│   └── config.py         #   Load SimParams from a YAML file
 │
 ├── tutorial/             # Tutorial
 │   ├── tutorial.ipynb    #   Runs every command on a small simulation, with outputs
