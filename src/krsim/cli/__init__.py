@@ -38,7 +38,7 @@ class HelpFormatter(RawDescriptionRichHelpFormatter):
     # colour the "Outputs:" / "Example:" / "Needs ..." headings at the end of each command's help
     highlights = [*RawDescriptionRichHelpFormatter.highlights,
                   r"(?m)^(?P<section>Outputs:|Example:|Needs)"]
-    styles = {**RawDescriptionRichHelpFormatter.styles, "argparse.section": "bold green"}
+    styles = {**RawDescriptionRichHelpFormatter.styles, "argparse.section": "bold hot_pink"}
 
     def __init__(self, prog, **kwargs):
         kwargs.setdefault("max_help_position", 30)
