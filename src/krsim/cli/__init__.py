@@ -54,13 +54,13 @@ class HelpFormatter(RawDescriptionRichHelpFormatter):
 
 class Parser(argparse.ArgumentParser):
     def format_help(self):
-        # bold the one-line description at the top; rich is imported here, not at
+        # bold + underline the one-line description at the top; rich is imported here, not at
         # module level, so it only costs time when a help page is actually shown
         from rich.text import Text
 
         description = self.description
         if isinstance(description, str):
-            self.description = Text(description, style="bold")
+            self.description = Text(description, style="bold underline")
         try:
             # blank line above and below, so the page stands apart from the shell prompt
             # (error messages don't go through here and are unaffected)
