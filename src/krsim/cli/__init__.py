@@ -69,8 +69,8 @@ def main(argv=None):
     subparsers = parser.add_subparsers(title="commands", dest="command", required=True, metavar="<command>")
 
     for name, module in COMMANDS.items():
-        sub = subparsers.add_parser(name, help=module.HELP, description=module.HELP,
-                                    usage=f"krsim {name} [options]",
+        sub = subparsers.add_parser(name, prog=f"krsim {name}", help=module.HELP, description=module.HELP,
+                                    usage=argparse.SUPPRESS,  # the Example at the end shows usage
                                     epilog=getattr(module, "EPILOG", None),
                                     formatter_class=HelpFormatter,
                                     add_help=False)
