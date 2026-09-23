@@ -52,12 +52,18 @@ class HelpFormatter(RawDescriptionRichHelpFormatter):
             self._action_max_length += self._indent_increment
 
 
+class Parser(argparse.ArgumentParser):
+    def format_help(self):
+        # start the help page one line below the shell prompt (error messages are unaffected)
+        return "\n" + super().format_help()
+
+
 def _add_help(parser):
     parser.add_argument("-h", "--help", action="help", help="Show this help and exit")
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(
+    parser = Parser(
         prog="krsim",
         usage="krsim <command> [options]",
         description="KR Malaria Transmission Simulator",
@@ -66,7 +72,8 @@ def main(argv=None):
         add_help=False,
     )
     _add_help(parser)
-    subparsers = parser.add_subparsers(title="commands", dest="command", required=True, metavar="<command>")
+    subparsers = parser.add_subparsers(title="commands", dest="command", required=True, metavar="<command>",
+                                       parser_class=Parser)
 
     for name, module in COMMANDS.items():
         sub = subparsers.add_parser(name, prog=f"krsim {name}", help=module.HELP, description=module.HELP,
