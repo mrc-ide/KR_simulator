@@ -32,7 +32,7 @@ def add_arguments(parser):
     required.add_argument("--depth", type=int, required=True, metavar="N",
                           help="Reads drawn per host per site")
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
-                          help="Where to write the output files")
+                          help="Output directory")
 
     parser.add_argument("--save_proportions", action="store_true",
                         help="Also save per-host strain proportions and read counts")

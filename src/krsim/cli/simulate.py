@@ -41,7 +41,7 @@ def add_arguments(parser):
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
                           help="Random seed")
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
-                          help="Where to write the output files")
+                          help="Output directory")
 
     parser.add_argument("--save_lineage", action="store_true",
                         help="Also save the true pedigree (for the visualizations)")

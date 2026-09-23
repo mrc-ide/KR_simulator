@@ -29,7 +29,7 @@ def add_arguments(parser):
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
                           help="Random seed")
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
-                          help="Where to write the output file")
+                          help="Output directory")
 
 
 def run(args):

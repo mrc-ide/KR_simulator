@@ -28,7 +28,7 @@ def add_arguments(parser):
     required.add_argument("--time_boundary", type=float, required=True, metavar="T",
                           help="Segments that coalesce within T generations count as IBD")
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
-                          help="Where to write the output file")
+                          help="Output directory")
 
 
 def run(args):
