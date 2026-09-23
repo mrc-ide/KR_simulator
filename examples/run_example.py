@@ -10,8 +10,8 @@ Five stages, each producing files consumed by the next:
 
 Plus two pedigree-based visualization tools, both run right after simulation
 since they only need Stage 1's --save_lineage output:
-  - krsim transmission-map — renders an interactive HTML pedigree diagram.
-  - krsim pairwise-coalescence — renders an interactive HTML page for
+  - krsim strain-transmission-map — renders an interactive HTML pedigree diagram.
+  - krsim pairwise-strain-pedigree-map — renders an interactive HTML page for
     tracing any two strains back to their shared pedigree ancestor(s).
 
 Requires krsim to be installed (`pip install -e .` from the repo root).
@@ -59,16 +59,16 @@ run("Stage 1: simulate", [
     "--save_lineage",
 ])
 
-run("Transmission map: visualize simulated pedigree", [
-    *KRSIM, "transmission-map",
+run("Strain transmission map: visualize simulated pedigree", [
+    *KRSIM, "strain-transmission-map",
     "--lineage_csv",     os.path.join(OUTPUT_DIR, f"lineage_{SEED}.csv"),
     "--node_id_map_csv", os.path.join(OUTPUT_DIR, f"node_id_map_{SEED}.csv"),
     "--random_seed", str(SEED),
     "--output_dir",  OUTPUT_DIR,
 ])
 
-run("Pairwise coalescence: trace two strains to a shared ancestor", [
-    *KRSIM, "pairwise-coalescence",
+run("Pairwise strain pedigree map: trace two strains to a shared ancestor", [
+    *KRSIM, "pairwise-strain-pedigree-map",
     "--lineage_csv",     os.path.join(OUTPUT_DIR, f"lineage_{SEED}.csv"),
     "--node_id_map_csv", os.path.join(OUTPUT_DIR, f"node_id_map_{SEED}.csv"),
     "--random_seed", str(SEED),

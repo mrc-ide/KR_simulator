@@ -12,8 +12,8 @@ from krsim.cli import (
     vcf_host,
     relate_strain,
     relate_host,
-    transmission_map,
-    pairwise_coalescence,
+    strain_transmission_map,
+    pairwise_strain_pedigree_map,
 )
 
 # subcommand name -> module providing HELP, add_arguments(parser), run(args)
@@ -26,8 +26,8 @@ COMMANDS = {
     "vcf-host": vcf_host,
     "relate-strain": relate_strain,
     "relate-host": relate_host,
-    "transmission-map": transmission_map,
-    "pairwise-coalescence": pairwise_coalescence,
+    "strain-transmission-map": strain_transmission_map,
+    "pairwise-strain-pedigree-map": pairwise_strain_pedigree_map,
 }
 
 
@@ -41,7 +41,7 @@ class HelpFormatter(RawDescriptionRichHelpFormatter):
     styles = {**RawDescriptionRichHelpFormatter.styles, "argparse.section": "bold hot_pink"}
 
     def __init__(self, prog, **kwargs):
-        kwargs.setdefault("max_help_position", 30)
+        kwargs.setdefault("max_help_position", 34)
         super().__init__(prog, **kwargs)
 
     def add_argument(self, action):

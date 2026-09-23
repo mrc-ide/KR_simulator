@@ -1,10 +1,10 @@
 import os
 import logging
 
-from krsim.visualization.transmission_map import _build_viz_data
+from krsim.visualization.strain_transmission_map import _build_viz_data
 
 
-_HTML_TEMPLATE = r"""<title>Pairwise coalescence — sim __SEED__</title>
+_HTML_TEMPLATE = r"""<title>Pairwise strain pedigree map — sim __SEED__</title>
 <style>
   .viz-root {
     color-scheme: light;
@@ -231,7 +231,7 @@ _HTML_TEMPLATE = r"""<title>Pairwise coalescence — sim __SEED__</title>
   <div class="wrap">
     <header class="page">
       <p class="eyebrow">KR malaria simulator — pedigree, pre-simplify</p>
-      <h1>Pairwise coalescence — seed __SEED__</h1>
+      <h1>Pairwise strain pedigree map — seed __SEED__</h1>
       <p class="dek">Pick two current-generation parasite strains. Each strain's full ancestry back to the founders is traced and drawn in its own color; where those two ancestries <strong>overlap</strong> is a shared ancestor, and the most recent shared ancestor(s) are the pedigree's <strong>coalescence point(s)</strong> for this pair.</p>
       <div class="caveat">
         <b>Reading this correctly:</b> this is the transmission <em>pedigree</em> — it shows when the two strains' host lineages last shared a parasite, generation by generation, regardless of genome position. A shared ancestor here does <em>not</em> guarantee any specific genomic region was actually inherited from it — recombination can replace a segment with DNA from the other parent at every step. Also note a strain can have up to <strong>two</strong> immediate parents (one per gamete in the oocyst) — so the ancestor count can up to double each generation back, fewer if the same strain is drawn twice (a clonal self-cross) or if lineages merge.
@@ -300,7 +300,7 @@ __DATA_JSON__
     warnBanner.innerHTML = `This run has ${nodes.length} strains across ${T + 1} generations — built for small debug runs, gets hard to read at this scale.`;
   }
 
-  // ---- layout constants (matches transmission_map.py) ----
+  // ---- layout constants (matches strain_transmission_map.py) ----
   const MARGIN_LEFT = 96;
   const MARGIN_TOP = 46;
   const MARGIN_RIGHT = 30;
@@ -637,7 +637,7 @@ __DATA_JSON__
 """
 
 
-def save_pairwise_coalescence(lineage, node_map, sim_id, output_dir="."):
+def save_pairwise_strain_pedigree_map(lineage, node_map, sim_id, output_dir="."):
     """
     Render an interactive, self-contained HTML page for tracing the
     pedigree coalescence of any two current-generation parasite strains
@@ -662,9 +662,9 @@ def save_pairwise_coalescence(lineage, node_map, sim_id, output_dir="."):
             .replace("__DATA_JSON__", json.dumps(data))
             .replace("__SEED__", seed))
 
-    output_path = os.path.join(output_dir, f"pairwise_coalescence_{sim_id}.html")
+    output_path = os.path.join(output_dir, f"pairwise_strain_pedigree_map_{sim_id}.html")
     with open(output_path, "w") as f:
         f.write(html)
 
-    logging.info(f"sim_id={sim_id} | wrote pairwise coalescence map to {output_path}")
+    logging.info(f"sim_id={sim_id} | wrote pairwise strain pedigree map to {output_path}")
     return output_path

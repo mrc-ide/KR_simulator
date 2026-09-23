@@ -2,8 +2,8 @@
 # Smoke test for the full simulation pipeline.
 #
 # Runs `krsim simulate` (with --save_lineage) to produce a tree sequence plus
-# the pedigree-tracing outputs, then the transmission map + pairwise
-# coalescence tools (which only need Stage 1), then mutations,
+# the pedigree-tracing outputs, then the strain transmission map + pairwise
+# strain pedigree map (which only need Stage 1), then mutations,
 # coalescence/mutation time tables, strain/host VCFs, and the coalescence-time
 # relatedness extras -- printing the resulting files so you can eyeball that
 # each stage worked.
@@ -61,15 +61,15 @@ run_stage "Stage 1: Simulate genealogy" \
 
 TS_FILE="$OUT_DIR/ts_${SEED}.trees"
 
-run_stage "Transmission map (only needs Stage 1's --save_lineage)" \
-    krsim transmission-map \
+run_stage "Strain transmission map (only needs Stage 1's --save_lineage)" \
+    krsim strain-transmission-map \
     --lineage_csv "$OUT_DIR/lineage_${SEED}.csv" \
     --node_id_map_csv "$OUT_DIR/node_id_map_${SEED}.csv" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
 
-run_stage "Pairwise coalescence (only needs Stage 1's --save_lineage)" \
-    krsim pairwise-coalescence \
+run_stage "Pairwise strain pedigree map (only needs Stage 1's --save_lineage)" \
+    krsim pairwise-strain-pedigree-map \
     --lineage_csv "$OUT_DIR/lineage_${SEED}.csv" \
     --node_id_map_csv "$OUT_DIR/node_id_map_${SEED}.csv" \
     --random_seed "$SEED" \
@@ -158,12 +158,12 @@ preview_csv "lineage_${SEED}.csv"          "$OUT_DIR/lineage_${SEED}.csv"
 preview_csv "node_id_map_${SEED}.csv"      "$OUT_DIR/node_id_map_${SEED}.csv"
 
 echo
-echo "${BOLD}=== transmission_map_${SEED}.html ===${RESET}"
-ls -lh "$OUT_DIR/transmission_map_${SEED}.html"
+echo "${BOLD}=== strain_transmission_map_${SEED}.html ===${RESET}"
+ls -lh "$OUT_DIR/strain_transmission_map_${SEED}.html"
 
 echo
-echo "${BOLD}=== pairwise_coalescence_${SEED}.html ===${RESET}"
-ls -lh "$OUT_DIR/pairwise_coalescence_${SEED}.html"
+echo "${BOLD}=== pairwise_strain_pedigree_map_${SEED}.html ===${RESET}"
+ls -lh "$OUT_DIR/pairwise_strain_pedigree_map_${SEED}.html"
 
 echo
 echo "${BOLD}=== tree sequence summary (pre-mutation) ===${RESET}"

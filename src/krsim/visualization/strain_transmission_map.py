@@ -8,7 +8,7 @@ import pandas as pd
 def _build_viz_data(lineage, node_map):
     """
     Turn a lineage table (pre-simplify) + node ID map into the layout data
-    the transmission-map page renders: one entry per strain (generation,
+    the strain-transmission-map page renders: one entry per strain (generation,
     host slot, position within its host, recomb ID, post-simplify ID) plus
     the parent-child edges between them.
 
@@ -104,7 +104,7 @@ def _build_viz_data(lineage, node_map):
     }
 
 
-_HTML_TEMPLATE = r"""<title>Transmission map — sim __SEED__</title>
+_HTML_TEMPLATE = r"""<title>Strain transmission map — sim __SEED__</title>
 <style>
   .viz-root {
     color-scheme: light;
@@ -354,7 +354,7 @@ _HTML_TEMPLATE = r"""<title>Transmission map — sim __SEED__</title>
   <div class="wrap">
     <header class="page">
       <p class="eyebrow">KR malaria simulator — pedigree, pre-simplify</p>
-      <h1>Transmission map — seed __SEED__</h1>
+      <h1>Strain transmission map — seed __SEED__</h1>
       <p class="dek">Every strain, every generation, drawn from the raw (pre-<code>simplify()</code>) tables — so nothing is compressed away. The number in each circle is its <strong>pre-simplify node ID</strong>; the small corner badge, where present, is the <strong>post-simplify ID</strong> from the final tree sequence. <strong>Click a strain</strong> to trace its full ancestry and descendants; hover for detail.</p>
       <div class="meta-row" id="metaRow"></div>
       <div class="warn-banner" id="warnBanner"></div>
@@ -783,9 +783,9 @@ def save_transmission_map(lineage, node_map, sim_id, output_dir="."):
             .replace("__DATA_JSON__", json.dumps(data))
             .replace("__SEED__", seed))
 
-    output_path = os.path.join(output_dir, f"transmission_map_{sim_id}.html")
+    output_path = os.path.join(output_dir, f"strain_transmission_map_{sim_id}.html")
     with open(output_path, "w") as f:
         f.write(html)
 
-    logging.info(f"sim_id={sim_id} | wrote transmission map to {output_path}")
+    logging.info(f"sim_id={sim_id} | wrote strain transmission map to {output_path}")
     return output_path

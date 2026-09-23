@@ -1,4 +1,4 @@
-<title>Pairwise coalescence — sim 123</title>
+<title>Pairwise strain pedigree map — sim 123</title>
 <style>
   .viz-root {
     color-scheme: light;
@@ -225,7 +225,7 @@
   <div class="wrap">
     <header class="page">
       <p class="eyebrow">KR malaria simulator — pedigree, pre-simplify</p>
-      <h1>Pairwise coalescence — seed 123</h1>
+      <h1>Pairwise strain pedigree map — seed 123</h1>
       <p class="dek">Pick two current-generation parasite strains. Each strain's full ancestry back to the founders is traced and drawn in its own color; where those two ancestries <strong>overlap</strong> is a shared ancestor, and the most recent shared ancestor(s) are the pedigree's <strong>coalescence point(s)</strong> for this pair.</p>
       <div class="caveat">
         <b>Reading this correctly:</b> this is the transmission <em>pedigree</em> — it shows when the two strains' host lineages last shared a parasite, generation by generation, regardless of genome position. A shared ancestor here does <em>not</em> guarantee any specific genomic region was actually inherited from it — recombination can replace a segment with DNA from the other parent at every step. Also note a strain can have up to <strong>two</strong> immediate parents (one per gamete in the oocyst) — so the ancestor count can up to double each generation back, fewer if the same strain is drawn twice (a clonal self-cross) or if lineages merge.
@@ -294,7 +294,7 @@
     warnBanner.innerHTML = `This run has ${nodes.length} strains across ${T + 1} generations — built for small debug runs, gets hard to read at this scale.`;
   }
 
-  // ---- layout constants (matches transmission_map.py) ----
+  // ---- layout constants (matches strain_transmission_map.py) ----
   const MARGIN_LEFT = 96;
   const MARGIN_TOP = 46;
   const MARGIN_RIGHT = 30;
