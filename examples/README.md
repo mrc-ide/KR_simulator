@@ -2,6 +2,8 @@
 
 A worked example running the full KR Malaria Transmission Simulator pipeline with seed 123.
 
+Install the package first (`pip install -e .` from the repo root) — see the main [README](../README.md#installation).
+
 ## How to run
 
 **Option 1 — Jupyter notebook** (recommended for exploration):
@@ -18,34 +20,34 @@ jupyter notebook examples/example.ipynb
 python examples/run_example.py
 ```
 
-**Option 3 — stage by stage** (run each script independently):
+**Option 3 — stage by stage** (run each command independently):
 
 ```bash
 # Stage 1: simulate genealogy
-python run_sim.py \
+krsim simulate \
     --Nh 3 --T 10 --K 2 --chi 0.18 --C 1 \
     --recombination_rate 7.4e-7 --random_seed 123 \
     --out_dir examples/output \
     --save_ts --save_ID --save_pairs
 
 # Stage 2: add mutations
-python run_mut.py \
+krsim mutate \
     --ts examples/output/ts_123.trees \
     --mutation_rate 1e-6 --random_seed 123 \
     --output_dir examples/output
 
 # Stage 3: coalescence & mutation times
-python run_coal_mut_t.py \
+krsim coal \
     --ts examples/output/mutated_123.trees \
     --random_seed 123 --output_dir examples/output
 
 # Stage 4: per-strain VCF
-python run_vcf_strain.py \
+krsim vcf-strain \
     --ts examples/output/mutated_123.trees \
     --random_seed 123 --output_dir examples/output
 
 # Stage 5: per-host VCF + strain proportions
-python run_vcf_host.py \
+krsim vcf-host \
     --strain_vcf examples/output/output_123_strain.vcf \
     --random_seed 123 --output_dir examples/output \
     --save_proportions

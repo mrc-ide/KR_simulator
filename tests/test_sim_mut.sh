@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # Smoke test for the full simulation pipeline.
 #
-# Runs run_sim.py (with --save_lineage) to produce a tree sequence plus the
-# pedigree-tracing outputs, then the transmission map + pairwise coalescence
-# tools (which only need Stage 1), then mutations, coalescence/mutation time
-# tables, strain/host VCFs, and the coalescence-time relatedness extras --
-# printing the resulting files so you can eyeball that each stage worked.
+# Runs `krsim simulate` (with --save_lineage) to produce a tree sequence plus
+# the pedigree-tracing outputs, then the transmission map + pairwise
+# coalescence tools (which only need Stage 1), then mutations,
+# coalescence/mutation time tables, strain/host VCFs, and the coalescence-time
+# relatedness extras -- printing the resulting files so you can eyeball that
+# each stage worked.
+#
+# Requires krsim to be installed (`pip install -e .` from the repo root).
 #
 # Usage: bash tests/test_sim_mut.sh
 
@@ -49,7 +52,7 @@ rm -rf "$OUT_DIR"
 mkdir -p "$OUT_DIR"
 
 run_stage "Stage 1: Simulate genealogy" \
-    python "$REPO_ROOT/run_sim.py" \
+    krsim simulate \
     --Nh "$NH" --T "$T" --K "$K" --chi "$CHI" --C "$C" \
     --recombination_rate "$RECOMB_RATE" \
     --random_seed "$SEED" \
@@ -59,17 +62,17 @@ run_stage "Stage 1: Simulate genealogy" \
 TS_FILE="$OUT_DIR/ts_${SEED}.trees"
 
 run_stage "Transmission map (only needs Stage 1's --save_lineage)" \
-    python "$REPO_ROOT/visualization/run_transmission_map.py" \
+    krsim transmission-map \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
 
 run_stage "Pairwise coalescence (only needs Stage 1's --save_lineage)" \
-    python "$REPO_ROOT/visualization/run_pairwise_coalescence.py" \
+    krsim pairwise-coalescence \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
 
 run_stage "Stage 2: Add mutations" \
-    python "$REPO_ROOT/run_mut.py" \
+    krsim mutate \
     --ts "$TS_FILE" \
     --mutation_rate 1e-6 \
     --random_seed "$SEED" \
@@ -78,13 +81,13 @@ run_stage "Stage 2: Add mutations" \
 MUT_TS_FILE="$OUT_DIR/mutated_${SEED}.trees"
 
 run_stage "Stage 3: Coalescence & mutation time tables" \
-    python "$REPO_ROOT/run_coal_mut_t.py" \
+    krsim coal \
     --ts "$MUT_TS_FILE" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
 
 run_stage "Stage 4: Strain VCF" \
-    python "$REPO_ROOT/run_vcf_strain.py" \
+    krsim vcf-strain \
     --ts "$MUT_TS_FILE" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
@@ -92,21 +95,21 @@ run_stage "Stage 4: Strain VCF" \
 STRAIN_VCF="$OUT_DIR/output_${SEED}_strain.vcf"
 
 run_stage "Stage 5: Host VCF" \
-    python "$REPO_ROOT/run_vcf_host.py" \
+    krsim vcf-host \
     --strain_vcf "$STRAIN_VCF" \
     --random_seed "$SEED" \
     --depth 10 \
     --output_dir "$OUT_DIR" \
     --save_proportions
 
-run_stage "Extras: pairwise IBD fractions (relate_t_strain.py)" \
-    python "$REPO_ROOT/extras/relate_t_strain.py" \
+run_stage "Extras: pairwise IBD fractions (krsim relate-strain)" \
+    krsim relate-strain \
     --random_seed "$SEED" \
     --time_boundary 2 \
     --output_dir "$OUT_DIR"
 
-run_stage "Extras: host relatedness (relate_t_host.py)" \
-    python "$REPO_ROOT/extras/relate_t_host.py" \
+run_stage "Extras: host relatedness (krsim relate-host)" \
+    krsim relate-host \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
 
