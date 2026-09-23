@@ -35,6 +35,11 @@ class HelpFormatter(RawDescriptionRichHelpFormatter):
     """Raw* keeps the line layout of each command's EPILOG (outputs + example);
     the wider flag column stops most flags pushing their description onto a new line."""
 
+    # colour the "Outputs:" / "Example:" / "Needs ..." headings at the end of each command's help
+    highlights = [*RawDescriptionRichHelpFormatter.highlights,
+                  r"(?m)^(?P<section>Outputs:|Example:|Needs)"]
+    styles = {**RawDescriptionRichHelpFormatter.styles, "argparse.section": "bold green"}
+
     def __init__(self, prog, **kwargs):
         kwargs.setdefault("max_help_position", 30)
         super().__init__(prog, **kwargs)
