@@ -59,7 +59,7 @@ krsim vcf-host \
 |---|---|---|
 | `--Nh` | 3 | Number of human hosts |
 | `--T` | 10 | Transmission generations |
-| `--K` | 2 | Parasite strains per transmission event |
+| `--K` | 2 | Parasite strains per human host (2K if superinfected) |
 | `--chi` | 0.18 | Superinfection probability |
 | `--C` | 1 | Oocysts per mosquito |
 | `--recombination_rate` | 7.4e-7 | Per-bp recombination rate |

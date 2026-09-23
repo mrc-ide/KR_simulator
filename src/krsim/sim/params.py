@@ -27,7 +27,7 @@ class SimParams:
     T : int
         Number of generations to simulate (must be >= 1).
     K : int
-        Number of parasite strains sampled per transmission (must be >= 1).
+        Number of parasite strains per human host; superinfected hosts carry 2K (must be >= 1).
     chi : float
         Probability of superinfection (must be 0.0 <= chi <= 1.0).
     C : int
@@ -61,7 +61,7 @@ class SimParams:
             raise ValueError(f"T (number of generations) must be an integer >= 1, got {self.T}")
 
         if not isinstance(self.K, int) or self.K <= 0:
-            raise ValueError(f"K (number of parasite strains per transmission) must be an integer >= 1, got {self.K}")
+            raise ValueError(f"K (number of parasite strains per human host) must be an integer >= 1, got {self.K}")
 
         if not isinstance(self.chi, float) or not 0.0 <= self.chi <= 1.0:
             raise ValueError(f"chi (superinfection probability) must be a float between 0.0 and 1.0, got {self.chi}")
