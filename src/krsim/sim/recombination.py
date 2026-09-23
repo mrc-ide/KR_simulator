@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from sim.params import SimParams, GENOME_LENGTH
+from krsim.sim.params import SimParams, GENOME_LENGTH
 
 __all__ = ["recomb_event", "recomb_poisson"]
 

@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from sim.recombination import recomb_poisson
+from krsim.sim.recombination import recomb_poisson
 
 __all__ = ["human_mosq_human"]
 

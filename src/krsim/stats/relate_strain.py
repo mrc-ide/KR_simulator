@@ -1,14 +1,10 @@
 import os
-import sys
 import time
 import logging
 import argparse
 import pandas as pd
 
-# repo root, so `sim` resolves regardless of where this script is invoked from
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from sim.params import GENOME_LENGTH
+from krsim.sim.params import GENOME_LENGTH
 
 
 def parse_args():

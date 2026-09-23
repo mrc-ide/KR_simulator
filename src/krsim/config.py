@@ -2,7 +2,7 @@
 
 import yaml
 import numpy as np
-from sim.params import SimParams, GENOME_LENGTH, COMP_BREAKPOINTS
+from krsim.sim.params import SimParams, GENOME_LENGTH, COMP_BREAKPOINTS
 
 def load_config(path):
     """

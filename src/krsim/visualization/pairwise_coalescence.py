@@ -1,7 +1,7 @@
 import os
 import logging
 
-from transmission_map import _build_viz_data
+from krsim.visualization.transmission_map import _build_viz_data
 
 
 _HTML_TEMPLATE = r"""<title>Pairwise coalescence — sim __SEED__</title>

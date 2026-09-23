@@ -4,8 +4,8 @@ import numpy as np
 import tskit
 import collections
 
-from sim.params import SimParams, GENOME_LENGTH
-from sim.transmission import human_mosq_human
+from krsim.sim.params import SimParams, GENOME_LENGTH
+from krsim.sim.transmission import human_mosq_human
 
 __all__ = ["KRSimulator"]
 
