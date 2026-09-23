@@ -4,7 +4,6 @@ import os
 import time
 import logging
 
-from krsim.output.vcf_host_single import process_host_vcf
 from krsim.cli._common import format_elapsed
 
 HELP = "Stage 5: aggregate a per-strain VCF to per-host (individual) level"
@@ -29,6 +28,10 @@ def add_arguments(parser):
 
 
 def run(args):
+    # imported here rather than at module level so `krsim --help` stays fast
+    # (these pull in numpy/pandas/tskit/msprime)
+    from krsim.output.vcf_host_single import process_host_vcf
+
     start_time = time.time()
 
     os.makedirs(args.output_dir, exist_ok=True)

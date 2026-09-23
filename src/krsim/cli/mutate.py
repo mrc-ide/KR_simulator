@@ -4,9 +4,6 @@ import os
 import time
 import logging
 
-import tskit
-import msprime
-
 from krsim.cli._common import format_elapsed, setup_run_logging
 
 HELP = "Stage 2: add mutations to a tree sequence"
@@ -26,6 +23,11 @@ def add_arguments(parser):
 
 
 def run(args):
+    # imported here rather than at module level so `krsim --help` stays fast
+    # (these pull in numpy/pandas/tskit/msprime)
+    import tskit
+    import msprime
+
     start_time = time.time()
 
     os.makedirs(args.output_dir, exist_ok=True)

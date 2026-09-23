@@ -4,12 +4,6 @@ import os
 import time
 import logging
 
-from krsim.sim.params import SimParams
-from krsim.sim.simulator import KRSimulator
-from krsim.output.sim_ind_node_id import append_ind_node_map
-from krsim.output.node_pairs import save_node_pairs
-from krsim.output.lineage import save_lineage
-from krsim.output.node_id_map import save_node_id_map
 from krsim.cli._common import format_elapsed, setup_run_logging
 
 HELP = "Stage 1: simulate the transmission genealogy (tree sequence)"
@@ -47,6 +41,15 @@ def add_arguments(parser):
 
 
 def run(args):
+    # imported here rather than at module level so `krsim --help` stays fast
+    # (these pull in numpy/pandas/tskit/msprime)
+    from krsim.sim.params import SimParams
+    from krsim.sim.simulator import KRSimulator
+    from krsim.output.sim_ind_node_id import append_ind_node_map
+    from krsim.output.node_pairs import save_node_pairs
+    from krsim.output.lineage import save_lineage
+    from krsim.output.node_id_map import save_node_id_map
+
     start_time = time.time()
 
     # create output directory if it doesn't exist

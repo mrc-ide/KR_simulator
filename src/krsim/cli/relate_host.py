@@ -4,9 +4,6 @@ import os
 import time
 import logging
 
-import pandas as pd
-
-from krsim.stats.relate_host import host_average_ibd
 from krsim.cli._common import format_elapsed
 
 HELP = ("Per-host average pairwise IBD fraction from strain-level relatedness, "
@@ -28,6 +25,11 @@ def add_arguments(parser):
 
 
 def run(args):
+    # imported here rather than at module level so `krsim --help` stays fast
+    # (these pull in numpy/pandas/tskit/msprime)
+    import pandas as pd
+    from krsim.stats.relate_host import host_average_ibd
+
     start_time = time.time()
 
     os.makedirs(args.output_dir, exist_ok=True)

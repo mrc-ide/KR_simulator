@@ -2,10 +2,6 @@
 
 import os
 
-import tskit
-
-from krsim.output.coal_mut_times import mutation_table, coalescence_table
-
 HELP = "Stage 3: write the coalescence-time (coal_T) and mutation-time (mut_T) tables"
 
 
@@ -20,6 +16,11 @@ def add_arguments(parser):
 
 
 def run(args):
+    # imported here rather than at module level so `krsim --help` stays fast
+    # (these pull in numpy/pandas/tskit/msprime)
+    import tskit
+    from krsim.output.coal_mut_times import mutation_table, coalescence_table
+
     os.makedirs(args.output_dir, exist_ok=True)
 
     # load tree sequence

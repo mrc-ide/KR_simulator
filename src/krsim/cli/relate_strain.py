@@ -4,9 +4,6 @@ import os
 import time
 import logging
 
-import pandas as pd
-
-from krsim.stats.relate_strain import strain_ibd_fractions
 from krsim.cli._common import format_elapsed
 
 HELP = "True pairwise strain IBD fraction from the coalescence time table"
@@ -27,6 +24,11 @@ def add_arguments(parser):
 
 
 def run(args):
+    # imported here rather than at module level so `krsim --help` stays fast
+    # (these pull in numpy/pandas/tskit/msprime)
+    import pandas as pd
+    from krsim.stats.relate_strain import strain_ibd_fractions
+
     start_time = time.time()
 
     os.makedirs(args.output_dir, exist_ok=True)
