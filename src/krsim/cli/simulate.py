@@ -9,6 +9,19 @@ from krsim.defaults import RECOMBINATION_RATE
 
 HELP = "Stage 1: simulate the transmission genealogy (tree sequence)"
 
+EPILOG = """\
+Outputs (written to --output_dir):
+  Always:
+    ts_<seed>.trees               tree sequence — input to `krsim mutate`
+    sim_ind_node_map_<seed>.csv   host → strain mapping — needed by vcf-host, relate-host
+    KR_sim_<seed>.log             run log
+  With --save_lineage:
+    lineage_<seed>.csv, node_id_map_<seed>.csv
+                                  true pedigree — needed by transmission-map, pairwise-coalescence
+  With --save_pairs:
+    node_pairs_<seed>.csv         same-meiosis strain pairs (not used by other commands)
+"""
+
 
 def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
