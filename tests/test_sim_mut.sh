@@ -57,7 +57,7 @@ run_stage "Stage 1: Simulate genealogy" \
     --recombination_rate "$RECOMB_RATE" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR" \
-    --save_ts --save_ID --save_pairs --save_lineage
+    --save_ID --save_pairs --save_lineage
 
 TS_FILE="$OUT_DIR/ts_${SEED}.trees"
 

@@ -76,8 +76,10 @@ krsim simulate \
     --recombination_rate 7.4e-7 \
     --random_seed 42 \
     --output_dir results/ \
-    --save_ts --save_ID --save_pairs
+    --save_ID --save_pairs
 ```
+
+Always writes the tree sequence `ts_{seed}.trees`, which every later stage starts from. The `--save_*` flags below add extra outputs.
 
 | Flag | Description |
 |---|---|
@@ -89,7 +91,6 @@ krsim simulate \
 | `--recombination_rate` | Per-bp recombination rate — uses `7.4e-7` (*P. falciparum*) if not given |
 | `--random_seed` | Seed for reproducibility |
 | `--output_dir` | Output directory |
-| `--save_ts` | Save tree sequence to `ts_{seed}.trees` |
 | `--save_ID` | Save individual–node mapping to `sim_ind_node_map_{seed}.csv`, including each node's `time` (generations before present; `0` = most recent/current generation) |
 | `--save_pairs` | Save recombinant node pairs to `node_pairs_{seed}.csv` |
 | `--save_lineage` | Save per-generation child→parent strain lineage to `lineage_{seed}.csv`, plus a `node_id_map_{seed}.csv` pre/post-`simplify()` ID mapping — turn this on if you want true generation-by-generation parentage (for the transmission map, pedigree relatedness, or your own analysis), since the final tree sequence alone can skip generations |
@@ -195,7 +196,7 @@ krsim relate-host \
 
 | File | Stage | Description |
 |---|---|---|
-| `ts_{seed}.trees` | 1 | Tree sequence (no mutations) |
+| `ts_{seed}.trees` | 1 | Tree sequence (no mutations) — always written |
 | `sim_ind_node_map_{seed}.csv` | 1 | Host → strain node mapping, with each node's `time` (generations before present) |
 | `node_pairs_{seed}.csv` | 1 | Recombinant node pairs from same meiosis |
 | `lineage_{seed}.csv` | 1 | Per-generation child→parent strain lineage, pre-simplify node IDs (`--save_lineage`) |

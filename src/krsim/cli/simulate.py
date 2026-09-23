@@ -34,8 +34,6 @@ def add_arguments(parser):
                           help="Directory to write output files to.")
 
     # --- optional parameters ---
-    parser.add_argument("--save_ts", action="store_true",
-                        help="If set, saves the tree sequence object to a .trees file.")
     parser.add_argument("--save_ID", action="store_true",
                         help="If set, saves a CSV of simulation, individual and node mapping across all generations.")
     parser.add_argument("--save_pairs", action="store_true",
@@ -83,11 +81,10 @@ def run(args):
 
     ### OUPUT FILES ###
 
-    # save tree sequence
-    if args.save_ts:
-        trees_path = os.path.join(args.output_dir, f"ts_{args.random_seed}.trees")
-        ts.dump(trees_path)
-        logging.info(f"### tree sequence - {os.path.basename(trees_path)}")
+    # always save the tree sequence: every downstream stage starts from it
+    trees_path = os.path.join(args.output_dir, f"ts_{args.random_seed}.trees")
+    ts.dump(trees_path)
+    logging.info(f"### tree sequence - {os.path.basename(trees_path)}")
 
     # save individual-node mapping
     if args.save_ID:
