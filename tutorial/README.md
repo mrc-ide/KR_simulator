@@ -10,4 +10,4 @@ cd tutorial
 jupyter notebook tutorial.ipynb
 ```
 
-Running it writes its files to `tutorial/output/` (not tracked by git), including the two interactive HTML visualizations, which the notebook links to.
+Running it writes its files to `tutorial/output/` (not tracked by git), including the two interactive HTML visualizations. Copies of those two pages from the same run are kept in [`examples/`](examples/) so the notebook's links work without running anything. GitHub shows them as source code, so download them and open them in a browser.
