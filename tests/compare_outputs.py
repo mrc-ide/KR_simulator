@@ -20,6 +20,7 @@ import os
 import shutil
 import sys
 
+import numpy as np
 import pandas as pd
 
 GREEN  = "\033[32m"
@@ -51,6 +52,22 @@ def _warn(name, detail):
 
 MAX_DIFF_ROWS = 10
 
+# float columns match within this relative tolerance: sums of many floats can
+# differ in the last digit between platforms and pandas/numpy builds
+FLOAT_RTOL = 1e-12
+
+
+def _cells_equal(exp, act):
+    """Cell-by-cell match of two same-shape frames, floats within FLOAT_RTOL."""
+    equal = pd.DataFrame(True, index=exp.index, columns=exp.columns)
+    for col in exp.columns:
+        e, a = exp[col], act[col]
+        if pd.api.types.is_float_dtype(e) and pd.api.types.is_float_dtype(a):
+            equal[col] = np.isclose(e, a, rtol=FLOAT_RTOL, atol=0.0, equal_nan=True)
+        else:
+            equal[col] = (e == a) | (e.isna() & a.isna())
+    return equal
+
 
 def compare_csv(name, exp_path, act_path):
     exp = pd.read_csv(exp_path)
@@ -74,14 +91,18 @@ def compare_csv(name, exp_path, act_path):
 
     # same shape and columns: find which rows and cells differ
     if exp.shape == act.shape:
-        row_mask = ~(exp == act).all(axis=1)
+        equal = _cells_equal(exp, act)
+        if equal.all(axis=None):
+            _pass(name)
+            return True
+        row_mask = ~equal.all(axis=1)
         n_diff_rows = row_mask.sum()
         lines.append(f"{n_diff_rows}/{len(exp)} row(s) differ")
 
         diff_rows = exp[row_mask].copy()
         diff_rows_act = act[row_mask].copy()
         for col in exp.columns:
-            col_diff = exp.loc[row_mask, col] != act.loc[row_mask, col]
+            col_diff = ~equal.loc[row_mask, col]
             if col_diff.any():
                 lines.append(f"  column '{col}' differs in {col_diff.sum()} row(s):")
                 sample = exp.loc[row_mask][col_diff][col].head(MAX_DIFF_ROWS)
