@@ -4,13 +4,18 @@ A forward simulator that brings together malaria modelling and population geneti
 
 ## Installation
 
+Requires Python 3.9 or newer.
+
 ```bash
 git clone https://github.com/mrc-ide/KR_simulator.git
 cd KR_simulator
-python -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+python -m pip install --upgrade pip
 pip install -e .
 ```
+
+Upgrading pip matters: older pip versions (such as the 21.x that ships with macOS's built-in Python) fail with `Directory cannot be installed in editable mode`.
 
 Or with conda: `conda env create -f environment.yml && conda activate kr_malaria`.
 
@@ -115,4 +120,4 @@ To check krsim is installed correctly, run this from the repo root with your env
 bash tests/test_sim_mut.sh
 ```
 
-It runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/`. If everything is installed correctly, it ends with `All 13 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.
+It runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/` (decimal numbers only need to match to 12 significant digits, since the last digit can vary between machines). If everything is installed correctly, it ends with `All 13 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.

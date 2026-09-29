@@ -2,10 +2,10 @@
 
 [`tutorial.ipynb`](tutorial.ipynb) runs every `krsim` command on a small simulation (3 hosts, 10 generations, seed 123) and shows what each one writes. It is saved with its outputs, so you can read it here on GitHub without running anything.
 
-To run it yourself, install krsim from the repo root (`pip install -e .`, see the main [README](../README.md#installation)), then open the notebook from this folder:
+To run it yourself, set up krsim as in the main [README](../README.md#installation), but install it from the repo root with the tutorial extras, which add Jupyter and matplotlib. Then open the notebook from this folder:
 
 ```bash
-pip install notebook      # Jupyter isn't installed with krsim
+pip install -e ".[tutorial]"
 cd tutorial
 jupyter notebook tutorial.ipynb
 ```
