@@ -19,17 +19,32 @@ Upgrading pip matters: older pip versions (such as the 21.x that ships with macO
 
 Or with conda: `conda env create -f environment.yml && conda activate kr_malaria`.
 
-Check it worked with `krsim --help`. To reproduce results with the exact package versions used in development, run `pip install -r requirements.txt` before `pip install -e .`.
+To reproduce results with the exact package versions used in development, run `pip install -r requirements.txt` before `pip install -e .`.
+
+### Check the install
+
+Still in the `KR_simulator` folder with the environment active, run:
+
+```bash
+krsim --help
+bash tests/test_sim_mut.sh
+```
+
+The test runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/` (decimal numbers only need to match to 12 significant digits, since the last digit can vary between machines). If everything is installed correctly, it ends with `All 13 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.
 
 ## Quick start
 
+From the `KR_simulator` folder, run the pipeline on a small example. Results go to `krsim_output/`, a folder next to the repo (krsim creates it), so they stay out of git:
+
 ```bash
-krsim simulate   --Nh 3 --T 10 --K 2 --chi 0.18 --C 1 --random_seed 123 --output_dir output
-krsim mutate     --ts output/ts_123.trees --random_seed 123 --output_dir output
-krsim coal       --ts output/mutated_123.trees --random_seed 123 --output_dir output
-krsim vcf-strain --ts output/mutated_123.trees --random_seed 123 --output_dir output
-krsim vcf-host   --strain_vcf output/output_123_strain.vcf --ind_node_map_csv output/sim_ind_node_map_123.csv \
-                 --depth 10 --random_seed 123 --output_dir output
+OUT=../krsim_output
+
+krsim simulate   --Nh 3 --T 10 --K 2 --chi 0.18 --C 1 --random_seed 123 --output_dir $OUT
+krsim mutate     --ts $OUT/ts_123.trees --random_seed 123 --output_dir $OUT
+krsim coal       --ts $OUT/mutated_123.trees --random_seed 123 --output_dir $OUT
+krsim vcf-strain --ts $OUT/mutated_123.trees --random_seed 123 --output_dir $OUT
+krsim vcf-host   --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT/sim_ind_node_map_123.csv \
+                 --depth 10 --random_seed 123 --output_dir $OUT
 ```
 
 `krsim <command> --help` lists every option for a command. The [tutorial](tutorial/tutorial.ipynb) runs each command and shows what it writes.
@@ -111,13 +126,3 @@ Each blue box is a `krsim` command and the files it writes; dashed files need th
 | `strain_transmission_map_{seed}.html` | strain-transmission-map | Interactive pedigree of the whole run |
 | `pairwise_strain_pedigree_map_{seed}.html` | pairwise-strain-pedigree-map | Traces two strains back to shared ancestors |
 | `KR_sim_{seed}.log` | all | What each command ran and wrote |
-
-## Tests
-
-To check krsim is installed correctly, run this from the repo root with your environment activated:
-
-```bash
-bash tests/test_sim_mut.sh
-```
-
-It runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/` (decimal numbers only need to match to 12 significant digits, since the last digit can vary between machines). If everything is installed correctly, it ends with `All 13 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.
