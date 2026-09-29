@@ -17,3 +17,6 @@ tests/output/
 
 # Files the tutorial writes when it is run
 tutorial/output/
+
+# Default output folder if krsim is run inside the repo
+output/
