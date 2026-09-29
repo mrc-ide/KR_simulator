@@ -13,10 +13,12 @@ dependencies = [
     "msprime",
     "numpy",
     "pandas",
-    "matplotlib",
-    "pyyaml",
     "rich-argparse",
 ]
+
+[project.optional-dependencies]
+# packages for running tutorial/tutorial.ipynb: pip install -e ".[tutorial]"
+tutorial = ["matplotlib", "notebook"]
 
 [project.scripts]
 krsim = "krsim.cli:main"

@@ -8,8 +8,6 @@ dependencies:
   - msprime
   - numpy
   - pandas
-  - matplotlib
-  - pyyaml
   - rich-argparse
   - pip
   - pip:
