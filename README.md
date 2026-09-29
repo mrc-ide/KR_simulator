@@ -34,10 +34,10 @@ The test runs every command on a small simulation and compares the results in `t
 
 ## Quick start
 
-From the `KR_simulator` folder, run the pipeline on a small example. Results go to `krsim_output/`, a folder next to the repo (krsim creates it), so they stay out of git:
+From the `KR_simulator` folder, run the pipeline on a small example. Results go to `krsim_quickstart_output/`, a folder next to the repo (krsim creates it), so they stay out of git:
 
 ```bash
-OUT=../krsim_output
+OUT=../krsim_quickstart_output
 
 krsim simulate   --Nh 3 --T 10 --K 2 --chi 0.18 --C 1 --random_seed 123 --output_dir $OUT
 krsim mutate     --ts $OUT/ts_123.trees --random_seed 123 --output_dir $OUT
