@@ -1,5 +1,5 @@
 ---
-title: "👋 Welcome to krsim"
+title: "👋 Welcome to `krsim`"
 subtitle: "Malaria transmission simulator"
 toc: false
 ---

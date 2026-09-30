@@ -89,12 +89,27 @@ table.table {
     font-weight: 700 !important;
   }
 
-  // Site title "krsim": bold, in the code font
+  // Site title "krsim": bold, styled like inline code (grey chip, red text)
   .sidebar-title, .sidebar-title a, .sidebar-title .menu-text {
-    color: $krsim-sidebar-text !important;
     font-family: $font-family-monospace;
     font-weight: 700 !important;
   }
+  .sidebar-title > a {
+    color: $code-color !important;
+    background: $krsim-subtle-bg;
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+  }
+}
+
+// Inline code in page titles (e.g. "Welcome to `krsim`")
+.title code {
+  color: $code-color;
+  background: $krsim-subtle-bg;
+  padding: 0.05em 0.3em;
+  border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: 700;
 }
 
 // "On this page": quiet grey list
