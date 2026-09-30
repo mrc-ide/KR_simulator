@@ -22,7 +22,11 @@ website:
         text: Welcome
       - background.qmd
       - installation.qmd
-      - tutorial.qmd
+      - section: Tutorial
+        contents:
+          - tutorial-small.qmd
+          - tutorial-realistic.qmd
+          - tutorial-scripts.qmd
       - section: Reference
         contents:
           - commands.qmd

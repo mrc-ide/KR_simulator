@@ -1,0 +1,36 @@
+---
+title: "🧪 Small example"
+aliases:
+  - tutorial.html
+---
+
+A small simulation, quick to run and easy to look at: 3 hosts (`--Nh`) for 10 generations (`--T`), with 2 parasites passed on per mosquito bite (`--K`), a superinfection probability of 0.18 (`--chi`) and 1 oocyst per mosquito (`--C`).
+
+## Run the notebook
+
+The Jupyter notebook runs every `krsim` command on this example and looks at what each one writes. Change the parameters to see how transmission changes. With the `krsim` environment active ([Installation](installation.qmd)), run the commands below. The first saves the notebook into your current folder and the second opens it in Jupyter:
+
+```bash
+curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/notebooks/tutorial.ipynb
+jupyter notebook tutorial.ipynb
+```
+
+The notebook writes its files to `output/` next to it.
+
+## Visualise transmission
+
+The notebook also draws two interactive maps of the true pedigree. These are the maps from this example (seed 123); both are interactive, so you can try them here.
+
+### Strain transmission map
+
+Who infected whom, generation by generation: founders at the top, current strains at the bottom, one lane per host. Click a strain to highlight its ancestors and descendants. [Open full screen](maps/strain_transmission_map_123.html){target="_blank"}
+
+<iframe src="maps/strain_transmission_map_123.html" width="100%" height="650" style="border: 1px solid #ccc; border-radius: 4px;"></iframe>
+
+### Pairwise strain pedigree map
+
+Pick two current strains and trace each one's ancestry back through the pedigree. Where the two lineages meet are their shared ancestors. [Open full screen](maps/pairwise_strain_pedigree_map_123.html){target="_blank"}
+
+<iframe src="maps/pairwise_strain_pedigree_map_123.html" width="100%" height="650" style="border: 1px solid #ccc; border-radius: 4px;"></iframe>
+
+Next: try the [command-line scripts](tutorial-scripts.qmd) for the same example.

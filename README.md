@@ -19,7 +19,7 @@ Check it worked with `krsim --help`, which lists every command.
 ## Getting started
 
 - [Installation](https://mrc-ide.github.io/KR_simulator/installation.html): install krsim.
-- [Tutorial](https://mrc-ide.github.io/KR_simulator/tutorial.html): a small example with a Jupyter notebook to play with, and the command-line scripts to run the pipeline.
+- Tutorial: a [small example](https://mrc-ide.github.io/KR_simulator/tutorial-small.html) with a Jupyter notebook to play with, and the [command-line scripts](https://mrc-ide.github.io/KR_simulator/tutorial-scripts.html) to run the pipeline.
 - [Command line](https://mrc-ide.github.io/KR_simulator/commands.html): every command and option.
 
 ## Development

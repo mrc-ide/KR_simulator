@@ -1,0 +1,8 @@
+---
+title: "🌍 Realistic example"
+---
+
+::: {.callout-note}
+## In progress
+A larger simulation with more realistic parameter values, including the distribution of coalescence times, is coming soon.
+:::

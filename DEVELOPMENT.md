@@ -58,7 +58,7 @@ The website source is in `docs/`, built with [Quarto](https://quarto.org/docs/ge
 quarto preview docs
 ```
 
-Pushing to `main` rebuilds and publishes it through `.github/workflows/docs.yml`. The tutorial page (`docs/tutorial.qmd`) links to the downloadable notebook in `notebooks/` rather than showing its outputs.
+Pushing to `main` rebuilds and publishes it through `.github/workflows/docs.yml`. The tutorial pages (`docs/tutorial-*.qmd`) link to the downloadable notebook in `notebooks/` rather than showing its outputs.
 
 ## Project structure
 
@@ -89,7 +89,7 @@ KR_SIM/
 │
 ├── docs/                 # Quarto website (published to GitHub Pages)
 │   ├── _quarto.yml       #   Site config and navigation
-│   ├── *.qmd             #   Pages: welcome, background, installation, tutorial, command line, output files
+│   ├── *.qmd             #   Pages: welcome, background, installation, tutorial (3 pages), command line, output files
 │   └── maps/             #   Interactive pedigree maps embedded in the tutorial
 │
 ├── notebooks/            # Notebooks for users to download and run
