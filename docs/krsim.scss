@@ -141,3 +141,10 @@ h1, h2, h3, h4, h5, h6, .title {
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
+
+// Underline headers
+main.content h1, main.content h2, main.content h3, main.content h4, .title {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
