@@ -95,6 +95,7 @@ table.table {
     font-family: $font-family-monospace;
     font-weight: 700 !important;
   }
+  .sidebar-title > a { font-size: 2rem; }
 }
 
 // Code in page titles (e.g. "Welcome to `krsim`"): code font, heading colour, no chip
