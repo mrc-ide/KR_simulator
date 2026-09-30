@@ -24,7 +24,7 @@ from krsim.cli import (
 COMMANDS = {
     "simulate": simulate,
     "mutate": mutate,
-    "coal": coal,
+    "coal-mut": coal,
     "vcf-strain": vcf_strain,
     "vcf-host": vcf_host,
     "relate-strain": relate_strain,

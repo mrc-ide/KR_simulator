@@ -9,8 +9,8 @@ OUT=krsim_quickstart_output
 
 krsim simulate   --Nh 3 --T 10 --K 2 --chi 0.18 --C 1 --random_seed 123 --output_dir $OUT
 krsim mutate     --ts $OUT/ts_123.trees --random_seed 123 --output_dir $OUT
-krsim coal       --ts $OUT/mutated_123.trees --random_seed 123 --output_dir $OUT
-krsim vcf-strain --ts $OUT/mutated_123.trees --random_seed 123 --output_dir $OUT
+krsim coal-mut   --ts $OUT/ts_mut_123.trees --random_seed 123 --output_dir $OUT
+krsim vcf-strain --ts $OUT/ts_mut_123.trees --random_seed 123 --output_dir $OUT
 krsim vcf-host   --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT/sim_ind_node_map_123.csv \
                  --depth 10 --random_seed 123 --output_dir $OUT
 ```
@@ -22,9 +22,9 @@ Each command prints the files it wrote. Every file name ends in the random seed 
 | Command | Reads | Writes |
 |---|---|---|
 | `simulate` | — | `ts_123.trees`, `sim_ind_node_map_123.csv` |
-| `mutate` | `ts_123.trees` | `mutated_123.trees` |
-| `coal` | `mutated_123.trees` | `coal_T_123.csv`, `mut_T_123.csv` |
-| `vcf-strain` | `mutated_123.trees` | `output_123_strain.vcf` |
+| `mutate` | `ts_123.trees` | `ts_mut_123.trees` |
+| `coal-mut` | `ts_mut_123.trees` | `coal_T_123.csv`, `mut_T_123.csv` |
+| `vcf-strain` | `ts_mut_123.trees` | `output_123_strain.vcf` |
 | `vcf-host` | `output_123_strain.vcf`, `sim_ind_node_map_123.csv` | `output_123_host.vcf` |
 
 ## Next steps

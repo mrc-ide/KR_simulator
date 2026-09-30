@@ -11,7 +11,7 @@ Every file name ends in the random seed passed with `--random_seed`. The Stage c
 | `node_pairs_{seed}.csv` | 1 | Recombinant node pairs from same meiosis |
 | `lineage_{seed}.csv` | 1 | Per-generation child→parent strain lineage, pre-simplify node IDs (`--save_lineage`) |
 | `node_id_map_{seed}.csv` | 1 | Pre-simplify → post-simplify node ID mapping (`--save_lineage`) |
-| `mutated_{seed}.trees` | 2 | Tree sequence with mutations |
+| `ts_mut_{seed}.trees` | 2 | Tree sequence with mutations |
 | `coal_T_{seed}.csv` | 3 | Pairwise coalescence times per tree interval (chromosome-local coordinates) |
 | `mut_T_{seed}.csv` | 3 | Mutation chromosome, position, and age |
 | `output_{seed}_strain.vcf` | 4 | Per-strain genotypes (0/1) |
