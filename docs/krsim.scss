@@ -2,8 +2,10 @@
 // Colours come from krsim-light.scss / krsim-dark.scss ($krsim-* variables).
 
 /*-- scss:defaults --*/
-$web-font-path: "https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@500;700&display=swap";
-$font-family-sans-serif: "Source Sans 3", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif;
+// Whole site in Menlo (macOS). IBM Plex Mono is loaded as the fallback for
+// visitors without Menlo (Windows, Linux).
+$web-font-path: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400&display=swap";
+$font-family-sans-serif: Menlo, "IBM Plex Mono", ui-monospace, monospace;
 $font-family-monospace: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
 $font-size-root: 16px;
 $font-size-base: 1rem;
@@ -17,10 +19,10 @@ $code-color: #E23137;
 /*-- scss:rules --*/
 body { -webkit-font-smoothing: antialiased; }
 
-// Sizes: compact, Notion-like (17px body text)
+// Sizes: compact (15px body text; monospace letters are wide)
 html { font-size: 16px !important; }
-body { font-size: 17px; }
-main p, main li, main td { font-size: 17px; }
+body { font-size: 15px; }
+main p, main li, main td { font-size: 15px; }
 
 // Headings: bold, tight, no rules underneath
 h1, h2, h3, h4, .title { letter-spacing: -0.01em; color: $krsim-heading; line-height: 1.25; }
@@ -122,9 +124,9 @@ table.table th,
   > h2:first-child, > h3:first-child, > .section > h2:first-child, > .section > h3:first-child { margin-top: 16px; }
 }
 
-// Headers: ALL CAPITALS in IBM Plex Mono (loaded from Google Fonts above)
+// Headers: ALL CAPITALS in Menlo (IBM Plex Mono fallback)
 h1, h2, h3, h4, h5, h6, .title {
-  font-family: "IBM Plex Mono", $font-family-monospace;
+  font-family: Menlo, "IBM Plex Mono", $font-family-monospace;
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
