@@ -4,9 +4,7 @@ aliases:
   - tutorial.html
 ---
 
-A small simulation, quick to run and easy to look at: 3 hosts (`--Nh`) for 10 generations (`--T`), with 2 parasites passed on per mosquito bite (`--K`), a superinfection probability of 0.18 (`--chi`) and 1 oocyst per mosquito (`--C`).
-
-These values are not realistic. They are chosen to keep the simulation small, so you can clearly see each human host, each generation, and how parasites are transmitted between them. For more realistic values, see the [realistic example](tutorial-realistic.qmd).
+This example is deliberately small, and its parameter values are not meant to be realistic. It follows just 3 human hosts (`--Nh`) for 10 generations (`--T`), with 2 parasites passed on per mosquito bite (`--K`), a superinfection probability of 0.18 (`--chi`) and 1 oocyst per mosquito (`--C`). Keeping the simulation this small makes it quick to run and easy to read: you can see each human host and each generation clearly, and follow exactly how parasites are transmitted between hosts, where superinfection brings strains together, and where mutations arise along the way. Use it to get a feel for how the model works before moving on to the [realistic example](tutorial-realistic.qmd), which uses more realistic values.
 
 ## Run the notebook
 
