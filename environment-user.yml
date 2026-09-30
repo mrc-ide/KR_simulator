@@ -1,0 +1,19 @@
+# User install: krsim plus Jupyter for the tutorial, without cloning the repo.
+#   conda env create -f environment-user.yml
+# For development (editable install from a clone), use environment.yml instead.
+name: krsim
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.9
+  - tskit
+  - msprime
+  - numpy
+  - pandas
+  - rich-argparse
+  - matplotlib
+  - notebook
+  - git
+  - pip
+  - pip:
+      - git+https://github.com/mrc-ide/KR_simulator.git
