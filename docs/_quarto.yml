@@ -20,7 +20,7 @@ website:
     contents:
       - href: index.qmd
         text: Welcome
-      # - background.qmd   # draft: uncomment when the page is finished
+      - background.qmd
       - section: Getting started
         contents:
           - installation.qmd

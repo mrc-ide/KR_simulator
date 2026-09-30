@@ -1,15 +1,20 @@
 ---
 title: "📖 Background"
-# Draft: shows in `quarto preview` but is left out of the published site.
-# When the "To fill in" boxes are done, delete this line and uncomment
-# background.qmd in _quarto.yml to add it to the sidebar.
-draft: true
 ---
 
-::: {.callout-important}
-## To fill in
-What krsim is for: the question it helps answer, why a forward simulator is needed, and who it is aimed at. Also what "KR" stands for.
-:::
+## Why krsim
+
+krsim models the transmission of malaria parasites between human hosts through mosquito vectors. It builds on the Wright–Fisher model, a foundational model of population genetics, and adds a few key epidemiological factors: superinfection, the number of parasites passed on in each bite, and the number of oocysts in each mosquito.
+
+This approach was first taken by [Kwiatkowski (2024)](https://doi.org/10.12688/wellcomeopenres.19092.1), following a single genetic locus. krsim extends it to the whole genome: using [tskit](https://tskit.dev), it records every recombination event, so the full ancestry of every parasite genome is kept, and it stays very fast to run.
+
+krsim can be used to:
+
+- **simulate transmission** under known parameter values
+- **understand relatedness** between parasite strains, within and between hosts
+- **benchmark whole-genome tools**, such as relatedness and IBD methods, against a known truth
+
+It is designed as a foundational model, with many possible avenues for extension.
 
 ## The transmission model
 
@@ -32,24 +37,18 @@ krsim follows a population of `Nh` human hosts through `T` discrete, non-overlap
 | $\chi$ | `--chi` | Probability that a host is superinfected |
 | $C$ | `--C` | Oocysts per mosquito |
 
-::: {.callout-important}
-## To fill in
-The biological reasoning behind these choices, and typical parameter values for the settings you have in mind (e.g. low vs high transmission).
-:::
+The model set-up and the choice of these epidemiological parameters follow [Kwiatkowski (2024)](https://doi.org/10.12688/wellcomeopenres.19092.1), where they add just enough malaria transmission dynamics to a Wright–Fisher population. krsim extends this with mosquito dynamics: oocysts, meiosis, and the sampling of the parasites passed on.
+
+Suitable parameter values vary between transmission settings, so choose them to match the setting you want to simulate.
 
 ## Recombination
 
 Recombination happens in the mosquito, between the two parasites that form each oocyst. The genome is the *P. falciparum* 3D7 reference: 14 chromosomes, 23.57 Mb in total. Each recombination event between two parental genomes combines two kinds of breakpoint:
 
 - **Independent assortment:** at each chromosome boundary, the products switch parent with probability 0.5.
-- **Crossovers:** a Poisson number of breakpoints with mean `recombination_rate × genome length`, placed uniformly along the genome. The default rate is `7.4e-7` per base pair.
+- **Crossovers:** a Poisson number of breakpoints with mean `recombination_rate × genome length`, placed uniformly along the genome. The default rate is `7.4e-7` per base pair, following [Kwiatkowski (2024)](https://doi.org/10.12688/wellcomeopenres.19092.1).
 
 Two such events per oocyst give its four products.
-
-::: {.callout-important}
-## To fill in
-The source for the default recombination rate, and any simplifications worth flagging (e.g. no crossover interference).
-:::
 
 ## Recording ancestry
 
@@ -59,26 +58,17 @@ At the end of the run the tree sequence is simplified to the strains in the curr
 
 ## From genealogy to data
 
-- **Mutations** are added on top of the genealogy with [msprime](https://tskit.dev/msprime), at rate `--mutation_rate` (default `1e-6` per base pair).
+- **Mutations** are added on top of the genealogy with [msprime](https://tskit.dev/msprime), at rate `--mutation_rate` (default `1e-6` per base pair, following [Kwiatkowski (2024)](https://doi.org/10.12688/wellcomeopenres.19092.1)).
 - **Coalescence times** are read directly from the genealogy: for every pair of strains and every stretch of genome, when their ancestry last met.
 - **Strain VCF**: one haploid genotype per strain, as if each strain were sequenced on its own.
 - **Host VCF**: mimics sequencing a mixed infection from a blood sample. Each host's strain proportions are drawn from a Dirichlet distribution, `--depth` reads are shared between its strains, and a site is called `0/1` when the reads carry both alleles.
 
-::: {.callout-important}
-## To fill in
-How these outputs relate to real data and analyses, e.g. which relatedness or IBD methods they can be used to test.
-:::
+The VCFs have the same form as real sequencing data, while krsim also knows the true ancestry behind them. This makes them a way to benchmark whole-genome methods against a known truth: for example, comparing the IBD that [hmmIBD](https://github.com/glipsnort/hmmIBD) infers from the strain VCF with the true relatedness from `krsim relate-strain`.
 
 ## References
 
-::: {.callout-important}
-## To fill in
-Papers the model builds on.
-:::
+- Kwiatkowski D. (2024). Modelling transmission dynamics and genomic diversity in a recombining parasite population. *Wellcome Open Research* 9:215. <https://doi.org/10.12688/wellcomeopenres.19092.1>
 
 ## Citing krsim
 
-::: {.callout-important}
-## To fill in
-How to cite krsim (paper or DOI).
-:::
+A paper describing krsim is in preparation. Until then, please cite the [GitHub repository](https://github.com/mrc-ide/KR_simulator).
