@@ -165,3 +165,15 @@ main.content section h2, main.content section h3, main.content section h4 {
 // Quarto fades the list out and offers a small dropdown instead; hide the
 // dropdown so the list simply disappears until you scroll back up
 #quarto-toc-toggle { display: none !important; }
+
+// Developers block, pinned to the bottom of the sidebar
+#quarto-sidebar .quarto-sidebar-footer {
+  margin-top: auto;
+  padding: 0.9rem 0.6rem 1rem;
+  border-top: 1px solid $krsim-hover;
+  font-size: 0.78rem; line-height: 1.45; color: $krsim-sidebar-text;
+  .dev-heading { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem; }
+  .dev-name { font-weight: 700; margin-top: 0.35rem; }
+  .dev-role { font-style: italic; }
+  a { color: $krsim-sidebar-text; text-decoration: underline; text-underline-offset: 2px; }
+}

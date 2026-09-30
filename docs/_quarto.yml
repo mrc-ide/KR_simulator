@@ -31,6 +31,12 @@ website:
         contents:
           - commands.qmd
           - outputs.qmd
+    footer: |
+      <div class="dev-heading">Developers</div>
+      <div class="dev-name">Janeesh Kaur Bansal</div>
+      <div class="dev-role">Author, maintainer</div>
+      <div class="dev-name">Bob Verity</div>
+      <div class="dev-role">Supervisor</div>
 
 format:
   html:
