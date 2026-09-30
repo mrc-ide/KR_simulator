@@ -9,6 +9,8 @@ dependencies:
   - numpy
   - pandas
   - rich-argparse
+  - matplotlib
+  - notebook
   - pip
   - pip:
       - -e .
