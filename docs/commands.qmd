@@ -6,6 +6,7 @@ Every command is run as `krsim <command>`, and `krsim <command> --help` lists al
 
 ## Main pipeline
 
+::: {.stage}
 ### 🦟 Stage 1 — Simulate genealogy
 
 ```bash
@@ -31,7 +32,9 @@ Always writes the tree sequence `ts_{seed}.trees`, which every later stage start
 | `--output_dir` | Output directory |
 | `--save_pairs` | Save recombinant node pairs to `node_pairs_{seed}.csv` |
 | `--save_lineage` | Save per-generation child→parent strain lineage to `lineage_{seed}.csv`, plus a `node_id_map_{seed}.csv` pre/post-`simplify()` ID mapping — turn this on if you want true generation-by-generation parentage (for `krsim strain-transmission-map`, `krsim pairwise-strain-pedigree-map`, or your own pedigree analysis), since the final tree sequence alone can skip generations |
+:::
 
+::: {.stage}
 ### ⚡ Stage 2 — Add mutations
 
 ```bash
@@ -43,7 +46,9 @@ krsim mutate \
 ```
 
 If `--mutation_rate` is not given, `1e-6` per bp is used. Outputs `ts_mut_{seed}.trees`. All stages from here onwards use the mutated tree sequence.
+:::
 
+::: {.stage}
 ### ⏳ Stage 3 — Coalescence & mutation times
 
 ```bash
@@ -54,7 +59,9 @@ krsim coal-mut \
 ```
 
 Outputs `coal_T_{seed}.csv` (pairwise MRCA times per tree interval) and `mut_T_{seed}.csv` (position and age of every mutation). Both tables include a `chromosome` column (1-indexed, from `krsim/sim/params.py`'s `COMP_BREAKPOINTS`), with `position`/`left`/`right` given as chromosome-local coordinates rather than genome-wide ones. `coal_T` only contains rows where the sample pair has a common ancestor in that tree interval — pairs with no shared ancestry anywhere in the ARG are simply absent from the table.
+:::
 
+::: {.stage}
 ### 🧬 Stage 4 — Strain-level VCF
 
 ```bash
@@ -65,7 +72,9 @@ krsim vcf-strain \
 ```
 
 Outputs `output_{seed}_strain.vcf` — one sample column per parasite strain (node), genotypes `0`/`1`.
+:::
 
+::: {.stage}
 ### 🧍 Stage 5 — Host-level VCF
 
 ```bash
@@ -84,11 +93,13 @@ Aggregates the strain VCF to individual (host) level using a **Dirichlet-Multino
 3. At each variant site, genotype called as `0/0` (all reads carry ref), `1/1` (all reads carry alt), or `0/1` (mixed) from the fixed per-strain read counts
 
 Outputs `output_{seed}_host.vcf`. With `--save_proportions`, also writes `host_proportions_{seed}.csv`.
+:::
 
 ## Pedigree visualizations
 
 Both maps only need Stage 1 run with `--save_lineage`. See them in action in the [tutorial](tutorial.ipynb#visualize-the-pedigree).
 
+::: {.stage}
 ### Strain transmission map — visualize the pedigree
 
 ```bash
@@ -100,7 +111,9 @@ krsim strain-transmission-map \
 ```
 
 Needs `--save_lineage` from Stage 1. Renders an interactive, self-contained `strain_transmission_map_{seed}.html` — a generation-by-generation pedigree diagram (founders at top, current samples at bottom, one lane per host) built from the pre-simplify `lineage_{seed}.csv`, so it shows the true parentage that `simplify()` compresses away. Each strain is labeled with its pre-simplify ID (with its post-simplify ID as a small corner badge, where one exists); clicking a strain traces and highlights its full ancestry and descendants. Open the file directly in a browser — no server or dependencies needed. Intended for small debug runs (a handful of hosts, a few dozen generations); it warns in-page and degrades gracefully past that, but isn't meant for production-scale runs (`--Nh 100`, etc.). It only needs Stage 1, so you can inspect the raw transmission history before running mutations or VCFs.
+:::
 
+::: {.stage}
 ### Pairwise strain pedigree map — trace two strains back to their shared ancestor
 
 ```bash
@@ -114,6 +127,7 @@ krsim pairwise-strain-pedigree-map \
 Also only needs `--save_lineage` from Stage 1 — same inputs as the transmission map. Renders `pairwise_strain_pedigree_map_{seed}.html`: pick any two current-generation strains (dropdowns, or click two strains in the diagram) and it traces each one's full ancestry back through the pedigree, drawing strain 1's lineage in one color and strain 2's in another. Where the two colors overlap is a shared ancestor; the *most recent* shared ancestor(s) are highlighted as the coalescence point(s), with the number of generations back reported for each strain. Because a strain can have up to two immediate parents (one per gamete in the oocyst that produced it), there can be more than one coalescence point — the two ancestries can independently merge via more than one path.
 
 This is a **pedigree** trace, not a genomic one: a shared ancestor here means the two strains' host lineages shared a parasite at that generation, not that any specific genomic region was actually inherited from it — recombination can replace a segment with DNA from the other parent at every step. Same small-debug-run scope as the transmission map.
+:::
 
 ## Relatedness statistics
 
