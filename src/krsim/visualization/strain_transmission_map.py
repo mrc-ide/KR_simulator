@@ -201,7 +201,8 @@ def _build_genome_data(ts, lineage, node_map, nodes):
     }
 
 
-_HTML_TEMPLATE = r"""<title>Strain transmission map — sim __SEED__</title>
+_HTML_TEMPLATE = r"""<meta charset="utf-8">
+<title>Strain transmission map — sim __SEED__</title>
 <style>
   .viz-root {
     color-scheme: light;
@@ -219,7 +220,7 @@ _HTML_TEMPLATE = r"""<title>Strain transmission map — sim __SEED__</title>
     --card:           #ffffff;
     --edge:           #c9c8bf;
     --warn-bg:        #fdf3e4;
-    --mut: #E23137; --warn-ink:       #7a4a00;
+    --mut: #E23137; --seg-a: #DEE9F6; --seg-b: #C8E3F3; --warn-ink:       #7a4a00;
   }
   @media (prefers-color-scheme: dark) {
     :root:where(:not([data-theme="light"])) .viz-root {
@@ -238,7 +239,7 @@ _HTML_TEMPLATE = r"""<title>Strain transmission map — sim __SEED__</title>
       --card:           #222221;
       --edge:           #3c3c39;
       --warn-bg:        #2c2410;
-      --mut: #E23137; --warn-ink:       #e0b25c;
+      --mut: #E23137; --seg-a: #22475F; --seg-b: #152F40; --warn-ink:       #e0b25c;
     }
   }
   :root[data-theme="dark"] .viz-root {
@@ -248,7 +249,7 @@ _HTML_TEMPLATE = r"""<title>Strain transmission map — sim __SEED__</title>
     --lane-1: #3987e5; --lane-2: #d95926; --lane-3: #199e70; --lane-4: #c98500;
     --lane-5: #d55181; --lane-6: #008300; --lane-7: #9085e9; --lane-8: #e66767;
     --lane-overflow: #898781; --card: #222221; --edge: #3c3c39;
-    --warn-bg: #2c2410; --mut: #E23137; --warn-ink: #e0b25c;
+    --warn-bg: #2c2410; --mut: #E23137; --seg-a: #22475F; --seg-b: #152F40; --warn-ink: #e0b25c;
   }
   :root[data-theme="light"] .viz-root {
     color-scheme: light;
@@ -257,7 +258,7 @@ _HTML_TEMPLATE = r"""<title>Strain transmission map — sim __SEED__</title>
     --lane-1: #2a78d6; --lane-2: #eb6834; --lane-3: #1baf7a; --lane-4: #eda100;
     --lane-5: #e87ba4; --lane-6: #008300; --lane-7: #4a3aa7; --lane-8: #e34948;
     --lane-overflow: #898781; --card: #ffffff; --edge: #c9c8bf;
-    --warn-bg: #fdf3e4; --mut: #E23137; --warn-ink: #7a4a00;
+    --warn-bg: #fdf3e4; --mut: #E23137; --seg-a: #DEE9F6; --seg-b: #C8E3F3; --warn-ink: #7a4a00;
   }
 
   * { box-sizing: border-box; }
@@ -454,8 +455,22 @@ _HTML_TEMPLATE = r"""<title>Strain transmission map — sim __SEED__</title>
     font: inherit; font-size: 12px; color: var(--ink); background: var(--card);
     border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; max-width: 320px;
   }
-  .genome-bar select[disabled] { opacity: 0.45; }
   #genomeInfo { color: var(--ink-muted); }
+  /* bar of trees (or chromosomes), each segment as wide as the stretch of genome it covers */
+  .tree-bar {
+    flex: 1 1 100%; display: flex; height: 30px; border: 1px solid var(--border);
+    border-radius: 6px; overflow: hidden; background: var(--card);
+  }
+  .tree-seg {
+    flex: none; height: 100%; display: flex; align-items: center; justify-content: center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10.5px; font-weight: 600;
+    color: var(--ink-2); white-space: nowrap; overflow: hidden; cursor: pointer;
+    background: var(--seg-a); border-right: 1px solid var(--surface);
+  }
+  .tree-seg:nth-child(even) { background: var(--seg-b); }
+  .tree-seg:last-child { border-right: none; }
+  .tree-seg:hover { filter: brightness(0.93); }
+  .tree-seg.selected { background: var(--ink); color: var(--surface); }
   .swatch.mut { border-radius: 0; background: none; position: relative; }
   .swatch.mut::before, .swatch.mut::after {
     content: ""; position: absolute; left: 5px; top: -1px; width: 2px; height: 13px; background: var(--mut);
@@ -476,7 +491,7 @@ _HTML_TEMPLATE = r"""<title>Strain transmission map — sim __SEED__</title>
     <header class="page">
       <p class="eyebrow">KR malaria simulator — pedigree, pre-simplify</p>
       <h1>Strain transmission map — seed __SEED__</h1>
-      <p class="dek">Every strain, every generation, drawn from the raw (pre-<code>simplify()</code>) tables — so nothing is compressed away. The number in each circle is its <strong>pre-simplify node ID</strong>; the small corner badge, where present, is the <strong>post-simplify ID</strong> from the final tree sequence. <strong>Click a strain</strong> to trace its full ancestry and descendants; hover for detail. Each <strong>&times;</strong> is a mutation, drawn on the link and at the time it happened. <strong>Pick a chromosome and a tree</strong> to see just the genealogy of that stretch of genome and its mutations.</p>
+      <p class="dek">Every strain, every generation, drawn from the raw (pre-<code>simplify()</code>) tables — so nothing is compressed away. The number in each circle is its <strong>pre-simplify node ID</strong>; the small corner badge, where present, is the <strong>post-simplify ID</strong> from the final tree sequence. <strong>Click a strain</strong> to trace its full ancestry and descendants; hover for detail. Each <strong>&times;</strong> is a mutation, drawn on the link and at the time it happened. <strong>Pick a chromosome, then a tree in the bar</strong> (each tree is as wide as the stretch of genome it covers) to see just the genealogy of that stretch and its mutations.</p>
       <div class="meta-row" id="metaRow"></div>
       <div class="warn-banner" id="warnBanner"></div>
     </header>
@@ -489,8 +504,8 @@ _HTML_TEMPLATE = r"""<title>Strain transmission map — sim __SEED__</title>
 
       <div class="genome-bar">
         <label>Chromosome <select id="chromSel"></select></label>
-        <label>Tree <select id="treeSel" disabled></select></label>
         <span id="genomeInfo"></span>
+        <div class="tree-bar" id="treeBar"></div>
       </div>
 
       <div class="stage">
@@ -842,21 +857,50 @@ __DATA_JSON__
   }
 
   const chromSel = document.getElementById("chromSel");
-  const treeSel = document.getElementById("treeSel");
+  const treeBar = document.getElementById("treeBar");
   const genomeInfo = document.getElementById("genomeInfo");
   const kb = x => (x / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 });
   const mutCount = (L, R) => mutations.filter(m => m.pos >= L && m.pos < R).length;
+  const genomeLength = chroms[chroms.length - 1].end;
+  let selectedTree = null; // index into the current chromosome's trees, or null for the whole chromosome
 
   chromSel.innerHTML = `<option value="">Whole genome</option>` + chroms.map(c =>
     `<option value="${c.chrom}">Chromosome ${c.chrom} (${mutCount(c.start, c.end)} mutations)</option>`).join("");
 
-  function fillTrees() {
+  // one segment per tree on the chosen chromosome (or per chromosome for the whole genome),
+  // its width the share of the bar that its stretch of genome covers
+  function drawBar() {
     const c = chroms.find(ch => String(ch.chrom) === chromSel.value);
-    if (!c) { treeSel.innerHTML = `<option value="">All trees</option>`; treeSel.disabled = true; return; }
-    const onChrom = trees.filter(t => t.chrom === c.chrom);
-    treeSel.innerHTML = `<option value="">All ${onChrom.length} trees on chromosome ${c.chrom}</option>` +
-      onChrom.map((t, i) => `<option value="${i}">Tree ${t.index}: ${kb(t.left - c.start)}–${kb(t.right - c.start)} kb (${mutCount(t.left, t.right)} mutations)</option>`).join("");
-    treeSel.disabled = false;
+    const items = c
+      ? trees.filter(t => t.chrom === c.chrom).map((t, i) => ({
+          label: "t" + (i + 1), left: t.left, right: t.right,
+          title: `t${i + 1} (tree ${t.index}): ${kb(t.left - c.start)}–${kb(t.right - c.start)} kb, ${mutCount(t.left, t.right)} mutations`,
+        }))
+      : chroms.map(ch => ({
+          label: "chr" + ch.chrom, left: ch.start, right: ch.end,
+          title: `Chromosome ${ch.chrom}: ${kb(ch.end - ch.start)} kb, ${mutCount(ch.start, ch.end)} mutations`,
+        }));
+    const span = c ? c.end - c.start : genomeLength;
+    treeBar.innerHTML = "";
+    items.forEach((it, i) => {
+      const pct = (it.right - it.left) / span * 100;
+      const seg = document.createElement("div");
+      seg.className = "tree-seg" + (c && selectedTree === i ? " selected" : "");
+      seg.style.width = pct + "%";
+      seg.title = it.title;
+      if (pct >= 2.5) seg.textContent = it.label;
+      seg.addEventListener("click", () => {
+        if (c) {
+          selectedTree = selectedTree === i ? null : i;
+        } else {
+          chromSel.value = String(chroms[i].chrom);
+          selectedTree = null;
+        }
+        drawBar();
+        applyGenomeView();
+      });
+      treeBar.appendChild(seg);
+    });
   }
 
   function applyGenomeView() {
@@ -865,11 +909,11 @@ __DATA_JSON__
       edgeEls.forEach(pth => pth.classList.remove("off"));
       nodeEls.forEach(({ g }) => g.classList.remove("off"));
       mutEls.forEach(({ g }) => g.classList.remove("hidden"));
-      genomeInfo.textContent = `Showing the whole pedigree and all ${mutations.length} mutations across ${numTrees} trees.`;
+      genomeInfo.textContent = `Showing the whole pedigree and all ${mutations.length} mutations across ${numTrees} trees. Click a chromosome below.`;
       return;
     }
     const onChrom = trees.filter(t => t.chrom === c.chrom);
-    const t = treeSel.value === "" ? null : onChrom[Number(treeSel.value)];
+    const t = selectedTree === null ? null : onChrom[selectedTree];
     const L = t ? t.left : c.start, R = t ? t.right : c.end;
     const { keys, onPath } = linksCarrying(L, R);
     edgeEls.forEach(pth => pth.classList.toggle("off", !keys.has(edgeKey(pth.dataset.child, pth.dataset.parent))));
@@ -881,13 +925,12 @@ __DATA_JSON__
       if (on) shown++;
     });
     genomeInfo.textContent = t
-      ? `Tree ${t.index} covers ${kb(L - c.start)}–${kb(R - c.start)} kb of chromosome ${c.chrom}: ${shown} mutations.`
-      : `Chromosome ${c.chrom}: ${onChrom.length} trees, ${shown} mutations.`;
+      ? `t${selectedTree + 1} (tree ${t.index}) covers ${kb(L - c.start)}–${kb(R - c.start)} kb of chromosome ${c.chrom}: ${shown} mutations. Click it again for the whole chromosome.`
+      : `Chromosome ${c.chrom}: ${onChrom.length} trees, ${shown} mutations. Click a tree below.`;
   }
 
-  chromSel.addEventListener("change", () => { fillTrees(); applyGenomeView(); });
-  treeSel.addEventListener("change", applyGenomeView);
-  fillTrees();
+  chromSel.addEventListener("change", () => { selectedTree = null; drawBar(); applyGenomeView(); });
+  drawBar();
   applyGenomeView();
 
   const clearBtn = document.getElementById("clearBtn");
@@ -1047,7 +1090,7 @@ def save_strain_transmission_map(lineage, node_map, ts, sim_id, output_dir="."):
             .replace("__SEED__", seed))
 
     output_path = os.path.join(output_dir, f"strain_transmission_map_{sim_id}.html")
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
 
     return output_path

@@ -3,7 +3,8 @@ import os
 from krsim.visualization.strain_transmission_map import _build_viz_data
 
 
-_HTML_TEMPLATE = r"""<title>Pairwise strain pedigree map — sim __SEED__</title>
+_HTML_TEMPLATE = r"""<meta charset="utf-8">
+<title>Pairwise strain pedigree map — sim __SEED__</title>
 <style>
   .viz-root {
     color-scheme: light;
@@ -674,7 +675,7 @@ def save_pairwise_strain_pedigree_map(lineage, node_map, sim_id, output_dir=".")
             .replace("__SEED__", seed))
 
     output_path = os.path.join(output_dir, f"pairwise_strain_pedigree_map_{sim_id}.html")
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
 
     return output_path

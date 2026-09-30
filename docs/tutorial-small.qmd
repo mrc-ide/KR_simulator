@@ -21,16 +21,16 @@ The notebook writes its files to `output/` next to it.
 
 The notebook also draws two interactive maps of the true pedigree. These are the maps from this example (seed 123); both are interactive, so you can try them here.
 
-### Strain transmission map
-
-Who infected whom, generation by generation: founders at the top, current strains at the bottom, one lane per host. Each × is a mutation, drawn on the link and at the time it happened. Pick a chromosome and a tree to see just the genealogy of that stretch of genome and its mutations, and click a strain to highlight its ancestors and descendants. [Open full screen](maps/strain_transmission_map_123.html){target="_blank"}
-
-<iframe src="maps/strain_transmission_map_123.html" width="100%" height="650" style="border: 1px solid #ccc; border-radius: 4px;"></iframe>
-
 ### Pairwise strain pedigree map
 
 Pick two current strains and trace each one's ancestry back through the pedigree. Where the two lineages meet are their shared ancestors. [Open full screen](maps/pairwise_strain_pedigree_map_123.html){target="_blank"}
 
 <iframe src="maps/pairwise_strain_pedigree_map_123.html" width="100%" height="650" style="border: 1px solid #ccc; border-radius: 4px;"></iframe>
+
+### Strain transmission map
+
+Who infected whom, generation by generation: founders at the top, current strains at the bottom, one lane per host. Each × is a mutation, drawn on the link and at the time it happened. Pick a chromosome and a tree to see just the genealogy of that stretch of genome and its mutations, and click a strain to highlight its ancestors and descendants. [Open full screen](maps/strain_transmission_map_123.html){target="_blank"}
+
+<iframe src="maps/strain_transmission_map_123.html" width="100%" height="650" style="border: 1px solid #ccc; border-radius: 4px;"></iframe>
 
 Next: try the [command-line scripts](tutorial-scripts.qmd) for the same example.
