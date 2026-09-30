@@ -4,40 +4,22 @@ A forward simulator that brings together malaria modelling and population geneti
 
 ## Installation
 
-Requires Python 3.9 or newer.
+You need [conda](https://conda-forge.org/download/) (Miniforge, Miniconda or Anaconda). Download the environment file and create the environment; this installs krsim, its dependencies, and Jupyter with matplotlib for the tutorial. You do not need to clone the repo:
 
 ```bash
-git clone https://github.com/mrc-ide/KR_simulator.git
-cd KR_simulator
-python3 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-python -m pip install --upgrade pip
-pip install -e .
+curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/environment-user.yml
+conda env create -f environment-user.yml
+conda activate krsim
 ```
 
-Upgrading pip matters: older pip versions (such as the 21.x that ships with macOS's built-in Python) fail with `Directory cannot be installed in editable mode`.
-
-Or with conda: `conda env create -f environment.yml && conda activate kr_malaria`.
-
-To reproduce results with the exact package versions used in development, run `pip install -r requirements.txt` before `pip install -e .`.
-
-### Check the install
-
-Still in the `KR_simulator` folder with the environment active, run:
-
-```bash
-krsim --help
-bash tests/test_sim_mut.sh
-```
-
-The test runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/` (decimal numbers only need to match to 12 significant digits, since the last digit can vary between machines). If everything is installed correctly, it ends with `All 13 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.
+Check it worked with `krsim --help`, which lists every command. To update krsim later, run `pip install --upgrade --force-reinstall --no-deps git+https://github.com/mrc-ide/KR_simulator.git` with the environment active.
 
 ## Quick start
 
-From the `KR_simulator` folder, run the pipeline on a small example. Results go to `krsim_quickstart_output/`, a folder next to the repo (krsim creates it), so they stay out of git:
+With the `krsim` environment active, run the pipeline on a small example. Results go to `krsim_quickstart_output/` in the current folder (krsim creates it):
 
 ```bash
-OUT=../krsim_quickstart_output
+OUT=krsim_quickstart_output
 
 krsim simulate   --Nh 3 --T 10 --K 2 --chi 0.18 --C 1 --random_seed 123 --output_dir $OUT
 krsim mutate     --ts $OUT/ts_123.trees --random_seed 123 --output_dir $OUT
@@ -47,7 +29,47 @@ krsim vcf-host   --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT
                  --depth 10 --random_seed 123 --output_dir $OUT
 ```
 
-`krsim <command> --help` lists every option for a command. The [tutorial](tutorial/tutorial.ipynb) runs each command and shows what it writes.
+`krsim <command> --help` lists every option for a command.
+
+## Tutorial
+
+The [tutorial notebook](tutorial/tutorial.ipynb) runs each command and shows what it writes. To run it yourself, download it into a folder of your choice and open it with the `krsim` environment active:
+
+```bash
+curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/tutorial/tutorial.ipynb
+jupyter notebook tutorial.ipynb
+```
+
+It writes its files to `output/` next to the notebook.
+
+## Development install
+
+To work on the code, clone the repo and install it in editable mode (requires Python 3.9 or newer):
+
+```bash
+git clone https://github.com/mrc-ide/KR_simulator.git
+cd KR_simulator
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+python -m pip install --upgrade pip
+pip install -e ".[tutorial]"
+```
+
+Upgrading pip matters: older pip versions (such as the 21.x that ships with macOS's built-in Python) fail with `Directory cannot be installed in editable mode`.
+
+Or with conda: `conda env create -f environment.yml && conda activate kr_malaria`.
+
+To reproduce results with the exact package versions used in development, run `pip install -r requirements.txt` before `pip install -e .`.
+
+### Run the tests
+
+From the `KR_simulator` folder with the environment active, run:
+
+```bash
+bash tests/test_sim_mut.sh
+```
+
+The test runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/` (decimal numbers only need to match to 12 significant digits, since the last digit can vary between machines). If everything is installed correctly, it ends with `All 13 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.
 
 ## Pipeline
 
