@@ -1,8 +1,10 @@
-# krsim — detailed notes
+---
+title: "Command line"
+---
 
-Material moved out of the main README. Not linked from anywhere yet.
+Every command is run as `krsim <command>`, and `krsim <command> --help` lists all of its options. The examples use seed `42` and write to `results/`.
 
-## Commands in detail
+## Main pipeline
 
 ### Stage 1 — Simulate genealogy
 
@@ -29,32 +31,6 @@ Always writes the tree sequence `ts_{seed}.trees`, which every later stage start
 | `--output_dir` | Output directory |
 | `--save_pairs` | Save recombinant node pairs to `node_pairs_{seed}.csv` |
 | `--save_lineage` | Save per-generation child→parent strain lineage to `lineage_{seed}.csv`, plus a `node_id_map_{seed}.csv` pre/post-`simplify()` ID mapping — turn this on if you want true generation-by-generation parentage (for `krsim strain-transmission-map`, `krsim pairwise-strain-pedigree-map`, or your own pedigree analysis), since the final tree sequence alone can skip generations |
-
-### Strain transmission map — visualize the pedigree
-
-```bash
-krsim strain-transmission-map \
-    --lineage_csv results/lineage_42.csv \
-    --node_id_map_csv results/node_id_map_42.csv \
-    --random_seed 42 \
-    --output_dir results/
-```
-
-Needs `--save_lineage` from Stage 1. Renders an interactive, self-contained `strain_transmission_map_{seed}.html` — a generation-by-generation pedigree diagram (founders at top, current samples at bottom, one lane per host) built from the pre-simplify `lineage_{seed}.csv`, so it shows the true parentage that `simplify()` compresses away. Each strain is labeled with its pre-simplify ID (with its post-simplify ID as a small corner badge, where one exists); clicking a strain traces and highlights its full ancestry and descendants. Open the file directly in a browser — no server or dependencies needed. Intended for small debug runs (a handful of hosts, a few dozen generations); it warns in-page and degrades gracefully past that, but isn't meant for production-scale runs (`--Nh 100`, etc.). It only needs Stage 1, so you can inspect the raw transmission history before running mutations or VCFs.
-
-### Pairwise strain pedigree map — trace two strains back to their shared ancestor
-
-```bash
-krsim pairwise-strain-pedigree-map \
-    --lineage_csv results/lineage_42.csv \
-    --node_id_map_csv results/node_id_map_42.csv \
-    --random_seed 42 \
-    --output_dir results/
-```
-
-Also only needs `--save_lineage` from Stage 1 — same inputs as the transmission map. Renders `pairwise_strain_pedigree_map_{seed}.html`: pick any two current-generation strains (dropdowns, or click two strains in the diagram) and it traces each one's full ancestry back through the pedigree, drawing strain 1's lineage in one color and strain 2's in another. Where the two colors overlap is a shared ancestor; the *most recent* shared ancestor(s) are highlighted as the coalescence point(s), with the number of generations back reported for each strain. Because a strain can have up to two immediate parents (one per gamete in the oocyst that produced it), there can be more than one coalescence point — the two ancestries can independently merge via more than one path.
-
-This is a **pedigree** trace, not a genomic one: a shared ancestor here means the two strains' host lineages shared a parasite at that generation, not that any specific genomic region was actually inherited from it — recombination can replace a segment with DNA from the other parent at every step. Same small-debug-run scope as the transmission map.
 
 ### Stage 2 — Add mutations
 
@@ -109,7 +85,35 @@ Aggregates the strain VCF to individual (host) level using a **Dirichlet-Multino
 
 Outputs `output_{seed}_host.vcf`. With `--save_proportions`, also writes `host_proportions_{seed}.csv`.
 
----
+## Pedigree visualizations
+
+Both maps only need Stage 1 run with `--save_lineage`. See them in action in the [tutorial](tutorial.ipynb#visualize-the-pedigree).
+
+### Strain transmission map — visualize the pedigree
+
+```bash
+krsim strain-transmission-map \
+    --lineage_csv results/lineage_42.csv \
+    --node_id_map_csv results/node_id_map_42.csv \
+    --random_seed 42 \
+    --output_dir results/
+```
+
+Needs `--save_lineage` from Stage 1. Renders an interactive, self-contained `strain_transmission_map_{seed}.html` — a generation-by-generation pedigree diagram (founders at top, current samples at bottom, one lane per host) built from the pre-simplify `lineage_{seed}.csv`, so it shows the true parentage that `simplify()` compresses away. Each strain is labeled with its pre-simplify ID (with its post-simplify ID as a small corner badge, where one exists); clicking a strain traces and highlights its full ancestry and descendants. Open the file directly in a browser — no server or dependencies needed. Intended for small debug runs (a handful of hosts, a few dozen generations); it warns in-page and degrades gracefully past that, but isn't meant for production-scale runs (`--Nh 100`, etc.). It only needs Stage 1, so you can inspect the raw transmission history before running mutations or VCFs.
+
+### Pairwise strain pedigree map — trace two strains back to their shared ancestor
+
+```bash
+krsim pairwise-strain-pedigree-map \
+    --lineage_csv results/lineage_42.csv \
+    --node_id_map_csv results/node_id_map_42.csv \
+    --random_seed 42 \
+    --output_dir results/
+```
+
+Also only needs `--save_lineage` from Stage 1 — same inputs as the transmission map. Renders `pairwise_strain_pedigree_map_{seed}.html`: pick any two current-generation strains (dropdowns, or click two strains in the diagram) and it traces each one's full ancestry back through the pedigree, drawing strain 1's lineage in one color and strain 2's in another. Where the two colors overlap is a shared ancestor; the *most recent* shared ancestor(s) are highlighted as the coalescence point(s), with the number of generations back reported for each strain. Because a strain can have up to two immediate parents (one per gamete in the oocyst that produced it), there can be more than one coalescence point — the two ancestries can independently merge via more than one path.
+
+This is a **pedigree** trace, not a genomic one: a shared ancestor here means the two strains' host lineages shared a parasite at that generation, not that any specific genomic region was actually inherited from it — recombination can replace a segment with DNA from the other parent at every step. Same small-debug-run scope as the transmission map.
 
 ## Relatedness statistics
 
@@ -132,26 +136,3 @@ krsim relate-host \
 `krsim relate-strain`: for each strain pair in `coal_T_{seed}.csv`, sums the length of tree intervals where `coal_time <= --time_boundary` and divides by `GENOME_LENGTH` to give the fraction of the genome that is IBD below that time threshold. Pairs with no recorded coalescence anywhere in the ARG are not written as a row (rather than a `0` row). Outputs `relate_strain_{seed}.csv` (`sample_1`, `sample_2`, `frac_IBD`).
 
 `krsim relate-host`: for each currently-infected host (from `sim_ind_node_map_{seed}.csv`, restricted to `time == 0`, i.e. the most recent generation), takes every pairwise combination of that host's strain nodes and averages their `frac_IBD` from `relate_strain_{seed}.csv`. Pairs missing from that table (no recorded coalescence) are treated as `frac_IBD = 0`. Hosts with fewer than two strains get an empty average. Outputs `relate_host_{seed}.csv` (`host`, `avg_frac_IBD`).
-
----
-
-## Output files (full table)
-
-| File | Stage | Description |
-|---|---|---|
-| `ts_{seed}.trees` | 1 | Tree sequence (no mutations) — always written |
-| `sim_ind_node_map_{seed}.csv` | 1 | Host → strain node mapping, with each node's `time` (generations before present) — always written |
-| `node_pairs_{seed}.csv` | 1 | Recombinant node pairs from same meiosis |
-| `lineage_{seed}.csv` | 1 | Per-generation child→parent strain lineage, pre-simplify node IDs (`--save_lineage`) |
-| `node_id_map_{seed}.csv` | 1 | Pre-simplify → post-simplify node ID mapping (`--save_lineage`) |
-| `mutated_{seed}.trees` | 2 | Tree sequence with mutations |
-| `coal_T_{seed}.csv` | 3 | Pairwise coalescence times per tree interval (chromosome-local coordinates) |
-| `mut_T_{seed}.csv` | 3 | Mutation chromosome, position, and age |
-| `output_{seed}_strain.vcf` | 4 | Per-strain genotypes (0/1) |
-| `output_{seed}_host.vcf` | 5 | Per-host genotypes (0/0, 0/1, 1/1) |
-| `host_proportions_{seed}.csv` | 5 | Dirichlet proportions and read counts per host |
-| `strain_transmission_map_{seed}.html` | additional | Interactive strain-transmission-map visualization |
-| `pairwise_strain_pedigree_map_{seed}.html` | additional | Interactive pedigree coalescence trace for any two strains |
-| `relate_strain_{seed}.csv` | stats | Pairwise strain IBD fraction (`krsim relate-strain`) |
-| `relate_host_{seed}.csv` | stats | Average pairwise IBD fraction per host, most recent generation only (`krsim relate-host`) |
-| `KR_sim_{seed}.log` | all | Run log — every command adds a block with the time, krsim version, exact command line, files written and run time (and the full error details if it fails) |

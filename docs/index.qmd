@@ -1,0 +1,76 @@
+---
+title: "Welcome to krsim"
+subtitle: "Malaria transmission simulator"
+toc: false
+---
+
+A forward simulator that brings together malaria modelling and population genetics to model parasite transmission. Whole-genome information is tracked through every recombination event as an ancestral recombination graph, stored efficiently with [tskit](https://tskit.dev). From the recorded genealogy (a tree sequence), krsim overlays mutations and outputs coalescence times across the genome and VCF files at the strain level and at the (observed) host level.
+
+::: {.callout-tip}
+## Get started
+[Install krsim](getting-started.qmd), run the [quick start](getting-started.qmd#quick-start), then work through the [tutorial](tutorial.ipynb).
+:::
+
+## Pipeline
+
+krsim runs as a series of commands. Each one reads the files written by an earlier stage and writes new ones.
+
+```{mermaid}
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif", "fontSize": "14px", "lineColor": "#475569"}, "flowchart": {"curve": "basis", "nodeSpacing": 30, "rankSpacing": 50, "padding": 16}}}%%
+flowchart TD
+    subgraph SIM["Stage 1 · krsim simulate"]
+        ts("ts_{seed}.trees"):::file
+        sinm("sim_ind_node_map_{seed}.csv"):::file
+        lin("lineage_{seed}.csv<br/>node_id_map_{seed}.csv<br/><i>with --save_lineage</i>"):::optfile
+        pairs("node_pairs_{seed}.csv<br/><i>with --save_pairs</i>"):::optfile
+    end
+
+    subgraph MUT["Stage 2 · krsim mutate"]
+        mts("mutated_{seed}.trees"):::file
+    end
+
+    subgraph COAL["Stage 3 · krsim coal"]
+        coalT("coal_T_{seed}.csv"):::file
+        mutT("mut_T_{seed}.csv"):::file
+    end
+
+    subgraph VCFS["Stage 4 · krsim vcf-strain"]
+        svcf("output_{seed}_strain.vcf"):::file
+    end
+
+    subgraph VCFH["Stage 5 · krsim vcf-host"]
+        hvcf("output_{seed}_host.vcf"):::file
+        props("host_proportions_{seed}.csv<br/><i>with --save_proportions</i>"):::optfile
+    end
+
+    subgraph VIS["Pedigree visualizations · optional"]
+        subgraph TMAP["krsim strain-transmission-map"]
+            tmapH("strain_transmission_map_{seed}.html"):::file
+        end
+        subgraph PW["krsim pairwise-strain-pedigree-map"]
+            pwH("pairwise_strain_pedigree_map_{seed}.html"):::file
+        end
+    end
+
+    %% arrows point at the files inside each stage (not the stage box itself),
+    %% which keeps mermaid from stretching the boxes
+    ts --> mts
+    mts --> coalT
+    mts --> svcf
+    svcf --> hvcf
+    sinm --> hvcf
+    lin -.-> tmapH
+    lin -.-> pwH
+
+    classDef file fill:#ffffff,stroke:#94a3b8,stroke-width:1px,color:#0f172a
+    classDef optfile fill:#ffffff,stroke:#94a3b8,stroke-width:1px,stroke-dasharray:4 3,color:#334155
+    classDef stage fill:#eff6ff,stroke:#3b82f6,stroke-width:1.5px,color:#1e3a8a
+    class SIM,MUT,COAL,VCFS,VCFH,TMAP,PW stage
+    style VIS fill:#f8fafc,stroke:#94a3b8,stroke-width:1px,stroke-dasharray:4 3,color:#475569
+    linkStyle default stroke:#475569,stroke-width:1.6px
+    linkStyle 5,6 stroke:#94a3b8,stroke-width:1.6px
+```
+
+Each blue box is a `krsim` command and the files it writes; dashed files need the flag shown. Arrows show which files each command reads. Every command also records what it did in `KR_sim_{seed}.log` in its `--output_dir`.
+
+See the [command-line reference](commands.qmd) for every option and [Output files](outputs.qmd) for what each file contains.

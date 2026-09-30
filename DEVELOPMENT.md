@@ -50,6 +50,16 @@ bash tests/test_sim_mut.sh
 
 The test runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/` (decimal numbers only need to match to 12 significant digits, since the last digit can vary between machines). If everything is installed correctly, it ends with `All 13 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.
 
+## Website
+
+The website source is in `docs/`, built with [Quarto](https://quarto.org/docs/get-started/). To preview it locally while editing:
+
+```bash
+quarto preview docs
+```
+
+Pushing to `main` rebuilds and publishes it through `.github/workflows/docs.yml`. `docs/tutorial.ipynb` is rendered with its saved outputs and is not re-run, so run it yourself and save before committing if the outputs should change. It is a copy of `notebooks/tutorial.ipynb` with website-specific text; keep the code in the two in step.
+
 ## Project structure
 
 ```
@@ -77,9 +87,14 @@ KR_SIM/
 │   │   ├── strain_transmission_map.py
 │   │   └── pairwise_strain_pedigree_map.py
 │
-├── tutorial/             # Tutorial
-│   ├── tutorial.ipynb    #   Runs every command on a small simulation, with outputs
-│   └── README.md         #   How to open the tutorial
+├── docs/                 # Quarto website (published to GitHub Pages)
+│   ├── _quarto.yml       #   Site config and navigation
+│   ├── *.qmd             #   Pages: welcome, getting started, command line, output files
+│   ├── tutorial.ipynb    #   Tutorial page (rendered with saved outputs, not re-run)
+│   └── maps/             #   Interactive pedigree maps embedded in the tutorial
+│
+├── notebooks/            # Notebooks for users to download and run
+│   └── tutorial.ipynb    #   Runs every command on a small simulation, with outputs
 │
 ├── tests/                # Testing and regression tools
 │   ├── test_sim_mut.sh   #   Run full pipeline + regression check

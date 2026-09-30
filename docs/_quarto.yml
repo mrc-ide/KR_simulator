@@ -1,0 +1,41 @@
+project:
+  type: website
+  output-dir: _site
+  resources:
+    - maps/*.html
+
+website:
+  title: "krsim"
+  description: "Forward simulator of Plasmodium falciparum recombination and transmission dynamics"
+  repo-url: https://github.com/mrc-ide/KR_simulator
+  repo-actions: [issue]
+  page-navigation: true
+  sidebar:
+    style: docked
+    search: true
+    tools:
+      - icon: github
+        href: https://github.com/mrc-ide/KR_simulator
+        aria-label: GitHub
+    contents:
+      - href: index.qmd
+        text: Welcome
+      - getting-started.qmd
+      - tutorial.ipynb
+      - section: Reference
+        contents:
+          - commands.qmd
+          - outputs.qmd
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    toc-location: right
+    toc-title: On this page
+    code-copy: true
+
+execute:
+  enabled: false
