@@ -1,4 +1,4 @@
-"""krsim coal — Stage 3: coalescence and mutation time tables."""
+"""krsim coal-mut — Stage 3: coalescence and mutation time tables."""
 
 import os
 
@@ -11,7 +11,7 @@ Outputs:
   always  coal_T_<seed>.csv, mut_T_<seed>.csv
 
 Example:
-  krsim coal --ts results/mutated_42.trees --random_seed 42 --output_dir results/
+  krsim coal-mut --ts results/ts_mut_42.trees --random_seed 42 --output_dir results/
 """
 
 
@@ -19,7 +19,7 @@ def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
     required.add_argument("--ts", type=str, required=True, metavar="FILE",
-                          help="Mutated tree sequence from `krsim mutate` (mutated_<seed>.trees)")
+                          help="Mutated tree sequence from `krsim mutate` (ts_mut_<seed>.trees)")
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
                           help="Random seed")
     required.add_argument("--output_dir", type=str, required=True, metavar="DIR",
@@ -32,7 +32,7 @@ def run(args):
     import tskit
     from krsim.output.coal_mut_times import mutation_table, coalescence_table
 
-    run = Run("coal", args.output_dir, args.random_seed)
+    run = Run("coal-mut", args.output_dir, args.random_seed)
 
     ts = tskit.load(args.ts)
     run.detail(f"read {args.ts} ({ts.num_samples} samples, {ts.num_trees} trees, {ts.num_mutations} mutations)")

@@ -95,14 +95,14 @@ run_stage "Stage 2: Add mutations" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
 
-MUT_TS_FILE="$OUT_DIR/mutated_${SEED}.trees"
+MUT_TS_FILE="$OUT_DIR/ts_mut_${SEED}.trees"
 check "
 import tskit
 ts = tskit.load('$MUT_TS_FILE')
-print(f'mutated_${SEED}.trees: {ts.num_mutations} mutations at {ts.num_sites} sites across {ts.num_trees} trees')"
+print(f'ts_mut_${SEED}.trees: {ts.num_mutations} mutations at {ts.num_sites} sites across {ts.num_trees} trees')"
 
 run_stage "Stage 3: Coalescence & mutation time tables" \
-    krsim coal \
+    krsim coal-mut \
     --ts "$MUT_TS_FILE" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"

@@ -42,13 +42,13 @@ krsim mutate \
     --output_dir results/
 ```
 
-If `--mutation_rate` is not given, `1e-6` per bp is used. Outputs `mutated_{seed}.trees`. All stages from here onwards use the mutated tree sequence.
+If `--mutation_rate` is not given, `1e-6` per bp is used. Outputs `ts_mut_{seed}.trees`. All stages from here onwards use the mutated tree sequence.
 
 ### ⏳ Stage 3 — Coalescence & mutation times
 
 ```bash
-krsim coal \
-    --ts results/mutated_42.trees \
+krsim coal-mut \
+    --ts results/ts_mut_42.trees \
     --random_seed 42 \
     --output_dir results/
 ```
@@ -59,7 +59,7 @@ Outputs `coal_T_{seed}.csv` (pairwise MRCA times per tree interval) and `mut_T_{
 
 ```bash
 krsim vcf-strain \
-    --ts results/mutated_42.trees \
+    --ts results/ts_mut_42.trees \
     --random_seed 42 \
     --output_dir results/
 ```

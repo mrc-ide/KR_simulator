@@ -20,7 +20,7 @@ def add_arguments(parser):
     required = parser.add_argument_group("required arguments")
 
     required.add_argument("--coal_csv", type=str, required=True, metavar="FILE",
-                          help="Coalescence table from `krsim coal` (coal_T_<seed>.csv)")
+                          help="Coalescence table from `krsim coal-mut` (coal_T_<seed>.csv)")
     required.add_argument("--time_boundary", type=float, required=True, metavar="T",
                           help="Segments that coalesce within T generations count as IBD")
     required.add_argument("--random_seed", type=int, required=True, metavar="SEED",
