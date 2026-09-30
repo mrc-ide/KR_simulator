@@ -156,6 +156,9 @@ main.content section h2, main.content section h3, main.content section h4 {
 // Equal space between the sidebar, the page content and "On this page" (wide screens only)
 @media (min-width: 992px) {
   main.content { padding-left: 1.5rem; padding-right: 17px; }
+  // pages with a wide section (e.g. the interactive maps) lay content out full-width,
+  // where the right padding above has no effect: keep normal-width parts the usual width
+  main.content.page-full > *:not([class*="column-"]) { margin-right: calc(1.5rem + 17px); }
 }
 
 // When a wide section (e.g. the interactive maps) scrolls under "On this page",

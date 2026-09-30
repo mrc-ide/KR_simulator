@@ -33,16 +33,19 @@ The notebook also draws two interactive maps of the true pedigree. These are the
 
 ```{=html}
 <script>
-// Grow each embedded map to its full height, so the whole transmission chain
-// shows without an inner scrollbar (the maps are served from this site, so
-// their size can be read directly).
+// Grow each embedded map to fit its content, so the whole transmission chain
+// shows without an inner scrollbar. Measure the map's content (.wrap), not the
+// page: the map page stretches to the frame's height, which would feed back.
 document.querySelectorAll("iframe.fit-height").forEach(frame => {
   const fit = () => {
-    try { frame.style.height = frame.contentDocument.documentElement.scrollHeight + "px"; } catch (e) {}
+    try {
+      const wrap = frame.contentDocument.querySelector(".wrap");
+      frame.style.height = Math.ceil(wrap.getBoundingClientRect().bottom + 40) + "px";
+    } catch (e) {}
   };
   frame.addEventListener("load", () => {
     fit();
-    try { new ResizeObserver(fit).observe(frame.contentDocument.body); } catch (e) {}
+    try { new ResizeObserver(fit).observe(frame.contentDocument.querySelector(".wrap")); } catch (e) {}
   });
 });
 </script>
