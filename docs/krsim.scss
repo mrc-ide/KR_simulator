@@ -130,3 +130,11 @@ table.table th,
   margin: 22px 0;
   > h2:first-child, > h3:first-child, > .section > h2:first-child, > .section > h3:first-child { margin-top: 16px; }
 }
+
+// Headers: ALL CAPITALS in Lucida Sans Typewriter. It is not a web font, so
+// visitors without it get Lucida Console (Windows) or Monaco (macOS).
+h1, h2, h3, h4, h5, h6, .title {
+  font-family: "Lucida Sans Typewriter", "Lucida Console", Monaco, $font-family-monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
