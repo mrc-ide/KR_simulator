@@ -201,6 +201,11 @@ _HTML_TEMPLATE = r"""<title>Pairwise strain pedigree map — sim __SEED__</title
   .node-group.common .node-dot { fill: var(--common-color); stroke: var(--common-color); opacity: 1; }
   .node-group.mrca .node-dot { stroke: var(--mrca-color); stroke-width: 3.5; opacity: 1; }
   .node-group.endpoint .node-dot { stroke: var(--ink); stroke-width: 3; }
+  /* dashed ring around the strain(s) you clicked, so you can see what is selected */
+  .select-ring { fill: none; stroke: var(--ink); stroke-width: 2; stroke-dasharray: 3 2.5; opacity: 0; pointer-events: none; transition: opacity 0.12s ease; }
+  .node-group.picked .select-ring, .node-group.endpoint .select-ring { opacity: 1; }
+  .node-group.picked .node-dot { fill: var(--a-color); stroke: var(--ink); stroke-width: 3; opacity: 1; }
+  .node-group.picked .pre-label { opacity: 1; }
   .pre-label {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-variant-numeric: tabular-nums;
@@ -448,6 +453,9 @@ __DATA_JSON__
       g.appendChild(txt);
     }
 
+    const ring = el("circle", { class: "select-ring", cx: x, cy: y, r: r + 5 });
+    g.appendChild(ring);
+
     const hit = el("circle", { class: "node-hit", cx: x, cy: y, r: r + 4 });
     g.appendChild(hit);
 
@@ -496,11 +504,15 @@ __DATA_JSON__
 
   let pendingClicks = [];
   function clickNode(n) {
-    if (!n.isSample) return; // only current-generation strains are valid endpoints
+    if (!n.isSample) { // only current-generation strains are valid endpoints
+      detail.innerHTML = `<p class="detail-empty">Node ${n.id} is not in the current generation. Click a current-generation strain (bottom row) to compare.</p>`;
+      return;
+    }
     pendingClicks.push(n.id);
     if (pendingClicks.length === 1) {
       selA.value = String(n.id);
       clearHighlight();
+      nodeEls.get(n.id).g.setAttribute("class", "node-group picked");
       detail.innerHTML = `<p class="detail-empty">Strain 1 set to node ${n.id}. Click one more current-generation strain to trace coalescence.</p>`;
     } else {
       selB.value = String(n.id);
