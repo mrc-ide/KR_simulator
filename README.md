@@ -12,7 +12,9 @@ conda env create -f environment-user.yml
 conda activate krsim
 ```
 
-Check it worked with `krsim --help`, which lists every command. To update krsim later, run `pip install --upgrade --force-reinstall --no-deps git+https://github.com/mrc-ide/KR_simulator.git` with the environment active.
+Check it worked with `krsim --help`, which lists every command. 
+
+To update krsim later, run `pip install --upgrade --force-reinstall --no-deps git+https://github.com/mrc-ide/KR_simulator.git` with the environment active.
 
 ## Quick start
 
@@ -101,24 +103,6 @@ flowchart TD
 ```
 
 Each blue box is a `krsim` command and the files it writes; dashed files need the flag shown. Arrows show which files each command reads. Every command also records what it did in `KR_sim_{seed}.log` in its `--output_dir`.
-
-## Output files
-
-| File | Command | Contents |
-|---|---|---|
-| `ts_{seed}.trees` | simulate | Tree sequence (no mutations) |
-| `sim_ind_node_map_{seed}.csv` | simulate | Which strains each host carries |
-| `lineage_{seed}.csv`, `node_id_map_{seed}.csv` | simulate `--save_lineage` | True generation-by-generation pedigree |
-| `node_pairs_{seed}.csv` | simulate `--save_pairs` | Strain pairs from the same meiosis |
-| `mutated_{seed}.trees` | mutate | Tree sequence with mutations |
-| `coal_T_{seed}.csv` | coal | Pairwise coalescence times per tree interval |
-| `mut_T_{seed}.csv` | coal | Position and age of every mutation |
-| `output_{seed}_strain.vcf` | vcf-strain | Per-strain genotypes (0/1) |
-| `output_{seed}_host.vcf` | vcf-host | Per-host genotypes (0/0, 0/1, 1/1) |
-| `host_proportions_{seed}.csv` | vcf-host `--save_proportions` | Strain proportions and reads per host |
-| `strain_transmission_map_{seed}.html` | strain-transmission-map | Interactive pedigree of the whole run |
-| `pairwise_strain_pedigree_map_{seed}.html` | pairwise-strain-pedigree-map | Traces two strains back to shared ancestors |
-| `KR_sim_{seed}.log` | all | What each command ran and wrote |
 
 ## Development
 
