@@ -148,3 +148,6 @@ main.content section h2, main.content section h3, main.content section h4 {
   text-decoration-thickness: 2px;
   text-underline-offset: 6px;
 }
+
+// Welcome page subtitle: italic (set in index.qmd) and ALL CAPITALS
+.subtitle { text-transform: uppercase; letter-spacing: 0.02em; }
