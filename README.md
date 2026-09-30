@@ -4,7 +4,7 @@ A forward simulator that brings together malaria modelling and population geneti
 
 ## Installation
 
-You need [conda](https://conda-forge.org/download/) (Miniforge, Miniconda or Anaconda). Download the environment file and create the environment; this installs krsim, its dependencies, and Jupyter with matplotlib for the tutorial. You do not need to clone the repo:
+You need [conda](https://conda-forge.org/download/) (Miniforge, Miniconda or Anaconda). Download the environment file and create the environment:
 
 ```bash
 curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/environment-user.yml
@@ -15,6 +15,17 @@ conda activate krsim
 Check it worked with `krsim --help`, which lists every command. 
 
 To update krsim later, run `pip install --upgrade --force-reinstall --no-deps git+https://github.com/mrc-ide/KR_simulator.git` with the environment active.
+
+## Tutorial
+
+The tutorial is a Jupyter notebook, [tutorial.ipynb](tutorial/tutorial.ipynb), that goes through each stage of the pipeline and visualises the outputs. To run it, activate the `krsim` environment, then run the commands below. 
+
+```bash
+curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/tutorial/tutorial.ipynb
+jupyter notebook tutorial.ipynb
+```
+
+It writes its files to `output/` next to the notebook.
 
 ## Quick start
 
@@ -32,17 +43,6 @@ krsim vcf-host   --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT
 ```
 
 `krsim <command> --help` lists every option for a command.
-
-## Tutorial
-
-The [tutorial notebook](tutorial/tutorial.ipynb) runs each command and shows what it writes. To run it yourself, download it into a folder of your choice and open it with the `krsim` environment active:
-
-```bash
-curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/tutorial/tutorial.ipynb
-jupyter notebook tutorial.ipynb
-```
-
-It writes its files to `output/` next to the notebook.
 
 ## Pipeline
 
