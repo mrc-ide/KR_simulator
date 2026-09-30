@@ -15,8 +15,13 @@ dist/
 # Regenerated on every test run (compared against tests/baseline/)
 tests/output/
 
-# Files the tutorial writes when it is run
-tutorial/output/
+# Files the notebooks write when they are run
+notebooks/output/
+.ipynb_checkpoints/
+
+# Website build output (Quarto)
+docs/_site/
+docs/.quarto/
 
 # Default output folder if krsim is run inside the repo
 output/
