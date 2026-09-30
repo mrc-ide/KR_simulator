@@ -97,7 +97,7 @@ Outputs `output_{seed}_host.vcf`. With `--save_proportions`, also writes `host_p
 
 ## Pedigree visualizations
 
-Both maps only need Stage 1 run with `--save_lineage`. See them in action in the [tutorial](tutorial.ipynb#visualize-the-pedigree).
+Both maps only need Stage 1 run with `--save_lineage`. See them in action in the [tutorial](tutorial.qmd#visualise-transmission).
 
 ::: {.stage}
 ### Strain transmission map — visualize the pedigree

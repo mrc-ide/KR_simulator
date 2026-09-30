@@ -21,11 +21,8 @@ website:
       - href: index.qmd
         text: Welcome
       - background.qmd
-      - section: Getting started
-        contents:
-          - installation.qmd
-          - quickstart.qmd
-      - tutorial.ipynb
+      - installation.qmd
+      - tutorial.qmd
       - section: Reference
         contents:
           - commands.qmd

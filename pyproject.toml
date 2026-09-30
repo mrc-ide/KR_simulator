@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# packages for running tutorial/tutorial.ipynb: pip install -e ".[tutorial]"
+# packages for running notebooks/tutorial.ipynb: pip install -e ".[tutorial]"
 tutorial = ["matplotlib", "notebook"]
 
 [project.scripts]

@@ -1,0 +1,68 @@
+---
+title: "📓 Tutorial"
+---
+
+The tutorial has three parts: a small example to play with and visualise transmission, a larger example with more realistic parameter values, and the command-line scripts to run the pipeline yourself.
+
+## Small example
+
+A small simulation, quick to run and easy to look at: 3 hosts (`--Nh`) for 10 generations (`--T`), with 2 parasites passed on per mosquito bite (`--K`), a superinfection probability of 0.18 (`--chi`) and 1 oocyst per mosquito (`--C`).
+
+The Jupyter notebook runs every `krsim` command on this example and looks at what each one writes. Change the parameters to see how transmission changes. With the `krsim` environment active ([Installation](installation.qmd)), run the commands below. The first saves the notebook into your current folder and the second opens it in Jupyter:
+
+```bash
+curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/notebooks/tutorial.ipynb
+jupyter notebook tutorial.ipynb
+```
+
+The notebook writes its files to `output/` next to it.
+
+### Visualise transmission
+
+The notebook also draws two interactive maps of the true pedigree. These are the maps from this example (seed 123); both are interactive, so you can try them here.
+
+#### Strain transmission map
+
+Who infected whom, generation by generation: founders at the top, current strains at the bottom, one lane per host. Click a strain to highlight its ancestors and descendants. [Open full screen](maps/strain_transmission_map_123.html){target="_blank"}
+
+<iframe src="maps/strain_transmission_map_123.html" width="100%" height="650" style="border: 1px solid #ccc; border-radius: 4px;"></iframe>
+
+#### Pairwise strain pedigree map
+
+Pick two current strains and trace each one's ancestry back through the pedigree. Where the two lineages meet are their shared ancestors. [Open full screen](maps/pairwise_strain_pedigree_map_123.html){target="_blank"}
+
+<iframe src="maps/pairwise_strain_pedigree_map_123.html" width="100%" height="650" style="border: 1px solid #ccc; border-radius: 4px;"></iframe>
+
+## Realistic example
+
+::: {.callout-note}
+## In progress
+A larger simulation with more realistic parameter values, including the distribution of coalescence times, is coming soon.
+:::
+
+## Command-line scripts
+
+With the `krsim` environment active, run the five main stages of the small example from a terminal. Results go to `krsim_tutorial_output/` in the current folder (krsim creates it):
+
+```bash
+OUT=krsim_tutorial_output
+
+krsim simulate   --Nh 3 --T 10 --K 2 --chi 0.18 --C 1 --random_seed 123 --output_dir $OUT
+krsim mutate     --ts $OUT/ts_123.trees --random_seed 123 --output_dir $OUT
+krsim coal-mut   --ts $OUT/ts_mut_123.trees --random_seed 123 --output_dir $OUT
+krsim vcf-strain --ts $OUT/ts_mut_123.trees --random_seed 123 --output_dir $OUT
+krsim vcf-host   --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT/sim_ind_node_map_123.csv \
+                 --depth 10 --random_seed 123 --output_dir $OUT
+```
+
+Each command prints the files it wrote. Every file name ends in the random seed (`123` here), and every command adds a record of what it ran to `KR_sim_123.log`.
+
+| Command | Reads | Writes |
+|---|---|---|
+| `simulate` | — | `ts_123.trees`, `sim_ind_node_map_123.csv` |
+| `mutate` | `ts_123.trees` | `ts_mut_123.trees` |
+| `coal-mut` | `ts_mut_123.trees` | `coal_T_123.csv`, `mut_T_123.csv` |
+| `vcf-strain` | `ts_mut_123.trees` | `output_123_strain.vcf` |
+| `vcf-host` | `output_123_strain.vcf`, `sim_ind_node_map_123.csv` | `output_123_host.vcf` |
+
+See the [command-line reference](commands.qmd) for every option.

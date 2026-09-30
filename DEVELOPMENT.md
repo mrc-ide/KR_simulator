@@ -58,7 +58,7 @@ The website source is in `docs/`, built with [Quarto](https://quarto.org/docs/ge
 quarto preview docs
 ```
 
-Pushing to `main` rebuilds and publishes it through `.github/workflows/docs.yml`. `docs/tutorial.ipynb` is rendered with its saved outputs and is not re-run, so run it yourself and save before committing if the outputs should change. It is a copy of `notebooks/tutorial.ipynb` with website-specific text; keep the code in the two in step.
+Pushing to `main` rebuilds and publishes it through `.github/workflows/docs.yml`. The tutorial page (`docs/tutorial.qmd`) links to the downloadable notebook in `notebooks/` rather than showing its outputs.
 
 ## Project structure
 
@@ -89,8 +89,7 @@ KR_SIM/
 │
 ├── docs/                 # Quarto website (published to GitHub Pages)
 │   ├── _quarto.yml       #   Site config and navigation
-│   ├── *.qmd             #   Pages: welcome, installation, quick start, command line, output files
-│   ├── tutorial.ipynb    #   Tutorial page (rendered with saved outputs, not re-run)
+│   ├── *.qmd             #   Pages: welcome, background, installation, tutorial, command line, output files
 │   └── maps/             #   Interactive pedigree maps embedded in the tutorial
 │
 ├── notebooks/            # Notebooks for users to download and run
