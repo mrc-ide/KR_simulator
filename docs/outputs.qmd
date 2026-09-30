@@ -1,0 +1,24 @@
+---
+title: "Output files"
+---
+
+Every file name ends in the random seed passed with `--random_seed`. The Stage column matches the [commands](commands.qmd).
+
+| File | Stage | Description |
+|---|---|---|
+| `ts_{seed}.trees` | 1 | Tree sequence (no mutations) — always written |
+| `sim_ind_node_map_{seed}.csv` | 1 | Host → strain node mapping, with each node's `time` (generations before present) — always written |
+| `node_pairs_{seed}.csv` | 1 | Recombinant node pairs from same meiosis |
+| `lineage_{seed}.csv` | 1 | Per-generation child→parent strain lineage, pre-simplify node IDs (`--save_lineage`) |
+| `node_id_map_{seed}.csv` | 1 | Pre-simplify → post-simplify node ID mapping (`--save_lineage`) |
+| `mutated_{seed}.trees` | 2 | Tree sequence with mutations |
+| `coal_T_{seed}.csv` | 3 | Pairwise coalescence times per tree interval (chromosome-local coordinates) |
+| `mut_T_{seed}.csv` | 3 | Mutation chromosome, position, and age |
+| `output_{seed}_strain.vcf` | 4 | Per-strain genotypes (0/1) |
+| `output_{seed}_host.vcf` | 5 | Per-host genotypes (0/0, 0/1, 1/1) |
+| `host_proportions_{seed}.csv` | 5 | Dirichlet proportions and read counts per host |
+| `strain_transmission_map_{seed}.html` | additional | Interactive strain-transmission-map visualization |
+| `pairwise_strain_pedigree_map_{seed}.html` | additional | Interactive pedigree coalescence trace for any two strains |
+| `relate_strain_{seed}.csv` | stats | Pairwise strain IBD fraction (`krsim relate-strain`) |
+| `relate_host_{seed}.csv` | stats | Average pairwise IBD fraction per host, most recent generation only (`krsim relate-host`) |
+| `KR_sim_{seed}.log` | all | Run log — every command adds a block with the time, krsim version, exact command line, files written and run time (and the full error details if it fails) |
