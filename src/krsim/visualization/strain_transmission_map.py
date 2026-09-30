@@ -202,7 +202,7 @@ def _build_genome_data(ts, lineage, node_map, nodes):
 
 
 _HTML_TEMPLATE = r"""<meta charset="utf-8">
-<title>Strain transmission map — sim __SEED__</title>
+<title>Strain transmission and mutation map — sim __SEED__</title>
 <style>
   .viz-root {
     color-scheme: light;
@@ -327,7 +327,7 @@ _HTML_TEMPLATE = r"""<meta charset="utf-8">
 
   .stage { display: flex; flex-direction: column; }
 
-  .canvas-scroll { position: relative; overflow: auto; max-height: 78vh; padding: 18px 10px 22px; }
+  .canvas-scroll { position: relative; overflow: auto; padding: 18px 10px 22px; }
 
   .zoom-toolbar {
     position: sticky; top: 8px; left: 8px; z-index: 5; width: fit-content;
@@ -490,7 +490,7 @@ _HTML_TEMPLATE = r"""<meta charset="utf-8">
   <div class="wrap">
     <header class="page">
       <p class="eyebrow">KR malaria simulator — pedigree, pre-simplify</p>
-      <h1>Strain transmission map — seed __SEED__</h1>
+      <h1>Strain transmission and mutation map — seed __SEED__</h1>
       <p class="dek">Every strain, every generation, drawn from the raw (pre-<code>simplify()</code>) tables — so nothing is compressed away. The number in each circle is its <strong>pre-simplify node ID</strong>; the small corner badge, where present, is the <strong>post-simplify ID</strong> from the final tree sequence. <strong>Click a strain</strong> to trace its full ancestry and descendants; hover for detail. Each <strong>&times;</strong> is a mutation, drawn on the link and at the time it happened. <strong>Pick a chromosome, then a tree in the bar</strong> (each tree is as wide as the stretch of genome it covers) to see just the genealogy of that stretch and its mutations.</p>
       <div class="meta-row" id="metaRow"></div>
       <div class="warn-banner" id="warnBanner"></div>

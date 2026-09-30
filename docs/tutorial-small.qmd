@@ -1,7 +1,5 @@
 ---
 title: "🧪 Small example"
-# no "On this page" list, so the interactive maps can use the extra width
-toc: false
 aliases:
   - tutorial.html
 ---
@@ -26,11 +24,28 @@ The notebook also draws two interactive maps of the true pedigree. These are the
 
 **Pairwise strain pedigree map.** Pick two current strains and trace each one's ancestry back through the pedigree. Where the two lineages meet are their shared ancestors. [Open full screen](maps/pairwise_strain_pedigree_map_123.html){target="_blank"}
 
-<iframe src="maps/pairwise_strain_pedigree_map_123.html" width="100%" height="850" style="border: 1px solid #ccc; border-radius: 4px;"></iframe>
+<iframe class="fit-height" src="maps/pairwise_strain_pedigree_map_123.html" width="100%" height="850" style="border: 1px solid #ccc; border-radius: 4px;"></iframe>
 
-**Strain transmission map.** Who infected whom, generation by generation: founders at the top, current strains at the bottom, one lane per host. Each × is a mutation, drawn on the link and at the time it happened. Pick a chromosome, then a tree in the bar, to see just the genealogy of that stretch of genome and its mutations; click a strain to highlight its ancestors and descendants. [Open full screen](maps/strain_transmission_map_123.html){target="_blank"}
+**Strain transmission and mutation map.** Who infected whom, generation by generation: founders at the top, current strains at the bottom, one lane per host. Each × is a mutation, drawn on the link and at the time it happened. Pick a chromosome, then a tree in the bar, to see just the genealogy of that stretch of genome and its mutations; click a strain to highlight its ancestors and descendants. [Open full screen](maps/strain_transmission_map_123.html){target="_blank"}
 
-<iframe src="maps/strain_transmission_map_123.html" width="100%" height="850" style="border: 1px solid #ccc; border-radius: 4px;"></iframe>
+<iframe class="fit-height" src="maps/strain_transmission_map_123.html" width="100%" height="850" style="border: 1px solid #ccc; border-radius: 4px;"></iframe>
 :::
+
+```{=html}
+<script>
+// Grow each embedded map to its full height, so the whole transmission chain
+// shows without an inner scrollbar (the maps are served from this site, so
+// their size can be read directly).
+document.querySelectorAll("iframe.fit-height").forEach(frame => {
+  const fit = () => {
+    try { frame.style.height = frame.contentDocument.documentElement.scrollHeight + "px"; } catch (e) {}
+  };
+  frame.addEventListener("load", () => {
+    fit();
+    try { new ResizeObserver(fit).observe(frame.contentDocument.body); } catch (e) {}
+  });
+});
+</script>
+```
 
 Next: try the [command-line scripts](tutorial-scripts.qmd) for the same example.

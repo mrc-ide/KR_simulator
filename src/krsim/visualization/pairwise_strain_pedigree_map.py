@@ -130,7 +130,7 @@ _HTML_TEMPLATE = r"""<meta charset="utf-8">
 
   .stage { display: flex; flex-direction: column; }
 
-  .canvas-scroll { position: relative; overflow: auto; max-height: 78vh; padding: 18px 10px 22px; }
+  .canvas-scroll { position: relative; overflow: auto; padding: 18px 10px 22px; }
 
   .zoom-toolbar {
     position: sticky; top: 8px; left: 8px; z-index: 5; width: fit-content;

@@ -157,3 +157,8 @@ main.content section h2, main.content section h3, main.content section h4 {
 @media (min-width: 992px) {
   main.content { padding-left: 1.5rem; padding-right: 17px; }
 }
+
+// When a wide section (e.g. the interactive maps) scrolls under "On this page",
+// Quarto fades the list out and offers a small dropdown instead; hide the
+// dropdown so the list simply disappears until you scroll back up
+#quarto-toc-toggle { display: none !important; }
