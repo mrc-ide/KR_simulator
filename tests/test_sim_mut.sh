@@ -74,13 +74,6 @@ import tskit
 ts = tskit.load('$TS_FILE')
 print(f'ts_${SEED}.trees: {ts.num_trees} trees, {ts.num_samples} samples, {ts.num_nodes} nodes')"
 
-run_stage "Strain transmission map (only needs Stage 1's --save_lineage)" \
-    krsim strain-transmission-map \
-    --lineage_csv "$OUT_DIR/lineage_${SEED}.csv" \
-    --node_id_map_csv "$OUT_DIR/node_id_map_${SEED}.csv" \
-    --random_seed "$SEED" \
-    --output_dir "$OUT_DIR"
-
 run_stage "Pairwise strain pedigree map (only needs Stage 1's --save_lineage)" \
     krsim pairwise-strain-pedigree-map \
     --lineage_csv "$OUT_DIR/lineage_${SEED}.csv" \
@@ -100,6 +93,14 @@ check "
 import tskit
 ts = tskit.load('$MUT_TS_FILE')
 print(f'ts_mut_${SEED}.trees: {ts.num_mutations} mutations at {ts.num_sites} sites across {ts.num_trees} trees')"
+
+run_stage "Strain transmission map (needs Stage 1's --save_lineage and Stage 2's mutations)" \
+    krsim strain-transmission-map \
+    --lineage_csv "$OUT_DIR/lineage_${SEED}.csv" \
+    --node_id_map_csv "$OUT_DIR/node_id_map_${SEED}.csv" \
+    --ts "$MUT_TS_FILE" \
+    --random_seed "$SEED" \
+    --output_dir "$OUT_DIR"
 
 run_stage "Stage 3: Coalescence & mutation time tables" \
     krsim coal-mut \

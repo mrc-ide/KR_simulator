@@ -97,7 +97,7 @@ Outputs `output_{seed}_host.vcf`. With `--save_proportions`, also writes `host_p
 
 ## Pedigree visualizations
 
-Both maps only need Stage 1 run with `--save_lineage`. See them in action in the [tutorial](tutorial-small.qmd#visualise-transmission).
+Both maps need Stage 1 run with `--save_lineage`; the transmission map also needs the mutated tree sequence from Stage 2. See them in action in the [tutorial](tutorial-small.qmd#visualise-transmission).
 
 ::: {.stage}
 ### Strain transmission map — visualize the pedigree
@@ -106,11 +106,12 @@ Both maps only need Stage 1 run with `--save_lineage`. See them in action in the
 krsim strain-transmission-map \
     --lineage_csv results/lineage_42.csv \
     --node_id_map_csv results/node_id_map_42.csv \
+    --ts results/ts_mut_42.trees \
     --random_seed 42 \
     --output_dir results/
 ```
 
-Needs `--save_lineage` from Stage 1. Renders an interactive, self-contained `strain_transmission_map_{seed}.html` — a generation-by-generation pedigree diagram (founders at top, current samples at bottom, one lane per host) built from the pre-simplify `lineage_{seed}.csv`, so it shows the true parentage that `simplify()` compresses away. Each strain is labeled with its pre-simplify ID (with its post-simplify ID as a small corner badge, where one exists); clicking a strain traces and highlights its full ancestry and descendants. Open the file directly in a browser — no server or dependencies needed. Intended for small debug runs (a handful of hosts, a few dozen generations); it warns in-page and degrades gracefully past that, but isn't meant for production-scale runs (`--Nh 100`, etc.). It only needs Stage 1, so you can inspect the raw transmission history before running mutations or VCFs.
+Needs `--save_lineage` from Stage 1 and `ts_mut_{seed}.trees` from Stage 2. Renders an interactive, self-contained `strain_transmission_map_{seed}.html` — a generation-by-generation pedigree diagram (founders at top, current samples at bottom, one lane per host) built from the pre-simplify `lineage_{seed}.csv`, so it shows the true parentage that `simplify()` compresses away. Each strain is labeled with its pre-simplify ID (with its post-simplify ID as a small corner badge, where one exists); clicking a strain traces and highlights its full ancestry and descendants. Every mutation is drawn as a × on the pedigree link, and at the time, where it happened. Pick a chromosome and a tree to fade out everything except the genealogy of that stretch of genome and its mutations. Open the file directly in a browser — no server or dependencies needed. Intended for small debug runs (a handful of hosts, a few dozen generations); it warns in-page and degrades gracefully past that, but isn't meant for production-scale runs (`--Nh 100`, etc.).
 :::
 
 ::: {.stage}

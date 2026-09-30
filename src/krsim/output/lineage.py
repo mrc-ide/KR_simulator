@@ -8,8 +8,10 @@ def build_lineage(tables):
     by, and the parent strain(s) it inherited genome segments from.
 
     A child node can have more than one parent node if its recombinant
-    product carries segments from both parents of that transmission event,
-    so each unique (child, parent) pair is written as its own row.
+    product carries segments from both parents of that transmission event.
+    Each inherited stretch of genome is written as its own row, with its
+    genome-wide coordinates in `left` and `right`, so a (child, parent) pair
+    appears once per segment.
 
     Parameters
     ----------
@@ -21,7 +23,8 @@ def build_lineage(tables):
     Returns
     -------
     pd.DataFrame
-        Columns: gen, child_node_ID, child_ind_ID, recomb_ID, parent_node_ID, parent_ind_ID.
+        Columns: gen, child_node_ID, child_ind_ID, recomb_ID, parent_node_ID,
+        parent_ind_ID, left, right.
     """
     nodes = tables.nodes
     edges = tables.edges
@@ -29,6 +32,8 @@ def build_lineage(tables):
     lineage = pd.DataFrame({
         "child_node_ID": edges.child,
         "parent_node_ID": edges.parent,
+        "left": edges.left,
+        "right": edges.right,
     }).drop_duplicates().reset_index(drop=True)
 
     lineage["gen"] = nodes.time[lineage["child_node_ID"]]
@@ -40,9 +45,9 @@ def build_lineage(tables):
     ]
 
     lineage = lineage[[
-        "gen", "child_node_ID", "child_ind_ID", "recomb_ID", "parent_node_ID", "parent_ind_ID",
+        "gen", "child_node_ID", "child_ind_ID", "recomb_ID", "parent_node_ID", "parent_ind_ID", "left", "right",
     ]]
-    lineage = lineage.sort_values(["gen", "child_node_ID", "parent_node_ID"]).reset_index(drop=True)
+    lineage = lineage.sort_values(["gen", "child_node_ID", "parent_node_ID", "left"]).reset_index(drop=True)
 
     return lineage
 
