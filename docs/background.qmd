@@ -1,0 +1,84 @@
+---
+title: "📖 Background"
+# Draft: shows in `quarto preview` but is left out of the published site.
+# When the "To fill in" boxes are done, delete this line and uncomment
+# background.qmd in _quarto.yml to add it to the sidebar.
+draft: true
+---
+
+::: {.callout-important}
+## To fill in
+What krsim is for: the question it helps answer, why a forward simulator is needed, and who it is aimed at. Also what "KR" stands for.
+:::
+
+## The transmission model
+
+krsim follows a population of `Nh` human hosts through `T` discrete, non-overlapping generations. Each host carries one or more parasite strains, and in every generation each host is infected afresh by parasites drawn from the hosts of the previous generation, passed on by a mosquito.
+
+**Founders.** The simulation starts `T` generations before the present. Each founder host carries `K` strains, or `2K` if it is superinfected, which happens with probability `chi`.
+
+**Each generation**, every host in the new generation is infected in one of two ways:
+
+- **Single infection** (probability `1 − chi`): one parent host is chosen at random, and one mosquito carries `K` parasites from it.
+- **Superinfection** (probability `chi`): two different parent hosts are chosen, and each passes on `K` parasites through its own mosquito, giving the host `2K` strains.
+
+**Inside the mosquito**, each of its `C` oocysts is formed from two parasites drawn from the parent host (with replacement, so the same strain can pair with itself). Meiosis in each oocyst produces four recombinant products, and the `K` parasites passed on are drawn from all `4C` products.
+
+| Parameter | Flag | Meaning |
+|---|---|---|
+| $N_h$ | `--Nh` | Number of human hosts |
+| $T$ | `--T` | Number of generations simulated |
+| $K$ | `--K` | Parasites passed on per mosquito bite |
+| $\chi$ | `--chi` | Probability that a host is superinfected |
+| $C$ | `--C` | Oocysts per mosquito |
+
+::: {.callout-important}
+## To fill in
+The biological reasoning behind these choices, and typical parameter values for the settings you have in mind (e.g. low vs high transmission).
+:::
+
+## Recombination
+
+Recombination happens in the mosquito, between the two parasites that form each oocyst. The genome is the *P. falciparum* 3D7 reference: 14 chromosomes, 23.57 Mb in total. Each recombination event between two parental genomes combines two kinds of breakpoint:
+
+- **Independent assortment:** at each chromosome boundary, the products switch parent with probability 0.5.
+- **Crossovers:** a Poisson number of breakpoints with mean `recombination_rate × genome length`, placed uniformly along the genome. The default rate is `7.4e-7` per base pair.
+
+Two such events per oocyst give its four products.
+
+::: {.callout-important}
+## To fill in
+The source for the default recombination rate, and any simplifications worth flagging (e.g. no crossover interference).
+:::
+
+## Recording ancestry
+
+Every parasite genome is recorded as a node in a [tskit](https://tskit.dev) tree sequence, and every stretch of genome inherited from a parent is recorded as an edge. Together these form an ancestral recombination graph: for any position on the genome, it gives the full genealogy of the current strains.
+
+At the end of the run the tree sequence is simplified to the strains in the current generation, keeping only the ancestry they actually inherited. This is what `ts_{seed}.trees` contains. The `--save_lineage` option keeps the full generation-by-generation pedigree as well, which the [pedigree maps](tutorial.ipynb#visualize-the-pedigree) use.
+
+## From genealogy to data
+
+- **Mutations** are added on top of the genealogy with [msprime](https://tskit.dev/msprime), at rate `--mutation_rate` (default `1e-6` per base pair).
+- **Coalescence times** are read directly from the genealogy: for every pair of strains and every stretch of genome, when their ancestry last met.
+- **Strain VCF**: one haploid genotype per strain, as if each strain were sequenced on its own.
+- **Host VCF**: mimics sequencing a mixed infection from a blood sample. Each host's strain proportions are drawn from a Dirichlet distribution, `--depth` reads are shared between its strains, and a site is called `0/1` when the reads carry both alleles.
+
+::: {.callout-important}
+## To fill in
+How these outputs relate to real data and analyses, e.g. which relatedness or IBD methods they can be used to test.
+:::
+
+## References
+
+::: {.callout-important}
+## To fill in
+Papers the model builds on.
+:::
+
+## Citing krsim
+
+::: {.callout-important}
+## To fill in
+How to cite krsim (paper or DOI).
+:::
