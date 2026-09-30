@@ -151,3 +151,8 @@ main.content section h2, main.content section h3, main.content section h4 {
 
 // Welcome page subtitle: italic (set in index.qmd) and ALL CAPITALS
 .subtitle { text-transform: uppercase; letter-spacing: 0.02em; }
+
+// Space between the sidebar and the page content (wide screens only)
+@media (min-width: 992px) {
+  main.content { padding-left: 2.5rem; }
+}
