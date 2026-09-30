@@ -1,38 +1,6 @@
 ---
-title: "Getting started"
+title: "🚀 Quick start"
 ---
-
-## Installation
-
-You need [conda](https://conda-forge.org/download/) (Miniforge, Miniconda or Anaconda). Download the environment file and create the environment:
-
-```bash
-curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/environment-user.yml
-conda env create -f environment-user.yml
-conda activate krsim
-```
-
-The environment is called `krsim`. It contains krsim, its dependencies, and Jupyter with matplotlib for the [tutorial](tutorial.ipynb).
-
-### Check the install
-
-With the environment active, run:
-
-```bash
-krsim --help
-```
-
-It lists every command. `krsim <command> --help` lists every option for one command.
-
-### Update
-
-pip does not reinstall krsim while the version number is unchanged, so force it to fetch the latest code:
-
-```bash
-pip install --force-reinstall --no-deps git+https://github.com/mrc-ide/KR_simulator.git
-```
-
-## Quick start
 
 With the `krsim` environment active, run the five main stages on a small example. Results go to `krsim_quickstart_output/` in the current folder (krsim creates it):
 
@@ -48,6 +16,8 @@ krsim vcf-host   --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT
 ```
 
 Each command prints the files it wrote. Every file name ends in the random seed (`123` here), and every command adds a record of what it ran to `KR_sim_123.log`.
+
+## What each step does
 
 | Command | Reads | Writes |
 |---|---|---|

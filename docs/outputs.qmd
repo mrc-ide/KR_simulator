@@ -1,5 +1,5 @@
 ---
-title: "Output files"
+title: "📁 Output files"
 ---
 
 Every file name ends in the random seed passed with `--random_seed`. The Stage column matches the [commands](commands.qmd).

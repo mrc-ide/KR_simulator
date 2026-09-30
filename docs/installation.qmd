@@ -1,0 +1,35 @@
+---
+title: "📦 Installation"
+---
+
+You need [conda](https://conda-forge.org/download/) (Miniforge, Miniconda or Anaconda). Download the environment file and create the environment:
+
+```bash
+curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/environment-user.yml
+conda env create -f environment-user.yml
+conda activate krsim
+```
+
+The environment is called `krsim`. It contains krsim, its dependencies, and Jupyter with matplotlib for the [tutorial](tutorial.ipynb).
+
+## Check the install
+
+With the environment active, run:
+
+```bash
+krsim --help
+```
+
+It lists every command. `krsim <command> --help` lists every option for one command.
+
+## Update
+
+pip does not reinstall krsim while the version number is unchanged, so force it to fetch the latest code:
+
+```bash
+pip install --force-reinstall --no-deps git+https://github.com/mrc-ide/KR_simulator.git
+```
+
+## Next steps
+
+Run the [quick start](quickstart.qmd) to check everything works on a small example.

@@ -20,7 +20,10 @@ website:
     contents:
       - href: index.qmd
         text: Welcome
-      - getting-started.qmd
+      - section: Getting started
+        contents:
+          - installation.qmd
+          - quickstart.qmd
       - tutorial.ipynb
       - section: Reference
         contents:
@@ -30,8 +33,11 @@ website:
 format:
   html:
     theme:
-      light: cosmo
-      dark: darkly
+      light: [cosmo, krsim-light.scss, krsim.scss]
+      dark: [darkly, krsim-dark.scss, krsim.scss]
+    highlight-style:
+      light: krsim-light.theme
+      dark: krsim-dark.theme
     toc: true
     toc-location: right
     toc-title: On this page
