@@ -1,6 +1,6 @@
 ---
 title: "👋 Welcome to krsim"
-subtitle: "Malaria transmission simulator"
+subtitle: "*Malaria transmission simulator*"
 toc: false
 ---
 
