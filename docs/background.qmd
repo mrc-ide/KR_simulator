@@ -20,6 +20,8 @@ It is designed as a foundational model, with many possible avenues for extension
 
 krsim follows a population of `Nh` human hosts through `T` discrete, non-overlapping generations. Each host carries one or more parasite strains, and in every generation each host is infected afresh by parasites drawn from the hosts of the previous generation, passed on by a mosquito.
 
+![](images/KR_model.png){width="80%" fig-align="center" fig-alt="Left: hosts (circles) across T malaria generations, linked by transmission. Right: one transmission in detail. Parasites from the parent host pair up in the mosquito, recombine, and the resulting recombinant parasites are passed on to the new host."}
+
 **Founders.** The simulation starts `T` generations before the present. Each founder host carries `K` strains, or `2K` if it is superinfected, which happens with probability `chi`.
 
 **Each generation**, every host in the new generation is infected in one of two ways:
