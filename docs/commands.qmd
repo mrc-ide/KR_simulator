@@ -1,12 +1,12 @@
 ---
-title: "Command line"
+title: "💻 Command line"
 ---
 
 Every command is run as `krsim <command>`, and `krsim <command> --help` lists all of its options. The examples use seed `42` and write to `results/`.
 
 ## Main pipeline
 
-### Stage 1 — Simulate genealogy
+### 🦟 Stage 1 — Simulate genealogy
 
 ```bash
 krsim simulate \
@@ -32,7 +32,7 @@ Always writes the tree sequence `ts_{seed}.trees`, which every later stage start
 | `--save_pairs` | Save recombinant node pairs to `node_pairs_{seed}.csv` |
 | `--save_lineage` | Save per-generation child→parent strain lineage to `lineage_{seed}.csv`, plus a `node_id_map_{seed}.csv` pre/post-`simplify()` ID mapping — turn this on if you want true generation-by-generation parentage (for `krsim strain-transmission-map`, `krsim pairwise-strain-pedigree-map`, or your own pedigree analysis), since the final tree sequence alone can skip generations |
 
-### Stage 2 — Add mutations
+### ⚡ Stage 2 — Add mutations
 
 ```bash
 krsim mutate \
@@ -44,7 +44,7 @@ krsim mutate \
 
 If `--mutation_rate` is not given, `1e-6` per bp is used. Outputs `mutated_{seed}.trees`. All stages from here onwards use the mutated tree sequence.
 
-### Stage 3 — Coalescence & mutation times
+### ⏳ Stage 3 — Coalescence & mutation times
 
 ```bash
 krsim coal \
@@ -55,7 +55,7 @@ krsim coal \
 
 Outputs `coal_T_{seed}.csv` (pairwise MRCA times per tree interval) and `mut_T_{seed}.csv` (position and age of every mutation). Both tables include a `chromosome` column (1-indexed, from `krsim/sim/params.py`'s `COMP_BREAKPOINTS`), with `position`/`left`/`right` given as chromosome-local coordinates rather than genome-wide ones. `coal_T` only contains rows where the sample pair has a common ancestor in that tree interval — pairs with no shared ancestry anywhere in the ARG are simply absent from the table.
 
-### Stage 4 — Strain-level VCF
+### 🧬 Stage 4 — Strain-level VCF
 
 ```bash
 krsim vcf-strain \
@@ -66,7 +66,7 @@ krsim vcf-strain \
 
 Outputs `output_{seed}_strain.vcf` — one sample column per parasite strain (node), genotypes `0`/`1`.
 
-### Stage 5 — Host-level VCF
+### 🧍 Stage 5 — Host-level VCF
 
 ```bash
 krsim vcf-host \

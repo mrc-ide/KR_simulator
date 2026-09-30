@@ -1,0 +1,78 @@
+// Notion-style layer shared by the light and dark themes.
+// Colours come from krsim-light.scss / krsim-dark.scss ($krsim-* variables).
+
+/*-- scss:defaults --*/
+$web-font-path: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
+$font-family-sans-serif: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif;
+$font-family-monospace: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+$line-height-base: 1.65;
+$headings-font-weight: 700;
+
+// Inline code (e.g. `krsim --help` in a sentence)
+$code-color: #E23137;
+
+/*-- scss:rules --*/
+body { -webkit-font-smoothing: antialiased; }
+
+// Headings: bold, tight, no rules underneath
+h1, h2, h3, h4, .title { letter-spacing: -0.01em; color: $krsim-heading; }
+.title { font-size: 2.4rem; }
+h2 { font-size: 1.55rem; margin-top: 2.2rem; border-bottom: none !important; padding-bottom: 0; }
+h3 { font-size: 1.25rem; margin-top: 1.8rem; }
+h4 { font-size: 1.05rem; }
+#title-block-header { margin-bottom: 1.5rem; }
+
+// Links: text-coloured with a soft underline
+main a:not(.nav-link):not(.btn) {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: $krsim-underline;
+  text-underline-offset: 3px;
+  &:hover { text-decoration-color: currentColor; }
+}
+
+// Inline code chip
+p code:not(.sourceCode), li code:not(.sourceCode), td code:not(.sourceCode) {
+  background: $krsim-subtle-bg;
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+// Code blocks: flat, rounded
+div.sourceCode, div.sourceCode pre, pre.sourceCode {
+  background: $krsim-subtle-bg !important;
+  border: none !important;
+  border-radius: 4px;
+}
+
+// Callouts: flat grey boxes
+div.callout {
+  border: none !important;
+  background: $krsim-subtle-bg;
+  border-radius: 4px;
+  .callout-header { background: transparent !important; border: none !important; }
+  div.sourceCode, div.sourceCode pre { background: $body-bg !important; }
+}
+
+// Tables: light lines, muted headers
+table.table {
+  th { font-weight: 600; color: $krsim-muted; border-bottom-color: $krsim-line !important; }
+  td { border-color: $krsim-line !important; }
+}
+
+// Sidebar: soft background, rounded hover/active rows
+#quarto-sidebar {
+  background: $krsim-sidebar-bg !important;
+  border-right: none !important;
+  .sidebar-link { color: $krsim-body; border-radius: 4px; padding: 3px 8px; }
+  .sidebar-link:hover { background: $krsim-hover; }
+  .sidebar-link.active { background: $krsim-hover; font-weight: 600; color: $krsim-heading; }
+  .sidebar-item-section > .sidebar-item-container .sidebar-item-text { color: $krsim-muted; }
+}
+
+// "On this page": quiet grey list
+#TOC, nav[role="doc-toc"] {
+  .nav-link, h2 { color: $krsim-muted; border-left-color: $krsim-line !important; }
+  .nav-link.active { color: $krsim-heading; }
+}

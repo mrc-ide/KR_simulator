@@ -89,7 +89,7 @@ KR_SIM/
 │
 ├── docs/                 # Quarto website (published to GitHub Pages)
 │   ├── _quarto.yml       #   Site config and navigation
-│   ├── *.qmd             #   Pages: welcome, getting started, command line, output files
+│   ├── *.qmd             #   Pages: welcome, installation, quick start, command line, output files
 │   ├── tutorial.ipynb    #   Tutorial page (rendered with saved outputs, not re-run)
 │   └── maps/             #   Interactive pedigree maps embedded in the tutorial
 │
