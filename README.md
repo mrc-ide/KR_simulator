@@ -42,35 +42,6 @@ jupyter notebook tutorial.ipynb
 
 It writes its files to `output/` next to the notebook.
 
-## Development install
-
-To work on the code, clone the repo and install it in editable mode (requires Python 3.9 or newer):
-
-```bash
-git clone https://github.com/mrc-ide/KR_simulator.git
-cd KR_simulator
-python3 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-python -m pip install --upgrade pip
-pip install -e ".[tutorial]"
-```
-
-Upgrading pip matters: older pip versions (such as the 21.x that ships with macOS's built-in Python) fail with `Directory cannot be installed in editable mode`.
-
-Or with conda: `conda env create -f environment.yml && conda activate kr_malaria`.
-
-To reproduce results with the exact package versions used in development, run `pip install -r requirements.txt` before `pip install -e .`.
-
-### Run the tests
-
-From the `KR_simulator` folder with the environment active, run:
-
-```bash
-bash tests/test_sim_mut.sh
-```
-
-The test runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/` (decimal numbers only need to match to 12 significant digits, since the last digit can vary between machines). If everything is installed correctly, it ends with `All 13 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.
-
 ## Pipeline
 
 ```mermaid
@@ -148,3 +119,7 @@ Each blue box is a `krsim` command and the files it writes; dashed files need th
 | `strain_transmission_map_{seed}.html` | strain-transmission-map | Interactive pedigree of the whole run |
 | `pairwise_strain_pedigree_map_{seed}.html` | pairwise-strain-pedigree-map | Traces two strains back to shared ancestors |
 | `KR_sim_{seed}.log` | all | What each command ran and wrote |
+
+## Development
+
+To work on the code itself, see [DEVELOPMENT.md](DEVELOPMENT.md).
