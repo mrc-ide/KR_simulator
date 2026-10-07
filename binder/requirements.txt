@@ -1,5 +1,0 @@
-# Binder environment for the Quick start notebook (mybinder.org uses this
-# folder instead of environment.yml). Plain pip builds much faster than conda;
-# Binder already provides Jupyter.
-git+https://github.com/mrc-ide/KR_simulator.git
-matplotlib

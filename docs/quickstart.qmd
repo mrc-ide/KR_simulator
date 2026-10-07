@@ -11,9 +11,9 @@ Start here to explore the model and see how it works. This example is deliberate
 
 The Jupyter notebook runs every `krsim` command on this example and looks at what each one writes. Change the parameters to see how transmission changes.
 
-**Try it in your browser, with nothing to install.** Google Colab needs a Google account; Binder needs no account but can take a few minutes to start:
+**Try it in your browser, with nothing to install** (needs a Google account):
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mrc-ide/KR_simulator/blob/main/notebooks/tutorial.ipynb){target="_blank"} [![Launch Binder](https://static.mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mrc-ide/KR_simulator/main?labpath=notebooks%2Ftutorial.ipynb){target="_blank"}
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mrc-ide/KR_simulator/blob/main/notebooks/tutorial.ipynb){target="_blank"}
 
 **Or run it on your own computer.** With the `krsim` environment active ([Installation](installation.qmd)), run the commands below. The first saves the notebook into your current folder and the second opens it in Jupyter:
 
