@@ -11,18 +11,9 @@ Start here to explore the model and see how it works. This example is deliberate
 
 The Jupyter notebook runs every `krsim` command on this example and looks at what each one writes. Change the parameters to see how transmission changes.
 
-**Try it in your browser, with nothing to install** (needs a Google account):
+Open it in **Google Colab** (needs a Google account); there is nothing to install. Run the first cell, which installs krsim, then run the rest with **Runtime → Run all**.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mrc-ide/KR_simulator/blob/main/notebooks/tutorial.ipynb){target="_blank"}
-
-**Or run it on your own computer.** With the `krsim` environment active ([Installation](installation.qmd)), run the commands below. The first saves the notebook into your current folder and the second opens it in Jupyter:
-
-```bash
-curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/notebooks/tutorial.ipynb
-jupyter notebook tutorial.ipynb
-```
-
-The notebook writes its files to `output/` next to it.
 
 ::: {.column-screen-inset-right}
 ## Visualise transmission
