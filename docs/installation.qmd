@@ -10,7 +10,7 @@ conda env create -f environment-user.yml
 conda activate krsim
 ```
 
-The environment is called `krsim`. It contains krsim and its dependencies. The [tutorials](quickstart.qmd) run in Google Colab, so they don't need it.
+The environment is called `krsim`. It contains krsim, its dependencies, and Jupyter with matplotlib, so you can also run the [tutorials](quickstart.qmd) on your own computer instead of in Google Colab.
 
 ## Check the install
 

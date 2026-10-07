@@ -10,7 +10,19 @@ This example uses a more realistic baseline: 100 human hosts (`--Nh`) over 1,000
 
 The tutorial is a Jupyter notebook. Open it in **Google Colab** (needs a Google account); there is nothing to install. Run the first cell, which installs krsim, then run the rest with **Runtime → Run all**.
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mrc-ide/KR_simulator/blob/main/notebooks/tutorial_realistic.ipynb){target="_blank"}
+[![](https://colab.research.google.com/assets/colab-badge.svg){fig-alt="Open in Colab"}](https://colab.research.google.com/github/mrc-ide/KR_simulator/blob/main/notebooks/tutorial_realistic.ipynb){target="_blank"}
+
+::: {.callout-note collapse="true"}
+## Prefer to run it on your own computer?
+With the `krsim` environment active ([Installation](installation.qmd)), run the commands below. The first saves the notebook into your current folder and the second opens it in Jupyter:
+
+```bash
+curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/notebooks/tutorial_realistic.ipynb
+jupyter notebook tutorial_realistic.ipynb
+```
+
+The notebook writes its files to `output/` next to it.
+:::
 
 The baseline simulation takes about a minute and up to 3 GB of memory (see [Running at scale](scaling.qmd)); Colab has enough memory for the whole notebook. Change the parameters at the top of the notebook and re-run it to explore.
 
