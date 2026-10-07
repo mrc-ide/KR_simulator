@@ -2,7 +2,26 @@
 title: "🌍 Realistic example"
 ---
 
-::: {.callout-note}
-## In progress
-A larger simulation with more realistic parameter values, including the distribution of coalescence times, is coming soon.
-:::
+This example uses a more realistic baseline: 100 human hosts (`--Nh`) over 1,000 generations (`--T`), with 10 parasites per bite (`--K`), a superinfection probability of 0.2 (`--chi`) and 3 oocysts per mosquito (`--C`). At this size the output files are too large to read by eye, so the tutorial looks at the **distributions** that come out of the genealogy instead, above all the **coalescence times**: how long ago pairs of strains share a common ancestor.
+
+## Run the notebook
+
+The tutorial is a Jupyter notebook. With the `krsim` environment active ([Installation](installation.qmd)), run the commands below. The first saves the notebook into your current folder and the second opens it in Jupyter:
+
+```bash
+curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/notebooks/tutorial_realistic.ipynb
+jupyter notebook tutorial_realistic.ipynb
+```
+
+The baseline simulation takes about a minute and up to 3 GB of memory on a typical laptop (see [Running at scale](scaling.qmd)). Change the parameters at the top of the notebook and re-run it to explore.
+
+## What the notebook covers
+
+- **Pairwise coalescence times** across the whole genome: how many generations back pairs of strains meet in a common ancestor.
+- **Same host versus different hosts:** what fraction of the genome has coalesced by each generation, for strains in the same host and in different hosts.
+- **Ancestral lineages through time:** how many distinct ancestors remain as you go back in time.
+- **Coalescence along the genome**, and for **one pair of strains along a chromosome**, together with the SNPs that separate them.
+- **Variation between runs:** how much the results change with the random seed alone.
+- **Varying the parameters:** what each parameter does to these distributions, and in particular what superinfection does.
+
+Most of this needs only `krsim simulate`: the coalescence times are read straight from the tree sequence with [tskit](https://tskit.dev), rather than with `krsim coal-mut`, which is too computationally expensive at this size. `krsim mutate` is used once, to place SNPs along a chromosome.
