@@ -18,6 +18,8 @@ At the baseline of the [realistic example](tutorial-realistic.qmd) (`--Nh 100 --
 | `vcf-host` | 28 s | 0.3 GB | 128 MB |
 | **All four** | **about 1.5 min** | **2.9 GB** | **0.4 GB** |
 
+At this size `simulate` is the slowest step and uses the most memory. For larger runs (Nh above about 200), `vcf-host` becomes the slowest step; see below.
+
 **What to request:** 1 core, 8 GB of memory and 15 minutes per simulation.
 
 ## How each command scales
@@ -44,7 +46,7 @@ If you don't need the VCFs, a run needs only the `simulate` time and memory, and
 
 ## Other parameters
 
-The number of hosts matters most, but the other parameters change the cost too. Varying one at a time from the realistic example's baseline (Nh = 100):
+The number of hosts matters most, but the other parameters change the cost too. Varying one at a time from the realistic example's baseline (Nh = 100), for `simulate` alone. To decide what to request, use the table above, which includes every command:
 
 | Parameter | Range | `simulate` time | Peak RAM | Effect on the VCFs |
 |---|---|---:|---:|---|
