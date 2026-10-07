@@ -34,6 +34,9 @@ COAL_CSV = os.path.join(HERE, "coal_mut.csv")
 IMAGES = os.path.join(HERE, "..", "docs", "images")
 BASELINE = {"Nh": 100, "T": 1000, "K": 10, "chi": 0.2, "C": 3}
 
+# typical laptop / cluster core is about this many times slower than the benchmark laptop
+TYPICAL_SLOWDOWN = 2
+
 # ru_maxrss is in bytes on macOS and in kilobytes on Linux
 RSS_TO_GB = (1 if platform.system() == "Darwin" else 1024) / 2**30
 
@@ -185,13 +188,19 @@ def plot(args):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    import matplotlib.ticker
 
     BLUE, ORANGE, AQUA, YELLOW = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
     plt.rcParams.update({
         "axes.spines.top": False, "axes.spines.right": False,
         "axes.grid": True, "grid.color": "#e6e5e0", "grid.linewidth": 0.8,
-        "lines.linewidth": 2, "lines.markersize": 6, "axes.axisbelow": True,
+        "lines.linewidth": 2.5, "lines.markersize": 8, "axes.axisbelow": True,
+        "font.size": 15, "axes.titlesize": 19, "axes.titleweight": "bold",
+        "axes.labelsize": 15, "xtick.labelsize": 14, "ytick.labelsize": 14, "legend.fontsize": 14,
     })
+    # The benchmarks ran on a fast laptop; times are shown for a typical laptop
+    # or cluster core, estimated as TYPICAL_SLOWDOWN x the measured time.
+    # Memory and disk do not depend on the machine.
     where = pd.read_csv(CSV)["machine"].iloc[0]
 
     # --- every command against Nh: time, peak RAM, output size ---
@@ -199,8 +208,8 @@ def plot(args):
     pipe = pipe[(pipe["T"] == BASELINE["T"]) & (pipe["K"] == BASELINE["K"])].sort_values("Nh")
     commands = [("simulate", BLUE), ("mutate", ORANGE), ("vcf-strain", AQUA), ("vcf-host", YELLOW)]
     # one column, three rows, so each panel is large on the website
-    fig, axes = plt.subplots(3, 1, figsize=(9, 13), sharex=True)
-    for ax, col, label, scale in [(axes[0], "time_s", "Time (minutes)", 60),
+    fig, axes = plt.subplots(3, 1, figsize=(10, 17))
+    for ax, col, label, scale in [(axes[0], "time_s", "Time (minutes, typical laptop)", 60 / TYPICAL_SLOWDOWN),
                                   (axes[1], "peak_ram_GB", "Peak RAM (GB)", 1),
                                   (axes[2], "output_MB", "Output size (GB)", 1024)]:
         ends = []
@@ -214,19 +223,21 @@ def plot(args):
             ends[i][0] = max(ends[i][0], ends[i - 1][0] * 1.35)
         for y, name in ends:
             ax.annotate(name, (pipe["Nh"].max(), y), xytext=(8, 0), textcoords="offset points",
-                        va="center", color="#52514e", fontsize=9, annotation_clip=False)
+                        va="center", color="#52514e", fontsize=14, annotation_clip=False)
         ax.set_xscale("log")
         ax.set_yscale("log")
+        # plain numbers (0.1, 1, 10) rather than powers of ten
+        ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
         ax.set_xticks(pipe["Nh"].unique())
         ax.set_xticklabels(pipe["Nh"].unique())
         ax.minorticks_off()
         ax.set_xlim(None, pipe["Nh"].max() * 2.2)
-        ax.set_title(label, loc="left")
-    axes[-1].set_xlabel("Nh (number of hosts)")
+        ax.set_title(label, loc="left", pad=12)
+        ax.set_xlabel("Nh (number of hosts)")
     axes[0].legend(frameon=False, loc="upper left")
-    fig.suptitle(f"Every krsim command against the number of hosts (T = {BASELINE['T']}, K = {BASELINE['K']})\n"
-                 f"{where}", x=0.01, ha="left")
-    plt.tight_layout()
+    fig.suptitle(f"Every krsim command against the number of hosts (T = {BASELINE['T']}, K = {BASELINE['K']})",
+                 x=0.01, ha="left", fontsize=18)
+    plt.tight_layout(h_pad=4)
     plt.savefig(os.path.join(IMAGES, "scaling_pipeline.png"), dpi=110)
     plt.close()
 

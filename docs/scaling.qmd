@@ -4,7 +4,7 @@ title: "⏱️ Running at scale"
 
 How much time, memory (RAM) and disk space a `krsim` run needs, so you can decide what to ask for on a laptop or a computing cluster. Every command uses **one core**.
 
-Times were measured on a fast laptop (Apple M5 Pro); expect them to be about 1.5–2× longer on a typical laptop or cluster core. Memory and disk are the same on any computer.
+Times are estimates for a **typical laptop or computing-cluster core**: they were measured on a fast laptop and doubled. Memory and disk are the same on any computer.
 
 ## The realistic example
 
@@ -12,11 +12,11 @@ At the baseline of the [realistic example](tutorial-realistic.qmd) (`--Nh 100 --
 
 | Command | Time | Peak RAM | Disk |
 |---|---:|---:|---:|
-| `simulate` | 29 s | 2.9 GB | 4 MB |
-| `mutate` | 1 s | 0.1 GB | 8 MB |
-| `vcf-strain` | 4 s | 0.3 GB | 227 MB |
-| `vcf-host` | 14 s | 0.3 GB | 128 MB |
-| **All four** | **under 1 min** | **2.9 GB** | **0.4 GB** |
+| `simulate` | 58 s | 2.9 GB | 4 MB |
+| `mutate` | 2 s | 0.1 GB | 8 MB |
+| `vcf-strain` | 8 s | 0.3 GB | 227 MB |
+| `vcf-host` | 28 s | 0.3 GB | 128 MB |
+| **All four** | **about 1.5 min** | **2.9 GB** | **0.4 GB** |
 
 **What to request:** 1 core, 8 GB of memory and 15 minutes per simulation.
 
@@ -30,17 +30,32 @@ For all four commands together, with a suggested request (1 core each time):
 
 | Hosts (`--Nh`) | Total time | Peak RAM | Disk | Request: memory | Request: time |
 |---:|---:|---:|---:|---:|---:|
-| 50 | 25 s | 1.5 GB | 0.1 GB | 4 GB | 15 min |
-| 100 | 48 s | 2.9 GB | 0.4 GB | 8 GB | 15 min |
-| 200 | 2 min | 5.8 GB | 1.3 GB | 16 GB | 15 min |
-| 400 | 6 min | 10.6 GB | 4.9 GB | 16 GB | 30 min |
-| 1000 | 32 min | 20.4 GB | 30 GB | 32 GB | 2 hours |
+| 50 | 50 s | 1.5 GB | 0.1 GB | 4 GB | 15 min |
+| 100 | 1.5 min | 2.9 GB | 0.4 GB | 8 GB | 15 min |
+| 200 | 4 min | 5.8 GB | 1.3 GB | 16 GB | 15 min |
+| 400 | 12 min | 10.6 GB | 4.9 GB | 16 GB | 30 min |
+| 1000 | 1 hour | 20.4 GB | 30 GB | 32 GB | 2 hours |
 
 - **`simulate`** grows in proportion to **Nh × T × K**: doubling the hosts, generations or parasites per bite roughly doubles its time and memory.
 - **`vcf-strain` and `vcf-host`** grow faster, roughly with **Nh²**. At Nh = 1000 they are the slowest step and take most of the disk.
 - **`mutate`** stays small throughout.
 
 If you don't need the VCFs, a run needs only the `simulate` time and memory, and a few MB of disk.
+
+## Other parameters
+
+The number of hosts matters most, but the other parameters change the cost too. Varying one at a time from the realistic example's baseline (Nh = 100):
+
+| Parameter | Range | `simulate` time | Peak RAM | Effect on the VCFs |
+|---|---|---:|---:|---|
+| Generations (`--T`) | 250 → 2000 | 14 s → 1.9 min | 1.0 → 5.7 GB | barely change |
+| Parasites per bite (`--K`) | 5 → 20 | 38 s → 1.5 min | 1.4 → 5.7 GB | grow, as there are more strains |
+| Superinfection (`--chi`) | 0.05 → 0.5 | 50 s → 70 s | 2.5 → 3.4 GB | grow a little |
+| Oocysts per mosquito (`--C`) | 1 → 5 | 44 s → 67 s | no change | little effect |
+
+- **Hosts (`--Nh`) and parasites per bite (`--K`) matter most.** Both increase the number of strains, which drives the size and cost of the VCFs.
+- **Generations (`--T`)** only affect `simulate`: doubling T roughly doubles its time and memory.
+- **Superinfection (`--chi`) and oocysts (`--C`)** make little difference.
 
 ## `coal-mut` is for small runs
 
