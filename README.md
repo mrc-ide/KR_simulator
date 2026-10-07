@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://mrc-ide.github.io/KR_simulator">
-    <img alt="Go to the krsim documentation" height="60" src="https://img.shields.io/badge/%F0%9F%93%96%20Go%20to%20the%20documentation%20%E2%86%92-000000?style=for-the-badge">
+    <img alt="Go to the krsim documentation" width="720" src="https://img.shields.io/badge/%F0%9F%93%96%20Go%20to%20the%20documentation%20%E2%86%92-000000?style=for-the-badge">
   </a>
 </p>
 
