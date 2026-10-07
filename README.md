@@ -2,18 +2,18 @@
 
 <p align="center">
   <a href="https://mrc-ide.github.io/KR_simulator">
-    <img alt="Go to the krsim documentation" width="720" src="https://img.shields.io/badge/%F0%9F%93%96%20Go%20to%20the%20documentation%20%E2%86%92-000000?style=for-the-badge">
+    <img alt="Go to the krsim documentation" width="720" src="https://img.shields.io/badge/%F0%9F%93%96%20Go%20to%20the%20documentation%20%E2%86%92-93358F?style=for-the-badge">
   </a>
 </p>
 
 <h3 align="center">👉 Installation, tutorials and the full reference all live on the <a href="https://mrc-ide.github.io/KR_simulator">krsim website</a>.</h3>
 
 <p align="center">
-  <a href="https://mrc-ide.github.io/KR_simulator/background.html"><img alt="Background" height="34" src="https://img.shields.io/badge/Background-DEE9F6?style=for-the-badge"></a>
-  <a href="https://mrc-ide.github.io/KR_simulator/installation.html"><img alt="Installation" height="34" src="https://img.shields.io/badge/Installation-DEE9F6?style=for-the-badge"></a>
-  <a href="https://mrc-ide.github.io/KR_simulator/tutorial-small.html"><img alt="Tutorial" height="34" src="https://img.shields.io/badge/Tutorial-DEE9F6?style=for-the-badge"></a>
-  <a href="https://mrc-ide.github.io/KR_simulator/commands.html"><img alt="Command line" height="34" src="https://img.shields.io/badge/Command%20line-DEE9F6?style=for-the-badge"></a>
-  <a href="https://mrc-ide.github.io/KR_simulator/scaling.html"><img alt="Running at scale" height="34" src="https://img.shields.io/badge/Running%20at%20scale-DEE9F6?style=for-the-badge"></a>
+  <a href="https://mrc-ide.github.io/KR_simulator/background.html"><img alt="Background" height="34" src="https://img.shields.io/badge/Background-93358F?style=for-the-badge"></a>
+  <a href="https://mrc-ide.github.io/KR_simulator/installation.html"><img alt="Installation" height="34" src="https://img.shields.io/badge/Installation-93358F?style=for-the-badge"></a>
+  <a href="https://mrc-ide.github.io/KR_simulator/tutorial-small.html"><img alt="Tutorial" height="34" src="https://img.shields.io/badge/Tutorial-93358F?style=for-the-badge"></a>
+  <a href="https://mrc-ide.github.io/KR_simulator/commands.html"><img alt="Command line" height="34" src="https://img.shields.io/badge/Command%20line-93358F?style=for-the-badge"></a>
+  <a href="https://mrc-ide.github.io/KR_simulator/scaling.html"><img alt="Running at scale" height="34" src="https://img.shields.io/badge/Running%20at%20scale-93358F?style=for-the-badge"></a>
 </p>
 
 ---
