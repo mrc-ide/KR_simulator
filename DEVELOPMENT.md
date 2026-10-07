@@ -101,6 +101,7 @@ KR_SIM/
 │   ├── baseline/         #   Committed reference outputs
 │   └── output/           #   Latest test run (not committed)
 │
+├── binder/               # Lightweight environment for the website's "Launch Binder" button
 ├── environment.yml       # Conda environment for development (editable install)
 ├── environment-user.yml  # Conda environment for users (installs krsim from GitHub)
 └── requirements.txt      # Exact pinned versions (for reproducing results)

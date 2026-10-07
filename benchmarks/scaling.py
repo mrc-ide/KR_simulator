@@ -3,16 +3,13 @@ Benchmarks behind the website's "Running at scale" page (docs/scaling.qmd).
 
     python scaling.py pipeline --Nh 100 --T 1000     # times every krsim command for one run, appends to pipeline.csv
     python scaling.py run --Nh 100 --T 1000           # times the parts of krsim simulate, appends to benchmarks.csv
-    python scaling.py coal-rows ts_mut_42.trees       # rows krsim coal-mut would write, and its estimated cost
-    python scaling.py plot                            # redraws docs/images/scaling_*.png
+    python scaling.py plot                            # redraws docs/images/scaling_pipeline.png
 
 Parameters not given are at the baseline (Nh 100, T 1000, K 10, chi 0.2, C 3).
 Run one benchmark at a time so the timings don't compete for the CPU.
 
 pipeline.csv: each command run as its own process, with its time, peak RAM and output size.
 benchmarks.csv: krsim simulate across parameters, split into its parts.
-coal_mut.csv: krsim coal-mut runs (rows from `coal-rows`), plus row counts for
-larger runs it cannot finish.
 """
 
 import argparse
@@ -30,7 +27,6 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 CSV = os.path.join(HERE, "benchmarks.csv")
 PIPELINE_CSV = os.path.join(HERE, "pipeline.csv")
-COAL_CSV = os.path.join(HERE, "coal_mut.csv")
 IMAGES = os.path.join(HERE, "..", "docs", "images")
 BASELINE = {"Nh": 100, "T": 1000, "K": 10, "chi": 0.2, "C": 3}
 
@@ -159,38 +155,6 @@ def run(args):
     print(df.round(2).to_string(index=False))
 
 
-def coal_rows(ts):
-    """
-    Number of rows `krsim coal-mut` writes for a tree sequence: one per strain
-    pair per tree in which the pair has a common ancestor, i.e. for each tree,
-    the pairs of samples below each of its roots.
-    """
-    total = 0
-    for tree in ts.trees():
-        n = np.array([tree.num_samples(root) for root in tree.roots])
-        total += int((n * (n - 1) // 2).sum())
-    return total
-
-
-def coal_cost_per_row():
-    """Time (s), peak RAM (GB) and CSV size (MB) per row, from the measured coal-mut runs."""
-    m = pd.read_csv(COAL_CSV).dropna(subset=["time_s"])
-    # fit through the larger runs, where start-up time no longer matters
-    m = m[m["rows"] >= 1e7]
-    return tuple((m[col] / m["rows"]).mean() for col in ["time_s", "peak_ram_GB", "csv_MB"])
-
-
-def coal_rows_cmd(args):
-    import tskit
-    per_s, per_gb, per_mb = coal_cost_per_row()
-    for path in args.trees:
-        ts = tskit.load(path)
-        rows = coal_rows(ts)
-        print(f"{path}: {ts.num_samples:,} strains, {ts.num_trees:,} trees -> {rows:,} rows; "
-              f"estimated {rows * per_s / 60:,.0f} min, {rows * per_gb:,.1f} GB RAM, "
-              f"{rows * per_mb / 1024:,.1f} GB CSV (on the machine in benchmarks.csv)")
-
-
 def plot(args):
     import matplotlib
     matplotlib.use("Agg")
@@ -248,42 +212,7 @@ def plot(args):
     plt.savefig(os.path.join(IMAGES, "scaling_pipeline.png"), dpi=110)
     plt.close()
 
-    # --- coal-mut: measured runs and extrapolation by number of rows ---
-    coal = pd.read_csv(COAL_CSV)
-    measured = coal.dropna(subset=["time_s"])
-    predicted = coal[coal["time_s"].isna()]
-    per_s, per_gb, _ = coal_cost_per_row()
-    line = np.geomspace(coal["rows"].min(), coal["rows"].max() * 1.5, 50)
-
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.2))
-    for ax, col, per, scale in [(axes[0], "time_s", per_s, 3600), (axes[1], "peak_ram_GB", per_gb, 1)]:
-        ax.plot(line, line * per / scale, color=BLUE, linewidth=1.5, linestyle="--", label="extrapolated")
-        ax.plot(measured["rows"], measured[col] / scale, "o", color=BLUE, label="measured")
-        ax.plot(predicted["rows"], predicted["rows"] * per / scale, "o", color=BLUE,
-                markerfacecolor="white", markeredgewidth=2)
-        for _, r in coal.iterrows():
-            if r["T"] == 1000:
-                y = r[col] / scale if pd.notna(r[col]) else r["rows"] * per / scale
-                ax.annotate(f"Nh = {int(r['Nh'])}", (r["rows"], y), xytext=(8, -10), textcoords="offset points",
-                            ha="left", color="#52514e", fontsize=9)
-        ax.set_xscale("log")
-        ax.set_yscale("log")
-        ax.set_xlabel("Rows in coal_T table")
-    for gb, label in [(16, "16 GB laptop"), (64, "64 GB")]:
-        axes[1].axhline(gb, color=ORANGE, linewidth=1)
-        axes[1].annotate(label, (line[-1], gb), xytext=(0, 3), textcoords="offset points",
-                         ha="right", color=ORANGE, fontsize=9)
-    axes[0].set_ylabel("Time (hours)")
-    axes[1].set_ylabel("Peak RAM (GB)")
-    axes[0].set_title("krsim coal-mut run time", loc="left")
-    axes[1].set_title("krsim coal-mut peak RAM", loc="left")
-    axes[0].legend(frameon=False, loc="upper left")
-    fig.suptitle(f"krsim coal-mut cost grows with the number of rows (K = 10, T = 1000) — {where}",
-                 x=0.01, ha="left")
-    plt.tight_layout()
-    plt.savefig(os.path.join(IMAGES, "scaling_coal_mut.png"), dpi=110)
-    plt.close()
-    print("wrote docs/images/scaling_pipeline.png, docs/images/scaling_coal_mut.png")
+    print("wrote docs/images/scaling_pipeline.png")
 
 
 if __name__ == "__main__":
@@ -295,8 +224,6 @@ if __name__ == "__main__":
         for param, typ in [("Nh", int), ("T", int), ("K", int), ("chi", float), ("C", int)]:
             s.add_argument(f"--{param}", type=typ, default=BASELINE[param])
         s.add_argument("--random_seed", type=int, default=42)
-    c = sub.add_parser("coal-rows", help="rows krsim coal-mut would write for these .trees files, and its estimated cost")
-    c.add_argument("trees", nargs="+")
     sub.add_parser("plot", help="draw the figures from the CSVs")
     args = parser.parse_args()
-    {"pipeline": pipeline, "run": run, "coal-rows": coal_rows_cmd, "plot": plot}[args.command](args)
+    {"pipeline": pipeline, "run": run, "plot": plot}[args.command](args)
