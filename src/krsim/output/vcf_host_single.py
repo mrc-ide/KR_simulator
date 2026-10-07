@@ -39,22 +39,22 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
     if not node_to_ind:
         raise ValueError(f"no hosts for seed {sim_id} in {ind_node_map_csv}")
 
-    # --- read node-level VCF ---
-    with open(input_vcf) as f:
-        lines = f.readlines()
-
-    # find #CHROM header and map column index -> node_id
+    # --- read the VCF header (meta lines and #CHROM line); data lines are streamed later ---
+    meta_lines = []
     header_cols = None
-    for line in lines:
-        if line.startswith("#CHROM"):
-            header_cols = line.strip().split("\t")
-            break
+    with open(input_vcf) as f:
+        for line in f:
+            if line.startswith("#CHROM"):
+                header_cols = line.strip().split("\t")
+                break
+            meta_lines.append(line)
 
     if header_cols is None:
         raise ValueError(f"no #CHROM header line in {input_vcf}")
 
     # col_idx (0-based within samples) -> node_id
     col_to_node = {idx: int(name) for idx, name in enumerate(header_cols[9:])}
+    n_cols = len(col_to_node)
 
     # per-individual: ordered list of VCF column indices (one per strain)
     ind_to_cols = defaultdict(list)
@@ -97,13 +97,84 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
                     str(list(int(r) for r in read_counts)),
                 ])
 
+    # --- precompute, for a block of sites at once, each host's ref and alt reads ---
+    # Columns are reordered so each host's strains are next to each other; each
+    # strain is weighted by its read count, and each host's block is summed.
+    order = np.array([c for ind_id in ind_ids for c in ind_to_cols[ind_id]], dtype=np.int64)
+    weights = np.concatenate([reads[ind_id] for ind_id in ind_ids]).astype(np.int64)
+    starts = np.cumsum([0] + [len(ind_to_cols[ind_id]) for ind_id in ind_ids[:-1]])
+    max_reads = int(depth) + 1
+
+    def host_fields(ref_reads, alt_reads):
+        """Format one host's GT:AD:DP field (same rules as the per-strain loop)."""
+        if alt_reads == 0 and ref_reads == 0:
+            gt = "./."
+        elif alt_reads == 0:
+            gt = "0/0"
+        elif ref_reads == 0:
+            gt = "1/1"
+        else:
+            gt = "0/1"
+        return f"{gt}:{ref_reads},{alt_reads}:{ref_reads + alt_reads}"
+
+    field_cache = {}
+
+    def slow_line(cols):
+        """Original per-strain loop, used for any line the fast parser can't read."""
+        sample_fields = []
+        for ind_id in ind_ids:
+            alt_reads = 0
+            ref_reads = 0
+            for i, col_idx in enumerate(ind_to_cols[ind_id]):
+                allele = cols[9 + col_idx]
+                if allele == "1":
+                    alt_reads += reads[ind_id][i]
+                elif allele == "0":
+                    ref_reads += reads[ind_id][i]
+            sample_fields.append(host_fields(ref_reads, alt_reads))
+        return sample_fields
+
+    def write_block(fout, block):
+        """Fast path: genotypes as a byte array, host read sums with numpy."""
+        fixed, genos = [], []
+        for line in block:
+            first9 = line.strip().split("\t", 9)
+            fixed.append(first9[:9])
+            genos.append(first9[9] if len(first9) == 10 else "")
+        expected_len = 2 * n_cols - 1
+        ok = [len(g) == expected_len and g.isascii() for g in genos]
+        fast_idx = [i for i, good in enumerate(ok) if good]
+        if fast_idx:
+            # one byte per strain: single-character alleles separated by tabs
+            raw = np.frombuffer("".join(genos[i] for i in fast_idx).encode("ascii"), dtype=np.uint8)
+            raw = raw.reshape(len(fast_idx), expected_len)
+            # a row whose separators are not all tabs is not one-character alleles: use the slow path
+            for row_i in np.flatnonzero(~(raw[:, 1::2] == ord("\t")).all(axis=1)):
+                ok[fast_idx[row_i]] = False
+            alleles = raw[:, ::2][:, order]
+            alt = np.add.reduceat((alleles == ord("1")) * weights, starts, axis=1)
+            ref = np.add.reduceat((alleles == ord("0")) * weights, starts, axis=1)
+            codes = ref * max_reads + alt
+            code_row = dict(zip(fast_idx, range(len(fast_idx))))
+        for line_i, (line, head, good) in enumerate(zip(block, fixed, ok)):
+            if good:
+                row = codes[code_row[line_i]]
+                sample_fields = []
+                for code in row.tolist():
+                    field = field_cache.get(code)
+                    if field is None:
+                        field = field_cache[code] = host_fields(code // max_reads, code % max_reads)
+                    sample_fields.append(field)
+            else:
+                sample_fields = slow_line(line.strip().split("\t"))
+            head[8] = "GT:AD:DP"
+            fout.write("\t".join(head + sample_fields) + "\n")
+
     # --- write host-level VCF ---
     new_header = header_cols[:9] + [str(ind_id) for ind_id in ind_ids]
 
     with open(output_vcf, "w") as fout:
-        for line in lines:
-            if line.startswith("#CHROM"):
-                break
+        for line in meta_lines:
             if line.startswith("##FORMAT=<ID=GT"):
                 fout.write(
                     '##FORMAT=<ID=GT,Number=1,Type=String,Description='
@@ -123,38 +194,19 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
 
         fout.write("\t".join(new_header) + "\n")
 
-        for line in lines:
-            if line.startswith("#"):
-                continue
-            cols = line.strip().split("\t")
-            sample_fields = []
-            for ind_id in ind_ids:
-                strain_cols = ind_to_cols[ind_id]
-                strain_reads = reads[ind_id]
-
-                alt_reads = 0
-                ref_reads = 0
-                for i, col_idx in enumerate(strain_cols):
-                    allele = cols[9 + col_idx]
-                    if allele == "1":
-                        alt_reads += strain_reads[i]
-                    elif allele == "0":
-                        ref_reads += strain_reads[i]
-
-                if alt_reads == 0 and ref_reads == 0:
-                    gt = "./."
-                elif alt_reads == 0:
-                    gt = "0/0"
-                elif ref_reads == 0:
-                    gt = "1/1"
-                else:
-                    gt = "0/1"
-
-                dp = ref_reads + alt_reads
-                sample_fields.append(f"{gt}:{ref_reads},{alt_reads}:{dp}")
-
-            cols[8] = "GT:AD:DP"
-            fout.write("\t".join(cols[:9] + sample_fields) + "\n")
+        # stream the data lines in blocks, so memory stays small for any run size
+        block_size = 2000
+        with open(input_vcf) as fin:
+            block = []
+            for line in fin:
+                if line.startswith("#"):
+                    continue
+                block.append(line)
+                if len(block) == block_size:
+                    write_block(fout, block)
+                    block = []
+            if block:
+                write_block(fout, block)
 
     if not (os.path.exists(output_vcf) and os.path.getsize(output_vcf) > 0):
         raise RuntimeError(f"host VCF not created properly: {output_vcf}")
