@@ -1,26 +1,26 @@
-# krsim — Malaria Transmission Simulator
+<h1 align="center">krsim — Malaria Transmission Simulator</h1>
+
+<p align="center">
+  <a href="https://mrc-ide.github.io/KR_simulator">
+    <img alt="Go to the krsim documentation" height="60" src="https://img.shields.io/badge/%F0%9F%93%96%20Go%20to%20the%20documentation%20%E2%86%92-000000?style=for-the-badge">
+  </a>
+</p>
+
+<h3 align="center">👉 Installation, tutorials and the full reference all live on the <a href="https://mrc-ide.github.io/KR_simulator">krsim website</a>.</h3>
+
+<p align="center">
+  <a href="https://mrc-ide.github.io/KR_simulator/background.html"><img alt="Background" height="34" src="https://img.shields.io/badge/Background-DEE9F6?style=for-the-badge"></a>
+  <a href="https://mrc-ide.github.io/KR_simulator/installation.html"><img alt="Installation" height="34" src="https://img.shields.io/badge/Installation-DEE9F6?style=for-the-badge"></a>
+  <a href="https://mrc-ide.github.io/KR_simulator/tutorial-small.html"><img alt="Tutorial" height="34" src="https://img.shields.io/badge/Tutorial-DEE9F6?style=for-the-badge"></a>
+  <a href="https://mrc-ide.github.io/KR_simulator/commands.html"><img alt="Command line" height="34" src="https://img.shields.io/badge/Command%20line-DEE9F6?style=for-the-badge"></a>
+  <a href="https://mrc-ide.github.io/KR_simulator/scaling.html"><img alt="Running at scale" height="34" src="https://img.shields.io/badge/Running%20at%20scale-DEE9F6?style=for-the-badge"></a>
+</p>
+
+---
 
 A forward simulator that brings together malaria modelling and population genetics to model parasite transmission. Whole-genome information is tracked through every recombination event as an ancestral recombination graph, stored efficiently with [tskit](https://tskit.dev). From the recorded genealogy (a tree sequence), krsim overlays mutations and outputs coalescence times across the genome and VCF files at the strain level and at the (observed) host level.
 
-**Documentation: <https://mrc-ide.github.io/KR_simulator>**
-
-## Installation
-
-You need [conda](https://conda-forge.org/download/) (Miniforge, Miniconda or Anaconda). Download the environment file and create the environment:
-
-```bash
-curl -O https://raw.githubusercontent.com/mrc-ide/KR_simulator/main/environment-user.yml
-conda env create -f environment-user.yml
-conda activate krsim
-```
-
-Check it worked with `krsim --help`, which lists every command.
-
-## Getting started
-
-- [Installation](https://mrc-ide.github.io/KR_simulator/installation.html): install krsim.
-- Tutorial: a [small example](https://mrc-ide.github.io/KR_simulator/tutorial-small.html) with a Jupyter notebook to play with, and the [command-line scripts](https://mrc-ide.github.io/KR_simulator/tutorial-scripts.html) to run the pipeline.
-- [Command line](https://mrc-ide.github.io/KR_simulator/commands.html): every command and option.
+**To install and use krsim, follow the [installation guide on the website](https://mrc-ide.github.io/KR_simulator/installation.html).**
 
 ## Development
 
