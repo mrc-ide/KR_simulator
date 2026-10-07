@@ -59,6 +59,11 @@ krsim coal-mut \
 ```
 
 Outputs `coal_T_{seed}.csv` (pairwise MRCA times per tree interval) and `mut_T_{seed}.csv` (position and age of every mutation). Both tables include a `chromosome` column (1-indexed, from `krsim/sim/params.py`'s `COMP_BREAKPOINTS`), with `position`/`left`/`right` given as chromosome-local coordinates rather than genome-wide ones. `coal_T` only contains rows where the sample pair has a common ancestor in that tree interval — pairs with no shared ancestry anywhere in the ARG are simply absent from the table.
+
+::: {.callout-warning}
+## Small runs only
+`coal_T` has one row for every pair of strains in every tree, so it is easy to read for a small run like the [small example](tutorial-small.qmd), but very computationally expensive for larger populations. See [Running at scale](scaling.qmd#coal-mut-is-for-small-runs).
+:::
 :::
 
 ::: {.stage}

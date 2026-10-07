@@ -198,7 +198,8 @@ def plot(args):
     pipe = pd.read_csv(PIPELINE_CSV)
     pipe = pipe[(pipe["T"] == BASELINE["T"]) & (pipe["K"] == BASELINE["K"])].sort_values("Nh")
     commands = [("simulate", BLUE), ("mutate", ORANGE), ("vcf-strain", AQUA), ("vcf-host", YELLOW)]
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4.4))
+    # one column, three rows, so each panel is large on the website
+    fig, axes = plt.subplots(3, 1, figsize=(9, 13), sharex=True)
     for ax, col, label, scale in [(axes[0], "time_s", "Time (minutes)", 60),
                                   (axes[1], "peak_ram_GB", "Peak RAM (GB)", 1),
                                   (axes[2], "output_MB", "Output size (GB)", 1024)]:
@@ -220,10 +221,10 @@ def plot(args):
         ax.set_xticklabels(pipe["Nh"].unique())
         ax.minorticks_off()
         ax.set_xlim(None, pipe["Nh"].max() * 2.2)
-        ax.set_xlabel("Nh (number of hosts)")
         ax.set_title(label, loc="left")
+    axes[-1].set_xlabel("Nh (number of hosts)")
     axes[0].legend(frameon=False, loc="upper left")
-    fig.suptitle(f"Every krsim command against the number of hosts (T = {BASELINE['T']}, K = {BASELINE['K']}) — "
+    fig.suptitle(f"Every krsim command against the number of hosts (T = {BASELINE['T']}, K = {BASELINE['K']})\n"
                  f"{where}", x=0.01, ha="left")
     plt.tight_layout()
     plt.savefig(os.path.join(IMAGES, "scaling_pipeline.png"), dpi=110)
