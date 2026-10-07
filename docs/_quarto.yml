@@ -31,6 +31,7 @@ website:
         contents:
           - commands.qmd
           - outputs.qmd
+          - scaling.qmd
     footer: |
       <div class="dev-heading">Developers</div>
       <div class="dev-name">Janeesh Kaur Bansal</div>

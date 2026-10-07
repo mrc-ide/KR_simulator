@@ -25,3 +25,7 @@ docs/.quarto/
 
 # Default output folder if krsim is run inside the repo
 output/
+
+# Written when slurm/krsim_array.sh is run
+slurm/results/
+slurm/logs/
