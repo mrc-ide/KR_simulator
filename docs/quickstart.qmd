@@ -1,10 +1,11 @@
 ---
-title: "🧪 Small example"
+title: "🚀 Quick start"
 aliases:
   - tutorial.html
+  - tutorial-small.html
 ---
 
-This example is deliberately small and unrealistic: 3 human hosts (`--Nh`), 10 generations (`--T`), 2 parasites per bite (`--K`), a superinfection probability of 0.18 (`--chi`) and 1 oocyst per mosquito (`--C`). At this size you can clearly see each host, each generation, and how parasites are transmitted between them. For more realistic values, see the [realistic example](tutorial-realistic.qmd).
+Start here to explore the model and see how it works. This example is deliberately small and unrealistic: 3 human hosts (`--Nh`), 10 generations (`--T`), 2 parasites per bite (`--K`), a superinfection probability of 0.18 (`--chi`) and 1 oocyst per mosquito (`--C`). At this size you can clearly see each host, each generation, and how parasites are transmitted between them. To explore how the model behaves at a realistic scale, and the distributions it produces, see [Real-scale dynamics](real-scale.qmd).
 
 ## Run the notebook
 

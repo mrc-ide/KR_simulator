@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://mrc-ide.github.io/KR_simulator/background.html"><img alt="Background" src=".github/readme/background.svg"></a>
   <a href="https://mrc-ide.github.io/KR_simulator/installation.html"><img alt="Installation" src=".github/readme/installation.svg"></a>
-  <a href="https://mrc-ide.github.io/KR_simulator/tutorial-small.html"><img alt="Tutorial" src=".github/readme/tutorial.svg"></a>
+  <a href="https://mrc-ide.github.io/KR_simulator/quickstart.html"><img alt="Tutorial" src=".github/readme/tutorial.svg"></a>
   <a href="https://mrc-ide.github.io/KR_simulator/commands.html"><img alt="Command line" src=".github/readme/command-line.svg"></a>
   <a href="https://mrc-ide.github.io/KR_simulator/scaling.html"><img alt="Running at scale" src=".github/readme/scaling.svg"></a>
 </p>

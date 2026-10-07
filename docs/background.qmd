@@ -58,7 +58,7 @@ Every parasite genome is recorded as a node in a [tskit](https://tskit.dev) tree
 
 ![](images/KR_tskit.png){width="80%" fig-align="center" fig-alt="How krsim records a simulation in tskit: the population contains individuals (human hosts), each individual carries nodes (haploid parasite genomes), and each node is linked to its parent genomes by edges covering stretches of the genome."}
 
-At the end of the run the tree sequence is simplified to the strains in the current generation, keeping only the ancestry they actually inherited. This is what `ts_{seed}.trees` contains. The `--save_lineage` option keeps the full generation-by-generation pedigree as well, which the [pedigree maps](tutorial-small.qmd#visualise-transmission) use.
+At the end of the run the tree sequence is simplified to the strains in the current generation, keeping only the ancestry they actually inherited. This is what `ts_{seed}.trees` contains. The `--save_lineage` option keeps the full generation-by-generation pedigree as well, which the [pedigree maps](quickstart.qmd#visualise-transmission) use.
 
 ## From genealogy to data
 

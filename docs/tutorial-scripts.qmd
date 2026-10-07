@@ -2,7 +2,7 @@
 title: "⌨️ Command-line scripts"
 ---
 
-With the `krsim` environment active, run the five main stages of the [small example](tutorial-small.qmd) from a terminal. Results go to `krsim_tutorial_output/` in the current folder (krsim creates it):
+With the `krsim` environment active, run the five main stages of the [quick start](quickstart.qmd) example from a terminal. Results go to `krsim_tutorial_output/` in the current folder (krsim creates it):
 
 ```bash
 OUT=krsim_tutorial_output

@@ -1,5 +1,7 @@
 ---
-title: "🌍 Realistic example"
+title: "🌍 Real-scale dynamics"
+aliases:
+  - tutorial-realistic.html
 ---
 
 This example uses a more realistic baseline: 100 human hosts (`--Nh`) over 1,000 generations (`--T`), with 10 parasites per bite (`--K`), a superinfection probability of 0.2 (`--chi`) and 3 oocysts per mosquito (`--C`). At this size the output files are too large to read by eye, so the tutorial looks at the **distributions** that come out of the genealogy instead, above all the **coalescence times**: how long ago pairs of strains share a common ancestor.

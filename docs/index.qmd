@@ -8,7 +8,7 @@ A forward simulator that brings together malaria modelling and population geneti
 
 ::: {.callout-tip}
 ## Get started
-[Install krsim](installation.qmd), then work through the [tutorial](tutorial-small.qmd).
+[Install krsim](installation.qmd), then start with the [quick start](quickstart.qmd).
 :::
 
 ## Pipeline

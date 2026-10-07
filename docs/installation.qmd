@@ -10,7 +10,7 @@ conda env create -f environment-user.yml
 conda activate krsim
 ```
 
-The environment is called `krsim`. It contains krsim, its dependencies, and Jupyter with matplotlib for the [tutorial](tutorial-small.qmd).
+The environment is called `krsim`. It contains krsim, its dependencies, and Jupyter with matplotlib for the [tutorial](quickstart.qmd).
 
 ## Check the install
 
@@ -32,4 +32,4 @@ pip install --force-reinstall --no-deps git+https://github.com/mrc-ide/KR_simula
 
 ## Next steps
 
-Work through the [tutorial](tutorial-small.qmd), starting with a small example.
+Work through the tutorial, starting with the [quick start](quickstart.qmd).

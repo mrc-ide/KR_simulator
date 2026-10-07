@@ -62,7 +62,7 @@ Outputs `coal_T_{seed}.csv` (pairwise MRCA times per tree interval) and `mut_T_{
 
 ::: {.callout-warning}
 ## Small runs only
-`coal_T` has one row for every pair of strains in every tree, so it is easy to read for a small run like the [small example](tutorial-small.qmd), but very computationally expensive for larger populations. See [Running at scale](scaling.qmd#coal-mut-is-for-small-runs).
+`coal_T` has one row for every pair of strains in every tree, so it is easy to read for a small run like the [quick start](quickstart.qmd), but very computationally expensive for larger populations. See [Running at scale](scaling.qmd#coal-mut-is-for-small-runs).
 :::
 :::
 
@@ -102,7 +102,7 @@ Outputs `output_{seed}_host.vcf`. With `--save_proportions`, also writes `host_p
 
 ## Pedigree visualizations
 
-Both maps need Stage 1 run with `--save_lineage`; the transmission map also needs the mutated tree sequence from Stage 2. See them in action in the [tutorial](tutorial-small.qmd#visualise-transmission).
+Both maps need Stage 1 run with `--save_lineage`; the transmission map also needs the mutated tree sequence from Stage 2. See them in action in the [tutorial](quickstart.qmd#visualise-transmission).
 
 ::: {.stage}
 ### Strain transmission map — visualize the pedigree

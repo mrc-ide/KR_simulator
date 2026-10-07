@@ -103,7 +103,14 @@ def pipeline(args):
     finally:
         shutil.rmtree(out)  # the VCFs can be tens of GB
     df = pd.DataFrame([{**r, **sizes} for r in rows])
-    df.to_csv(PIPELINE_CSV, mode="a", header=not os.path.exists(PIPELINE_CSV), index=False)
+    # replace any earlier measurements of this parameter set rather than adding duplicates
+    if os.path.exists(PIPELINE_CSV):
+        old = pd.read_csv(PIPELINE_CSV)
+        same = np.ones(len(old), dtype=bool)
+        for k, v in p.items():
+            same &= np.isclose(old[k].astype(float), float(v))
+        df = pd.concat([old[~same], df], ignore_index=True)
+    df.to_csv(PIPELINE_CSV, index=False)
 
 
 def run(args):

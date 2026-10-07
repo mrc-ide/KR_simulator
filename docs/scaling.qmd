@@ -6,9 +6,9 @@ How much time, memory (RAM) and disk space a `krsim` run needs, so you can decid
 
 Times are estimates for a **typical laptop or computing-cluster core**: they were measured on a fast laptop and doubled. Memory and disk are the same on any computer.
 
-## The realistic example
+## The real-scale baseline
 
-At the baseline of the [realistic example](tutorial-realistic.qmd) (`--Nh 100 --T 1000 --K 10 --chi 0.2 --C 3`):
+At the baseline used in [Real-scale dynamics](real-scale.qmd) (`--Nh 100 --T 1000 --K 10 --chi 0.2 --C 3`):
 
 | Command | Time | Peak RAM | Disk |
 |---|---:|---:|---:|
@@ -46,7 +46,7 @@ If you don't need the VCFs, a run needs only the `simulate` time and memory, and
 
 ## Other parameters
 
-The number of hosts matters most, but the other parameters change the cost too. Varying one at a time from the realistic example's baseline (Nh = 100), for `simulate` alone. To decide what to request, use the table above, which includes every command:
+The number of hosts matters most, but the other parameters change the cost too. Varying one at a time from the real-scale baseline (Nh = 100), for `simulate` alone. To decide what to request, use the table above, which includes every command:
 
 | Parameter | Range | `simulate` time | Peak RAM | Effect on the VCFs |
 |---|---|---:|---:|---|
@@ -61,6 +61,6 @@ The number of hosts matters most, but the other parameters change the cost too. 
 
 ## `coal-mut` is for small runs
 
-`krsim coal-mut` writes one row for every pair of strains in every tree along the genome. For a small run like the [small example](tutorial-small.qmd) this table is intuitive to read, which makes it a good way to learn what coalescence times are.
+`krsim coal-mut` writes one row for every pair of strains in every tree along the genome. For a small run like the [quick start](quickstart.qmd) this table is intuitive to read, which makes it a good way to learn what coalescence times are.
 
-For larger populations it becomes very computationally expensive: the number of rows grows roughly with the cube of the number of hosts. At the realistic example's baseline (Nh = 100) it would take around 10 hours and several terabytes of memory, so it is not practical. For larger runs, compute coalescence time summaries directly from the tree sequence instead, as in the [realistic example](tutorial-realistic.qmd).
+For larger populations it becomes very computationally expensive: the number of rows grows roughly with the cube of the number of hosts. At the real-scale baseline (Nh = 100) it would take around 10 hours and several terabytes of memory, so it is not practical. For larger runs, compute coalescence time summaries directly from the tree sequence instead, as in [Real-scale dynamics](real-scale.qmd).

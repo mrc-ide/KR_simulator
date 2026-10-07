@@ -24,8 +24,8 @@ website:
       - installation.qmd
       - section: Tutorial
         contents:
-          - tutorial-small.qmd
-          - tutorial-realistic.qmd
+          - quickstart.qmd
+          - real-scale.qmd
           - tutorial-scripts.qmd
       - section: Reference
         contents:
