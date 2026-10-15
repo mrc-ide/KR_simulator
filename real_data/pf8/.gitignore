@@ -1,0 +1,4 @@
+# Too large for GitHub (0.5-4 GB per CRAM) and re-downloadable:
+#   CRAMs from ENA (scripts/run_mosdepth.sh fetches them), reference from Zenodo
+crams/
+reference/
