@@ -11,7 +11,7 @@ Real *P. falciparum* sequencing data from MalariaGEN's Pf8 release, for looking 
 |---|---|---|
 | `metadata/` | `Pf8_samples.txt`: one row per sample (`Sample` ID, `Sample type`, `QC pass`, country, year...) | https://zenodo.org/records/18681980/files/Pf8_samples.txt |
 | `reference/` | PlasmoDB-54 *P. falciparum* 3D7 genome + `.fai` index (the reference the Pf8 reads are aligned to) | https://zenodo.org/records/18681980/files/PlasmoDB-54-Pfalciparum3D7-Genome.fasta |
-| `crams/` | One `<sample>.cram` + `.crai` per sample: reads aligned by MalariaGEN for Pf8. **Not in git** (too large) | ENA project PRJEB96783, matched on sample name |
+| `crams/` | One `<sample>.cram` + `.crai` per sample: reads aligned by MalariaGEN for Pf8. **Not in git** (too large): download them with [`crams/README.md`](crams/README.md) | ENA project PRJEB96783, matched on sample name |
 | `mosdepth/<sample>/` | mosdepth results for each sample | made by `scripts/run_mosdepth.sh` |
 | `scripts/` | `run_mosdepth.sh` | |
 
@@ -42,7 +42,7 @@ git switch pf8-real-data
 cd real_data/pf8
 ```
 
-The metadata, reference genome, scripts and mosdepth results all come with the repo. The CRAMs are not in git (0.5–4 GB each, over GitHub's 100 MB file limit): `scripts/run_mosdepth.sh` downloads a sample's CRAM from ENA when you run that sample.
+The metadata, reference genome, scripts and mosdepth results all come with the repo. The CRAMs are not in git (0.5–4 GB each, over GitHub's 100 MB file limit). To get them, see **[`crams/README.md`](crams/README.md)**: it lists the download links for the samples analysed so far, and how to fetch any other sample. `scripts/run_mosdepth.sh` also downloads a sample's CRAM when you run that sample.
 
 ## mosdepth output (in `mosdepth/<sample>/`)
 

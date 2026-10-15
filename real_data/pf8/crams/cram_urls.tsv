@@ -1,0 +1,2 @@
+sample	sample_type	ena_run	cram_size_MB	cram_url	crai_url
+FP0008-C	gDNA	ERR15606936	467	https://ftp.sra.ebi.ac.uk/vol1/run/ERR156/ERR15606936/FP0008-C.cram	https://ftp.sra.ebi.ac.uk/vol1/run/ERR156/ERR15606936/FP0008-C.cram.crai

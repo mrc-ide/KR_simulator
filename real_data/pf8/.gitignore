@@ -1,3 +1,4 @@
 # CRAMs are too large for GitHub (0.5-4 GB each; GitHub's limit is 100 MB per file).
-# They stay on ENA and scripts/run_mosdepth.sh downloads them as needed.
-crams/
+# They stay on ENA: see crams/README.md for how to download them.
+crams/*.cram
+crams/*.crai
