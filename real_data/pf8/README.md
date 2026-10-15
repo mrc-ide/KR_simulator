@@ -10,7 +10,7 @@ Real *P. falciparum* sequencing data from MalariaGEN's Pf8 release, for looking 
 | Folder | Contents | Source |
 |---|---|---|
 | `metadata/` | `Pf8_samples.txt`: one row per sample (`Sample` ID, `Sample type`, `QC pass`, country, year...) | https://zenodo.org/records/18681980/files/Pf8_samples.txt |
-| `reference/` | PlasmoDB-54 *P. falciparum* 3D7 genome + `.fai` index (the reference the Pf8 reads are aligned to). **Not in git**; downloaded by the script | https://zenodo.org/records/18681980/files/PlasmoDB-54-Pfalciparum3D7-Genome.fasta |
+| `reference/` | PlasmoDB-54 *P. falciparum* 3D7 genome + `.fai` index (the reference the Pf8 reads are aligned to) | https://zenodo.org/records/18681980/files/PlasmoDB-54-Pfalciparum3D7-Genome.fasta |
 | `crams/` | One `<sample>.cram` + `.crai` per sample: reads aligned by MalariaGEN for Pf8. **Not in git** (too large) | ENA project PRJEB96783, matched on sample name |
 | `mosdepth/<sample>/` | mosdepth results for each sample | made by `scripts/run_mosdepth.sh` |
 | `scripts/` | `run_mosdepth.sh` | |
@@ -42,13 +42,7 @@ git switch pf8-real-data
 cd real_data/pf8
 ```
 
-The metadata, scripts and mosdepth results come with the repo. The reference genome and CRAMs are not in git: `scripts/run_mosdepth.sh` downloads the reference automatically, and a sample's CRAM only when you run that sample. To get just the reference:
-
-```bash
-mkdir -p reference
-curl -L -o reference/PlasmoDB-54-Pfalciparum3D7-Genome.fasta "https://zenodo.org/records/18681980/files/PlasmoDB-54-Pfalciparum3D7-Genome.fasta"
-samtools faidx reference/PlasmoDB-54-Pfalciparum3D7-Genome.fasta
-```
+The metadata, reference genome, scripts and mosdepth results all come with the repo. The CRAMs are not in git (0.5–4 GB each, over GitHub's 100 MB file limit): `scripts/run_mosdepth.sh` downloads a sample's CRAM from ENA when you run that sample.
 
 ## mosdepth output (in `mosdepth/<sample>/`)
 
