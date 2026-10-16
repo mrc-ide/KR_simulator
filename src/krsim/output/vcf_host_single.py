@@ -17,14 +17,17 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
       2. Read counts are sampled once from Multinomial(depth, proportions).
          Each read comes from one strain and carries that strain's allele.
 
-    At each variant site the reads are tallied by allele:
+    At each variant site the reads are tallied by allele (REF = 0, then each
+    ALT allele 1, 2, ... in order):
       0/0  all `depth` reads carry the ref allele
       1/1  all `depth` reads carry the alt allele
       0/1  reads carry both alleles (at least one ref and one alt read)
       ./.  no reads assigned (should not occur with depth > 0)
+    At a multi-allelic site (two or more ALT alleles, from recurrent mutation),
+    GT lists the two alleles with the most reads, e.g. 1/2; AD keeps every allele.
 
-    Each sample column carries GT:AD:DP, where AD is "ref_reads,alt_reads"
-    and DP is their sum.
+    Each sample column carries GT:AD:DP, where AD has one read count per allele
+    ("ref_reads,alt_reads" at a biallelic site) and DP is their sum.
     """
     rng = np.random.default_rng(random_seed)
 
@@ -106,7 +109,7 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
     max_reads = int(depth) + 1
 
     def host_fields(ref_reads, alt_reads):
-        """Format one host's GT:AD:DP field (same rules as the per-strain loop)."""
+        """Format one host's GT:AD:DP field at a biallelic site."""
         if alt_reads == 0 and ref_reads == 0:
             gt = "./."
         elif alt_reads == 0:
@@ -117,21 +120,32 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
             gt = "0/1"
         return f"{gt}:{ref_reads},{alt_reads}:{ref_reads + alt_reads}"
 
+    def host_fields_multi(counts):
+        """Format one host's GT:AD:DP field from one read count per allele (any number of alleles)."""
+        present = [a for a, n in enumerate(counts) if n > 0]
+        if not present:
+            gt = "./."
+        elif len(present) == 1:
+            gt = f"{present[0]}/{present[0]}"
+        else:
+            # the two alleles with the most reads (ties go to the lower allele), written in allele order
+            top_two = sorted(sorted(present, key=lambda a: -counts[a])[:2])
+            gt = f"{top_two[0]}/{top_two[1]}"
+        return f"{gt}:{','.join(str(n) for n in counts)}:{sum(counts)}"
+
     field_cache = {}
 
     def slow_line(cols):
-        """Original per-strain loop, used for any line the fast parser can't read."""
+        """Per-strain loop, used for multi-allelic sites and any line the fast parser can't read."""
+        n_alleles = 1 + len(cols[4].split(","))
         sample_fields = []
         for ind_id in ind_ids:
-            alt_reads = 0
-            ref_reads = 0
+            counts = [0] * n_alleles
             for i, col_idx in enumerate(ind_to_cols[ind_id]):
                 allele = cols[9 + col_idx]
-                if allele == "1":
-                    alt_reads += reads[ind_id][i]
-                elif allele == "0":
-                    ref_reads += reads[ind_id][i]
-            sample_fields.append(host_fields(ref_reads, alt_reads))
+                if allele.isdigit() and int(allele) < n_alleles:
+                    counts[int(allele)] += int(reads[ind_id][i])
+            sample_fields.append(host_fields_multi(counts))
         return sample_fields
 
     def write_block(fout, block):
@@ -142,7 +156,8 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
             fixed.append(first9[:9])
             genos.append(first9[9] if len(first9) == 10 else "")
         expected_len = 2 * n_cols - 1
-        ok = [len(g) == expected_len and g.isascii() for g in genos]
+        # the fast path counts only alleles 0 and 1, so multi-allelic sites (ALT "A,G") use the slow path
+        ok = [len(g) == expected_len and g.isascii() and "," not in f[4] for g, f in zip(genos, fixed)]
         fast_idx = [i for i, good in enumerate(ok) if good]
         if fast_idx:
             # one byte per strain: single-character alleles separated by tabs
@@ -179,11 +194,12 @@ def process_host_vcf(sim_id, input_vcf, ind_node_map_csv, output_vcf, depth, ran
                 fout.write(
                     '##FORMAT=<ID=GT,Number=1,Type=String,Description='
                     '"Host genotype from Dirichlet-Multinomial read sampling: '
-                    '0/0=all ref reads, 1/1=all alt reads, 0/1=mixed reads">\n'
+                    '0/0=all ref reads, 1/1=all alt reads, 0/1=mixed reads; '
+                    'at multi-allelic sites, the two alleles with the most reads">\n'
                 )
                 fout.write(
                     '##FORMAT=<ID=AD,Number=R,Type=Integer,Description='
-                    '"Allelic depths for the ref and alt alleles">\n'
+                    '"Allelic depths for the ref and each alt allele">\n'
                 )
                 fout.write(
                     '##FORMAT=<ID=DP,Number=1,Type=Integer,Description='

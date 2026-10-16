@@ -95,7 +95,7 @@ krsim vcf-host \
 Aggregates the strain VCF to individual (host) level using a **Dirichlet-Multinomial** model:
 1. Within-host strain proportions sampled once per host from Dirichlet(α=1 per strain)
 2. `--depth` sequencing reads drawn once per host via Multinomial from those proportions
-3. At each variant site, genotype called as `0/0` (all reads carry ref), `1/1` (all reads carry alt), or `0/1` (mixed) from the fixed per-strain read counts
+3. At each variant site, genotype called as `0/0` (all reads carry ref), `1/1` (all reads carry alt), or `0/1` (mixed) from the fixed per-strain read counts. At a multi-allelic site (more than one ALT allele, from recurrent mutation), `AD` gives the reads for every allele and `GT` lists the two alleles with the most reads (e.g. `1/2`)
 
 Outputs `output_{seed}_host.vcf`. With `--save_proportions`, also writes `host_proportions_{seed}.csv`.
 :::

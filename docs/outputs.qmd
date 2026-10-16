@@ -15,7 +15,7 @@ Every file name ends in the random seed passed with `--random_seed`. The Stage c
 | `coal_T_{seed}.csv` | 3 | Pairwise coalescence times per tree interval (chromosome-local coordinates) |
 | `mut_T_{seed}.csv` | 3 | Mutation chromosome, position, and age |
 | `output_{seed}_strain.vcf` | 4 | Per-strain genotypes (0/1) |
-| `output_{seed}_host.vcf` | 5 | Per-host genotypes (0/0, 0/1, 1/1) |
+| `output_{seed}_host.vcf` | 5 | Per-host genotypes (0/0, 0/1, 1/1; e.g. 1/2 at multi-allelic sites) with read counts per allele |
 | `host_proportions_{seed}.csv` | 5 | Dirichlet proportions and read counts per host |
 | `strain_transmission_map_{seed}.html` | additional | Interactive pedigree with mutations; explore it by chromosome and tree |
 | `pairwise_strain_pedigree_map_{seed}.html` | additional | Interactive pedigree coalescence trace for any two strains |

@@ -1,8 +1,8 @@
 ##fileformat=VCFv4.2
 ##source=tskit 1.0.3
 ##FILTER=<ID=PASS,Description="All filters passed">
-##FORMAT=<ID=GT,Number=1,Type=String,Description="Host genotype from Dirichlet-Multinomial read sampling: 0/0=all ref reads, 1/1=all alt reads, 0/1=mixed reads">
-##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Host genotype from Dirichlet-Multinomial read sampling: 0/0=all ref reads, 1/1=all alt reads, 0/1=mixed reads; at multi-allelic sites, the two alleles with the most reads">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and each alt allele">
 ##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth">
 ##contig=<ID=1,length=640851>
 ##contig=<ID=2,length=947102>
