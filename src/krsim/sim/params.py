@@ -5,15 +5,16 @@ import numpy as np
 
 __all__ = ["COMP_BREAKPOINTS", "GENOME_LENGTH", "SimParams"]
 
-# P. falciparum chromosome boundary positions in base pairs.
-# (https://www.ncbi.nlm.nih.gov/datasets/genome/GCA_900631995.1/)
+# P. falciparum chromosome boundary positions in base pairs: the cumulative ends
+# of chromosomes 1-13 in the 3D7 reference used by MalariaGEN Pf8
+# (PlasmoDB-54, Pf3D7_01_v3 ... Pf3D7_14_v3; https://zenodo.org/records/18681980)
 COMP_BREAKPOINTS = np.array([
-    657_463, 1_627_369, 2_716_924, 3_903_212, 5_308_593, 6_707_872, 8_126_958,
-    9_592_986, 11_123_805, 12_825_256, 14_864_994, 17_201_217, 20_178_769,
+    640_851, 1_587_953, 2_655_924, 3_856_414, 5_199_971, 6_618_213, 8_063_420,
+    9_536_225, 11_077_960, 12_765_616, 14_803_956, 17_075_450, 20_000_686,
 ], dtype=np.int64)
 
-# P. falciparum 3D7 genome length in base pairs
-GENOME_LENGTH = 23_568_951
+# P. falciparum 3D7 nuclear genome length in base pairs (14 chromosomes, PlasmoDB-54)
+GENOME_LENGTH = 23_292_622
 
 @dataclass
 class SimParams:

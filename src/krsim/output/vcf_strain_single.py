@@ -1,16 +1,14 @@
 import os
 import logging
 
+from krsim.sim.params import COMP_BREAKPOINTS, GENOME_LENGTH
+
 log = logging.getLogger(__name__)
 
 # -----------------------------
 # CHROMOSOME BOUNDARIES
 # -----------------------------
-chr_ends = [
-    657463, 1627369, 2716924, 3903212, 5308593, 6707872,
-    8126958, 9592986, 11123805, 12825256, 14864994,
-    17201217, 20178769, 23568951
-]
+chr_ends = [int(x) for x in COMP_BREAKPOINTS] + [GENOME_LENGTH]
 chr_starts = [1] + [x + 1 for x in chr_ends[:-1]]
 chr_lengths = [end - start + 1 for start, end in zip(chr_starts, chr_ends)]
 N_CHR = len(chr_ends)

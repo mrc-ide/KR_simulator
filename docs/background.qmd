@@ -45,7 +45,7 @@ Suitable parameter values vary between transmission settings, so choose them to 
 
 ## Recombination
 
-Recombination happens in the mosquito, between the two parasites that form each oocyst. The genome is the *P. falciparum* 3D7 reference: 14 chromosomes, 23.57 Mb in total. Each recombination event between two parental genomes combines two kinds of breakpoint:
+Recombination happens in the mosquito, between the two parasites that form each oocyst. The genome is the *P. falciparum* 3D7 reference: 14 chromosomes, 23.29 Mb in total (PlasmoDB-54, the reference used by MalariaGEN Pf8). Each recombination event between two parental genomes combines two kinds of breakpoint:
 
 - **Independent assortment:** at each chromosome boundary, the products switch parent with probability 0.5.
 - **Crossovers:** a Poisson number of breakpoints with mean `recombination_rate × genome length`, placed uniformly along the genome. The default rate is `7.4e-7` per base pair, following [Kwiatkowski (2024)](https://doi.org/10.12688/wellcomeopenres.19092.1).
