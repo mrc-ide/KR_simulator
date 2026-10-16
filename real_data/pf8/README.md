@@ -1,59 +1,37 @@
-# Pf8 coverage analysis (mosdepth)
+# Pf8 read depth (mosdepth)
 
-Real *P. falciparum* sequencing data from MalariaGEN's Pf8 release, for looking at read depth, e.g. comparing sWGA and gDNA samples. Work in progress on the `pf8-real-data` branch of KR_simulator; intended to become a krsim feature later.
+Read depth for real *P. falciparum* samples from MalariaGEN's Pf8 release (Wellcome Open Research 10:325, 2025, https://doi.org/10.12688/wellcomeopenres.24031.1).
 
-- Pf8 paper: Wellcome Open Research 10:325 (2025), https://doi.org/10.12688/wellcomeopenres.24031.1
-- Official page: https://malariagen.net/resource/36/
+The repo holds only the script, [`pf8_mosdepth.sh`](pf8_mosdepth.sh). All data goes in a folder outside the repo, set by `PF8=` at the top of the script:
 
-## Folders
-
-| Folder | Contents | Source |
-|---|---|---|
-| `metadata/` | `Pf8_samples.txt`: one row per sample (`Sample` ID, `Sample type`, `QC pass`, country, year...) | https://zenodo.org/records/18681980/files/Pf8_samples.txt |
-| `reference/` | PlasmoDB-54 *P. falciparum* 3D7 genome + `.fai` index (the reference the Pf8 reads are aligned to) | https://zenodo.org/records/18681980/files/PlasmoDB-54-Pfalciparum3D7-Genome.fasta |
-| `crams/` | One `<sample>.cram` + `.crai` per sample: reads aligned by MalariaGEN for Pf8. **Not in git** (too large): download them with [`crams/README.md`](crams/README.md) | ENA project PRJEB96783, matched on sample name |
-| `mosdepth/<sample>/` | mosdepth results for each sample | made by `scripts/run_mosdepth.sh` |
-| `scripts/` | `run_mosdepth.sh` | |
+```
+pf8/
+├── input/    Pf8_samples.txt, <sample>.cram + .crai, reference .fasta + .fai
+└── output/   mosdepth results
+```
 
 ## Run
 
 ```bash
+conda create -n mosdepth -c conda-forge -c bioconda mosdepth samtools   # once per laptop
 conda activate mosdepth
-cd KR_simulator/real_data/pf8
-bash scripts/run_mosdepth.sh FP0008-C
+bash real_data/pf8/pf8_mosdepth.sh
 ```
 
-For each sample it finds the CRAM in ENA, downloads it into `crams/` (skipped if already there), and runs:
+Steps: 1) sample information, 2) count gDNA and sWGA samples, 3) find a sample's CRAM in ENA, 4) download the CRAM, 5) download the reference, 6) explore the alignment (optional), 7) mosdepth: mean depth per 500 bp window.
 
-```bash
-mosdepth --fasta reference/PlasmoDB-54-Pfalciparum3D7-Genome.fasta -n -x --by 1000 --thresholds 1,5,10 \
-    mosdepth/<sample>/<sample> crams/<sample>.cram
-```
+## What is in a CRAM
 
-- Several samples at once: `bash scripts/run_mosdepth.sh FP0008-C FP0010-CW`
-- Delete each CRAM afterwards to save space (0.5–4 GB each): `DELETE_CRAM=1 bash scripts/run_mosdepth.sh FP0008-C`
+- **One CRAM per sample.** It holds all the sequencing reads for that sample, aligned to the 3D7 reference (PlasmoDB-54). Where a sample was sequenced in several runs, the reads were merged into the one file.
+- **A sample is one blood draw from one patient at one time point, not always one patient.** Most patients have one sample, but some were sampled more than once (e.g. before and after treatment). The `All samples same case` column of `Pf8_samples.txt` links samples from the same patient:
 
-## On another computer
+  | Samples per patient | Patients |
+  |---|---:|
+  | 1 | 30,312 |
+  | 2 | 1,018 |
+  | 3–8 | 278 |
 
-```bash
-git clone https://github.com/mrc-ide/KR_simulator.git   # or, in an existing clone: git fetch
-cd KR_simulator
-git switch pf8-real-data
-cd real_data/pf8
-```
-
-The metadata, reference genome, scripts and mosdepth results all come with the repo. The CRAMs are not in git (0.5–4 GB each, over GitHub's 100 MB file limit). To get them, see **[`crams/README.md`](crams/README.md)**: it lists the download links for the samples analysed so far, and how to fetch any other sample. `scripts/run_mosdepth.sh` also downloads a sample's CRAM when you run that sample.
-
-## mosdepth output (in `mosdepth/<sample>/`)
-
-| File | Contents |
-|---|---|
-| `<sample>.mosdepth.summary.txt` | **Start here.** Mean depth per chromosome; the `total` row is the whole genome |
-| `<sample>.regions.bed.gz` | Mean depth in each 1 kb window along the genome |
-| `<sample>.thresholds.bed.gz` | For each 1 kb window, bases with at least 1, 5 and 10 reads |
-| `<sample>.mosdepth.global.dist.txt` | Fraction of the genome with at least 0, 1, 2... reads |
-| `<sample>.mosdepth.region.dist.txt` | The same, within the 1 kb windows |
-
-Look at them with `cat`, or `gzcat file.bed.gz | head` for the `.gz` files.
-
-Note: `mosdepth/FP0008-C/` holds an earlier run made by hand with prefix `FP0008` (without `--thresholds`). Running the script for FP0008-C adds files named `FP0008-C.*` alongside them.
+- **Mapped and unmapped reads are both in the file.** For FP0008-C, 88.6% of reads map to 3D7. The unmapped 11% are probably mostly leftover human DNA (not checked).
+- **Duplicates and secondary alignments are flagged, not removed.** mosdepth skips them by default.
+- **Reads from all parasites in the blood sample are mixed together.** An infection can contain several genetically different clones, and the CRAM does not separate them, so the depth is for all of them combined. `Pf8_fws.tsv` in the Pf8 release gives how mixed each infection is.
+- **The reads are stored relative to the reference.** A CRAM keeps only how each read differs from the reference, which is why it is smaller than a BAM. Tools need the reference (`-T` for samtools, `--fasta` for mosdepth) to read it; mosdepth reads the CRAM directly, so no BAM is needed.
