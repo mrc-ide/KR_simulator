@@ -68,6 +68,20 @@ def window_stats(per_base_bed, out_tsv, window_size=WINDOW_SIZE):
     pd.concat(tables, ignore_index=True).round({"mean": 2, "sd": 2}).to_csv(out_tsv, sep="\t", index=False)
 
 
+def _read_table(path, needed, what):
+    """Read a tab-separated table, or stop with a plain message if it isn't the expected file
+    (e.g. a download that saved a web error page instead)."""
+    try:
+        df = pd.read_csv(path, sep="\t")
+    except Exception as exc:
+        raise ValueError(f"{path} is not a valid {what} ({exc.__class__.__name__}); delete it and try again") from exc
+    missing = [c for c in needed if c not in df.columns]
+    if missing:
+        raise ValueError(f"{path} is not a valid {what} (missing column{'s' if len(missing) > 1 else ''}: "
+                         f"{', '.join(missing)}); delete it and try again")
+    return df
+
+
 def _profile_path(outputs, sample):
     """An existing profile for this sample (.tsv or .tsv.gz), or None."""
     for ext in (".window_stats.tsv", ".window_stats.tsv.gz"):
@@ -123,7 +137,8 @@ def get_profiles(samples, pf8_dir):
     if not os.path.exists(meta_path):
         log.info("downloading the Pf8 sample metadata")
         _download(f"{ZENODO}/Pf8_samples.txt", meta_path)
-    meta = pd.read_csv(meta_path, sep="\t").set_index("Sample")
+    meta = _read_table(meta_path, ["Sample", "Country", "Year", "QC pass", "Sample type"],
+                       "Pf8 sample table").set_index("Sample")
 
     unknown = [s for s in samples if s not in meta.index]
     if unknown:
@@ -144,7 +159,7 @@ def get_profiles(samples, pf8_dir):
 
 def load_profile(path):
     """{Pf8 chromosome name: (mean array, SD array)}, indexed by window number."""
-    df = pd.read_csv(path, sep="\t")
+    df = _read_table(path, ["chrom", "start", "end", "mean", "sd"], "depth profile")
     return {chrom: (g["mean"].to_numpy(), g["sd"].to_numpy()) for chrom, g in df.groupby("chrom", sort=False)}
 
 
