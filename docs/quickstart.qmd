@@ -61,4 +61,4 @@ document.querySelectorAll("iframe.fit-height").forEach(frame => {
 </script>
 ```
 
-Next: try the [command-line scripts](tutorial-scripts.qmd) for the same example.
+Next: try the [command-line scripts](tutorial-scripts.qmd) for the same example, or give the host VCF [realistic read depth](realistic-depth.qmd) from real sequencing data.

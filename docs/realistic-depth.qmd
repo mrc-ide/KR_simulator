@@ -1,0 +1,40 @@
+---
+title: "🧬 Realistic read depth"
+---
+
+`krsim vcf-host` gives every host the same read depth at every site (`--depth`, e.g. 10 reads). Real sequencing is far less even. `krsim vcf-host-depth` is an alternative that gives each host the read depth of a **real *P. falciparum* sample** from [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1), so the host VCF has the gaps, spikes and low-depth sites of real data. Both commands read the same strain VCF, so you can make either host VCF, or both, from one simulation.
+
+## Why depth matters
+
+In a real sample, the number of reads covering each base varies hugely along the genome. Base composition (*P. falciparum* is about 80% AT), amplification, and stretches of the genome that are hard to map all push depth up or down. This is one real selective whole-genome amplification (sWGA) sample, its depth averaged in 500 bp windows along all 14 chromosomes:
+
+![Read depth along the 14 chromosomes of Pf8 sample PF1066-Cx (sWGA, Ghana 2014). Depth ranges from 0 at most chromosome ends to thousands of reads in a few over-amplified spots, around a median of 41 reads.](images/depth_along_genome_PF1066-Cx.png){fig-alt="Fourteen panels, one per chromosome, showing mean read depth per 500 bp window on a log scale; depth fluctuates between about 10 and 100, drops to near 0 at chromosome ends and in some internal gaps, and spikes above 1,000 in places."}
+
+This matters for what a host VCF can show. Where depth is high, every strain in a mixed infection is seen; where it is low, a minority strain can get no reads at all, and the site looks as if only one strain were there.
+
+Within each window, depth also varies more than pure chance (a Poisson distribution) would give. This holds across real samples: in 11 sWGA samples from 11 countries, 61–94% of windows vary more than a Poisson, and samples differ about 7-fold in their typical depth (19× to 127×):
+
+![Spread of depth within each 500 bp window for 11 Pf8 sWGA samples: each dot is a window, and the dashed line is what a Poisson would give.](images/depth_spread_sWGA_samples.png){fig-alt="Eleven scatter panels of window SD against window mean on log-log axes, one per sample; in every panel most points lie above the dashed Poisson line, increasingly so at higher depth."}
+
+## How it works
+
+Each host is given one Pf8 sample's **depth profile**: the mean and SD of that sample's read depth in every 500 bp window of the genome. Then, as in `vcf-host`, each host's strain proportions are drawn once from a Dirichlet. At every site, for every host:
+
+1. find the 500 bp window the site is in, and its mean and SD of depth
+2. draw the host's read depth there from a **negative binomial** with that mean and SD (it allows the extra variation real depth shows)
+3. split those reads between the host's strains, in proportion to the strains' shares (a Multinomial)
+4. count the reads carrying each allele, and write `GT:AD:DP` as in `vcf-host`
+
+Only the read depth comes from the real sample. Which strains each host carries, their alleles and their proportions all come from the simulation, as before. See the [command reference](commands.qmd) for the full details.
+
+## Using other Pf8 samples
+
+Any sample in Pf8 can be used: pick IDs from the `Sample` column of Pf8's [`Pf8_samples.txt`](https://zenodo.org/records/18681980/files/Pf8_samples.txt) (for example, sWGA samples that passed QC, with `Sample type` = `sWGA` and `QC pass` = `True`). Give exactly one sample per host, each sample once.
+
+The first time a sample is used, krsim makes its depth profile: it downloads the sample's aligned reads (a CRAM file of 0.5–11 GB) from the [European Nucleotide Archive](https://www.ebi.ac.uk/ena/browser/view/PRJEB96783), counts the depth at every base with [mosdepth](https://github.com/brentp/mosdepth), saves the 500 bp window means and SDs in `--pf8_dir`'s `output/` folder, and deletes the CRAM. Later runs reuse the saved profile. This step needs mosdepth installed in your `krsim` environment:
+
+```bash
+conda install -c bioconda mosdepth
+```
+
+Runs that only use profiles you already have don't need mosdepth.

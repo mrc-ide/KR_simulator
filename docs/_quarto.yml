@@ -3,6 +3,7 @@ project:
   output-dir: _site
   resources:
     - maps/*.html
+    - data/pf8/**   # small Pf8 depth tables for the realistic-depth tutorial
 
 website:
   title: "krsim"
@@ -26,6 +27,7 @@ website:
         contents:
           - quickstart.qmd
           - real-scale.qmd
+          - realistic-depth.qmd
           - tutorial-scripts.qmd
       - section: Reference
         contents:
