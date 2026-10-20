@@ -4,7 +4,8 @@
 # Runs `krsim simulate` (with --save_lineage) to produce a tree sequence plus
 # the pedigree-tracing outputs, then the strain transmission map + pairwise
 # strain pedigree map (which only need Stage 1), then mutations,
-# coalescence/mutation time tables, strain/host VCFs, and the coalescence-time
+# coalescence/mutation time tables, strain/host VCFs (including the host VCF with
+# real Pf8 read depth, from the small profiles in tests/data/pf8/), and the coalescence-time
 # relatedness extras -- printing the resulting files so you can eyeball that
 # each stage worked.
 #
@@ -131,6 +132,16 @@ run_stage "Stage 5: Host VCF" \
     --depth 10 \
     --output_dir "$OUT_DIR" \
     --save_proportions
+
+# depth profiles of three real Pf8 sWGA samples, kept in tests/data/pf8/ so nothing is downloaded
+run_stage "Stage 5 (alternative): Host VCF, read depth from real Pf8 samples" \
+    krsim vcf-host-depth \
+    --strain_vcf "$STRAIN_VCF" \
+    --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \
+    --samples SPT52544 PF1066-Cx RCN08168 \
+    --pf8_dir "tests/data/pf8" \
+    --random_seed "$SEED" \
+    --output_dir "$OUT_DIR"
 
 run_stage "Extras: pairwise IBD fractions (krsim relate-strain)" \
     krsim relate-strain \

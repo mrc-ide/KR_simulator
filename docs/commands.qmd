@@ -100,6 +100,34 @@ Aggregates the strain VCF to individual (host) level using a **Dirichlet-Multino
 Outputs `output_{seed}_host.vcf`. With `--save_proportions`, also writes `host_proportions_{seed}.csv`.
 :::
 
+::: {.stage}
+### 🧍 Stage 5 (alternative) — Host-level VCF with real read depth
+
+```bash
+krsim vcf-host-depth \
+    --strain_vcf results/output_42_strain.vcf \
+    --ind_node_map_csv results/sim_ind_node_map_42.csv \
+    --samples SPT52544 PF1066-Cx RCN08168 \
+    --pf8_dir ~/pf8 \
+    --random_seed 42 \
+    --output_dir results/
+```
+
+A more realistic alternative to `vcf-host`: instead of one constant `--depth`, each host's read depth follows a real *P. falciparum* sample from [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1).
+
+- **`--samples`:** one Pf8 sample ID per host, in order (the 1st sample goes to the 1st host). The number of samples must equal the number of hosts, and each sample can be used once. IDs are the `Sample` column of Pf8's `Pf8_samples.txt`.
+- **Depth profiles:** a sample's profile is the mean and SD of its read depth in every 500 bp window. It is made the first time the sample is used and kept in `--pf8_dir`'s `output/` folder, so later runs reuse it. Making one downloads the sample's CRAM (0.5–11 GB, deleted afterwards) and needs [mosdepth](https://github.com/brentp/mosdepth): `conda install -c bioconda mosdepth`. Runs that only use existing profiles don't need mosdepth.
+
+The model:
+
+1. Within-host strain proportions sampled once per host from Dirichlet(α=1 per strain), as in `vcf-host`
+2. At each variant site, the host's depth is drawn from its profile window's mean *m* and SD *s*: a negative binomial with that mean and SD (*r* = *m*² / (*s*² − *m*), *p* = *r* / (*r* + *m*)), since real read depth varies more than a Poisson. If *s*² ≤ *m* it is Poisson(*m*); if *m* = 0 the depth is 0
+3. The depth is split between the host's strains via Multinomial from the proportions
+4. Reads are counted by allele and written as `GT:AD:DP`, with the same genotype rules as `vcf-host` (`./.` where the depth is 0)
+
+Outputs `output_{seed}_host_depth.vcf`, `host_depth_profiles_{seed}.csv` (which Pf8 sample each host's depth came from) and `host_depth_proportions_{seed}.csv`.
+:::
+
 ## Pedigree visualizations
 
 Both maps need Stage 1 run with `--save_lineage`; the transmission map also needs the mutated tree sequence from Stage 2. See them in action in the [tutorial](quickstart.qmd#visualise-transmission).
