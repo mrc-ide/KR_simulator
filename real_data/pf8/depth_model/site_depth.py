@@ -5,7 +5,7 @@ that window's mean and SD of depth.
 
 Usage:
     python site_depth.py <strain>.vcf <sample>.window_stats.tsv <output>.tsv
-(window_stats.tsv is made by window_stats.py)
+(window_stats.tsv is made by step 8 of pf8_mosdepth.sh, or by `krsim vcf-host-depth`)
 """
 import sys
 

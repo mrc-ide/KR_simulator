@@ -4,7 +4,7 @@ Windows above the line vary more than a Poisson draw would (over-dispersed).
 
 Usage:
     python plot_mean_sd.py <sample>.window_stats.tsv <output>.png
-(window_stats.tsv is made by window_stats.py)
+(window_stats.tsv is made by step 8 of pf8_mosdepth.sh, or by `krsim vcf-host-depth`)
 """
 import sys
 

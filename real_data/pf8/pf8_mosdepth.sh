@@ -42,5 +42,5 @@ samtools view -T $REF PF1066-Cx.cram Pf3D7_07_v3:403000-404000 | head
 mosdepth --fasta $REF ../output/PF1066-Cx PF1066-Cx.cram     # writes PF1066-Cx.per-base.bed.gz
 
 # Step 8: mean and SD of depth in 500 bp windows, from the per-base depths
-python $REPO/real_data/pf8/depth_model/window_stats.py \
+PYTHONPATH=$REPO/src python -m krsim.output.pf8_profiles \
   ../output/PF1066-Cx.per-base.bed.gz ../output/PF1066-Cx.window_stats.tsv 500

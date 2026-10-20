@@ -3,7 +3,7 @@
 Usage:
     python plot_depth.py <sample>.window_stats.tsv <output>.png                       # all 14 chromosomes
     python plot_depth.py <sample>.window_stats.tsv <output>.png Pf3D7_07_v3:350000-450000   # zoom into one region
-(window_stats.tsv is made by window_stats.py; the SD band is only readable when zoomed in)
+(window_stats.tsv is made by step 8 of pf8_mosdepth.sh, or by `krsim vcf-host-depth`; the SD band is only readable when zoomed in)
 """
 import sys
 

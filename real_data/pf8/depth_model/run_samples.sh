@@ -32,7 +32,7 @@ for SAMPLE in $(tail -n +2 $1 | cut -f1); do
   mosdepth --fasta $REF ../output/$SAMPLE $SAMPLE.cram
 
   # Step 8: mean and SD of depth in 500 bp windows
-  python $REPO/real_data/pf8/depth_model/window_stats.py \
+  PYTHONPATH=$REPO/src python -m krsim.output.pf8_profiles \
     ../output/$SAMPLE.per-base.bed.gz ../output/$SAMPLE.window_stats.tsv 500
 
   # the CRAM is no longer needed
