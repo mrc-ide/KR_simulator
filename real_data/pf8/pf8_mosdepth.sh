@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Pf8 read depth with mosdepth. All data goes outside the git repo.
 
-# Folder for the data (change this on another laptop)
+# Folder for the data, and the KR_simulator repo (change these on another laptop)
 PF8=/Users/jbansal/Desktop/IMPERIAL/pf8
+REPO=/Users/jbansal/Desktop/IMPERIAL/KR_tskit/git/KR_simulator
 
 # Step 1: sample information
 mkdir -p $PF8/input
@@ -37,5 +38,9 @@ samtools flagstat PF1066-Cx.cram              # mapping summary
 samtools view -T $REF PF1066-Cx.cram Pf3D7_07_v3:403000-404000 | head
 # ^ reads around crt
 
-# Step 7: depth in windows
-mosdepth --fasta $REF -n --by 500 ../output/PF1066-Cx PF1066-Cx.cram     # coverage
+# Step 7: depth at every base
+mosdepth --fasta $REF ../output/PF1066-Cx PF1066-Cx.cram     # writes PF1066-Cx.per-base.bed.gz
+
+# Step 8: mean and SD of depth in 500 bp windows, from the per-base depths
+python $REPO/real_data/pf8/depth_model/window_stats.py \
+  ../output/PF1066-Cx.per-base.bed.gz ../output/PF1066-Cx.window_stats.tsv 500

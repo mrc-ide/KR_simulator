@@ -13,12 +13,12 @@ pf8/
 ## Run
 
 ```bash
-conda create -n mosdepth -c conda-forge -c bioconda mosdepth samtools   # once per laptop
+conda create -n mosdepth -c conda-forge -c bioconda mosdepth samtools pandas   # once per laptop
 conda activate mosdepth
 bash real_data/pf8/pf8_mosdepth.sh
 ```
 
-Steps: 1) sample information, 2) count gDNA and sWGA samples, 3) find a sample's CRAM in ENA, 4) download the CRAM, 5) download the reference, 6) explore the alignment (optional), 7) mosdepth: mean depth per 500 bp window.
+Steps: 1) sample information, 2) count gDNA and sWGA samples, 3) find a sample's CRAM in ENA, 4) download the CRAM, 5) download the reference, 6) explore the alignment (optional), 7) mosdepth: depth at every base, 8) mean and SD of depth per 500 bp window (`depth_model/window_stats.py`).
 
 ## What is in a CRAM
 
