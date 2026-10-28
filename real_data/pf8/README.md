@@ -67,3 +67,8 @@ Each task downloads one CRAM, runs mosdepth, writes `$PF8/output/<sample>.window
 - **Duplicates and secondary alignments are flagged, not removed.** mosdepth skips them by default.
 - **Reads from all parasites in the blood sample are mixed together.** An infection can contain several genetically different clones, and the CRAM does not separate them, so the depth is for all of them combined. `Pf8_fws.tsv` in the Pf8 release gives how mixed each infection is.
 - **The reads are stored relative to the reference.** A CRAM keeps only how each read differs from the reference, which is why it is smaller than a BAM. Tools need the reference (`-T` for samtools, `--fasta` for mosdepth) to read it; mosdepth reads the CRAM directly, so no BAM is needed.
+
+## Depth models
+
+- [`depth_model/`](depth_model/): plotting scripts and notebooks exploring depth along the genome (autocorrelation, candidate processes).
+- [`model_comparison/`](model_comparison/): `compare_processes.py` fits every candidate process (AR, ARMA, Gaussian processes) to every sample and compares them by AIC, BIC and held-out likelihood, separately for sWGA and gDNA.
