@@ -48,3 +48,13 @@ Where they agree, the result is solid.
 | `fits.tsv` | Every sample × model: LL, k, n, AIC, BIC, held-out LL, the three scores (`dAIC`, `dBIC`, `dHeldout`) and ranks |
 | `summary.tsv` | Per sample type × model: how many samples it wins, its median rank and median score under each criterion |
 | `scores.png` | Each model's score in every sample (dots) and the median (bar), sWGA and gDNA side by side |
+
+[`plot_processes.py`](plot_processes.py) `<pf8_dir> <output_dir>` adds easier plots to the same folder:
+
+| File | Contents |
+|---|---|
+| `ranking.png` | Models from best to worst for each sample type (median held-out score), with how many samples each one wins |
+| `ranks.png` | The rank of every model in every sample (1 = best), sWGA above gDNA |
+| `examples.png` | Every sample: real autocorrelation over the first 5 kb next to AR(1) and the best model of its type, ordered by how far AR(1) is behind |
+| `ar_lookback.png` | AR(p): median held-out score against how far back the model looks (p × 0.5 kb), sWGA and gDNA |
+| `arma_gp.png` | The ARMA and Gaussian-process models: median held-out score, sWGA and gDNA |
