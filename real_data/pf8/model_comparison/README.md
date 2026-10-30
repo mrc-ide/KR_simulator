@@ -58,3 +58,31 @@ Where they agree, the result is solid.
 | `examples.png` | Every sample: real autocorrelation over the first 5 kb next to AR(1) and the best model of its type, ordered by how far AR(1) is behind |
 | `ar_lookback.png` | AR(p): median held-out score against how far back the model looks (p × 0.5 kb), sWGA and gDNA |
 | `arma_gp.png` | The ARMA and Gaussian-process models: median held-out score, sWGA and gDNA |
+
+## Better kicks, and the simplest good model
+
+`compare_processes.py` assumes Gaussian kicks (the random surprise added at each window). Checking what the
+winners leave over showed the correlation is captured but the kicks are not Gaussian: far too many extreme
+jumps (heavy tails), lopsided dips in gDNA, and calm and jumpy stretches in sWGA. These scripts change the kicks.
+They use a conditional likelihood (the first windows of each chromosome are only a run-in), so every model is
+scored on the same windows; held-out and BIC as above.
+
+| Script | What it compares |
+|---|---|
+| [`best_simple_model.py`](best_simple_model.py) | AR(1), AR(2), AR(4), AR(8), ARMA(1,1), ARMA(2,1), ARMA(2,2), each with Gaussian or Student t kicks (t = one extra parameter, ν, for heavier tails), for every sample, plus a calibration check. Writes `simple_fits.tsv`, `simple_summary.tsv`, `simple_calibration.tsv`, `simple_models.png` |
+| [`compare_kick_models.py`](compare_kick_models.py) | sWGA: AR(8) with Gaussian, t, GARCH (jumpiness that changes along the genome), GARCH t, or a 2-state σ (calm / jumpy). Needs numba |
+| [`compare_arma_kicks.py`](compare_arma_kicks.py) | ARMA(p, q) for p, q ≤ 3, then skewed t, GARCH and dropout kicks; also the fitting code that `best_simple_model.py` uses |
+
+```bash
+python best_simple_model.py <pf8_dir> <output_dir>
+```
+
+Results for the 10 sWGA and 11 gDNA samples:
+
+- **t kicks beat Gaussian kicks for every correlation structure in every sample**: about 1,170 better (held-out) for gDNA
+  and about 9,100 for sWGA, more than any choice of correlation structure. The extreme kicks then happen about as
+  often as the model says (sWGA: 1.4% beyond 3 SD, as a t with ν ≈ 3.6 predicts).
+- **gDNA: ARMA(2,2) with t kicks** (ν ≈ 7), best in 8 of 11 samples. Its dips are still lopsided (more down than up).
+- **sWGA: AR(8) with t kicks** (ν ≈ 3.6), best in 8 of 10 samples. GARCH t fits better still, but is left out to keep the model simple.
+- Deliberately left out of the simple models: lopsided dips, changing jumpiness and the genome-wide map of low and
+  high regions shared by all samples. Real depth profiles (`krsim vcf-host-depth`) cover those.
