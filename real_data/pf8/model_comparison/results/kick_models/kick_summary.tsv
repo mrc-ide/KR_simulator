@@ -1,0 +1,6 @@
+model	best_heldout	median_dHeldout	best_BIC	median_dBIC	median_kurtosis	median_kick_clustering
+Gaussian	0	12039.28	0	11798.11	10.97	0.24
+t	0	2291.05	0	2270.26	12.6	0.26
+GARCH	0	4099.31	0	4056.7	6.64	0.03
+GARCH t	9	0.0	9	0.0	6.75	0.01
+2-state sigma	1	913.72	1	932.15	-0.14	0.09

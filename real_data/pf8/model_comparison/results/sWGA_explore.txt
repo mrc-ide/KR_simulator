@@ -1,0 +1,18 @@
+sWGA: 10 samples, 46,591 nuclear 500 bp windows
+
+median depth: RCN25280 23x, RCN14144 56x, SPT83158 240x, SPT52537 48x, SPT83348 54x, RCN02790 102x, SPT50506 127x, RCN15322 61x, SPT88329 27x, SPT90672 49x
+
+variance of log depth within a sample, split into parts:
+  total 1.991 = shared across samples 1.390 (70%) + sample-specific 0.601 (30%)
+  correlation of GC content with the shared effect: -0.45
+
+autocorrelation of the sample-specific residual (median over samples):
+  lag (windows):      1      2      5     10     20     50    100    200
+  acf:             0.86   0.72   0.42   0.13   0.04   0.04   0.02   0.01
+  AR(1) would give: 0.86   0.73   0.46   0.21   0.04   0.00   0.00   0.00
+autocorrelation of the shared effect:
+  acf:             0.96   0.91   0.77   0.56   0.38   0.21   0.12   0.04
+
+residual excess kurtosis per sample (0 = Gaussian): 2.1, 0.8, 0.3, 3.1, 0.4, 1.0, -0.2, 0.7, 0.2, 2.4
+windows with zero depth: 1.37%
+within-window variance / mean (median over windows): 2.0  (1 = Poisson)

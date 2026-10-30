@@ -1,5 +1,7 @@
 # Which process describes Pf8 read depth?
 
+**Start with [RECORD.md](RECORD.md)**: the whole analysis, results and next steps in one place.
+
 [`compare_processes.py`](compare_processes.py) fits candidate random processes to the read depth of real Pf8 samples along the genome,
 and compares them, separately for sWGA and gDNA. The models and likelihood are those of
 [`../depth_model/depth_process_models.ipynb`](../depth_model/depth_process_models.ipynb), run for every sample in one go.

@@ -1,0 +1,18 @@
+gDNA: 10 samples, 46,591 nuclear 500 bp windows
+
+median depth: PE0376-C 10x, QP0237-C 140x, QE0356-C 15x, PA0445-C 177x, PF1017-C 109x, QC0637-C 111x, PF0066-C 17x, RCN12993 84x, PM0391-C 118x, PF1105-C 127x
+
+variance of log depth within a sample, split into parts:
+  total 0.916 = shared across samples 0.652 (71%) + sample-specific 0.264 (29%)
+  correlation of GC content with the shared effect: 0.67
+
+autocorrelation of the sample-specific residual (median over samples):
+  lag (windows):      1      2      5     10     20     50    100    200
+  acf:             0.59   0.32   0.11   0.06   0.05   0.01   0.01  -0.00
+  AR(1) would give: 0.59   0.35   0.07   0.01   0.00   0.00   0.00   0.00
+autocorrelation of the shared effect:
+  acf:             0.65   0.33   0.09   0.04   0.04   0.02   0.00   0.00
+
+residual excess kurtosis per sample (0 = Gaussian): 4.8, 8.9, 2.2, 8.2, 11.4, 0.3, 3.0, -0.8, 31.2, 30.2
+windows with zero depth: 0.24%
+within-window variance / mean (median over windows): 3.4  (1 = Poisson)
