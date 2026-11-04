@@ -4,11 +4,11 @@ Every Pf8 sample's CRAM (URL and size, from ENA) in one table, and a small test 
 Needs in $PF8/input: Pf8_samples.txt (Zenodo) and Pf8_ena_runs.tsv, the ENA list of the project's runs:
   curl -G "https://www.ebi.ac.uk/ena/portal/api/search" --data-urlencode 'result=read_run' \
     --data-urlencode 'query=study_accession=PRJEB96783' --data-urlencode 'limit=0' \
-    --data-urlencode 'fields=run_accession,sample_alias,submitted_bytes,submitted_ftp' \
+    --data-urlencode 'fields=run_accession,sample_alias,submitted_bytes,submitted_md5,submitted_ftp' \
     --data-urlencode 'format=tsv' -o Pf8_ena_runs.tsv
 
 Writes in $PF8/input:
-  Pf8_crams.tsv      every sample with a CRAM: sample, type, QC pass, CRAM bytes, URL (QC-pass samples first)
+  Pf8_crams.tsv      every sample with a CRAM: sample, type, QC pass, CRAM bytes, URL, MD5 (QC-pass samples first)
   Pf8_crams_part<i>.tsv  the same in parts of 10000, one SLURM array each
   timing_subset.tsv  N QC-pass sWGA and N QC-pass gDNA samples, spread evenly over each type's CRAM sizes,
                      plus the 99th percentile and the largest CRAM of each type (the evenly spread ones stop at ~3.5 GB)
@@ -35,11 +35,12 @@ PART_SIZE = 10000
 # one row per CRAM file (a run lists its CRAM and .crai, separated by ";")
 runs = pd.read_csv(f"{PF8}/input/Pf8_ena_runs.tsv", sep="\t").dropna(subset=["submitted_ftp"])
 crams = pd.DataFrame(
-    [(r.sample_alias, int(size), f"https://{path}")
+    [(r.sample_alias, int(size), f"https://{path}", md5)
      for r in runs.itertuples()
-     for size, path in zip(str(r.submitted_bytes).split(";"), r.submitted_ftp.split(";"))
+     for size, path, md5 in zip(str(r.submitted_bytes).split(";"), r.submitted_ftp.split(";"),
+                                str(r.submitted_md5).split(";"))
      if path.endswith(".cram")],
-    columns=["sample", "cram_bytes", "url"])
+    columns=["sample", "cram_bytes", "url", "md5"])
 
 meta = pd.read_csv(f"{PF8}/input/Pf8_samples.txt", sep="\t")
 table = (meta[["Sample", "Sample type", "QC pass"]]

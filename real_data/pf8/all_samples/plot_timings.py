@@ -35,7 +35,8 @@ plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False, "axes
                      "grid.color": "#e4e3df", "grid.linewidth": 0.6, "axes.axisbelow": True})
 
 # one row per timed sample, one column per stage
-long = pd.concat([pd.read_csv(f, sep="\t") for f in glob.glob(f"{PF8}/timings/*.tsv")])
+long = pd.concat([d for f in glob.glob(f"{PF8}/timings/*.tsv")
+                  if len(d := pd.read_csv(f, sep="\t"))])   # tasks still starting have only the header
 FIT_JOB = int(sys.argv[1]) if len(sys.argv) > 1 else None
 if "job" not in long:
     long["job"] = np.nan
@@ -46,8 +47,9 @@ if len(failed):
 long = long[long.exit == 0]
 long["stage"] = long.stage.replace({"download_crai": "download"})   # the .crai is part of the download
 times = long.pivot_table(index=["sample", "type", "cram_bytes", "fit"], columns="stage", values="seconds", aggfunc="sum")
-times = times.dropna().reset_index()   # only samples where every stage worked
-times["total"] = times[["download", "mosdepth", "window_stats", "cleanup"]].sum(axis=1)
+times = times.dropna(subset=["download", "mosdepth", "window_stats"]).reset_index()   # only samples where every stage worked
+# later samples make the .crai with samtools (stage "index") instead of downloading it
+times["total"] = times[[c for c in ["download", "index", "mosdepth", "window_stats", "cleanup"] if c in times]].sum(axis=1)
 times["GB"] = times.cram_bytes / 1e9
 rss = long.pivot_table(index="sample", columns="stage", values="max_rss_gb", aggfunc="max")
 print(f"{len(times)} samples timed, {times.fit.sum()} used for the fits")

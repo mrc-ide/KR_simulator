@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One Pf8 sample, timed: download the CRAM -> mosdepth -> mean and SD per 500 bp window -> delete the rest.
 # Run as a SLURM array by pf8_depth_array.sbatch: array task i does line i of the sample list
-# (a table with header, made by pf8_crams.py: sample, type, qc_pass, cram_bytes, url).
+# (a table with header, made by pf8_crams.py: sample, type, qc_pass, cram_bytes, url, md5).
 #
 # Keeps only $PF8/output/<sample>.window_stats.tsv, and $PF8/timings/<sample>.tsv with, for each
 # stage, the wall-clock seconds, peak memory (GB) and exit code. A sample that fails gets a line in
@@ -16,7 +16,7 @@ LIST=$1
 THREADS=${SLURM_CPUS_PER_TASK:-1}
 REF=$PF8/input/PlasmoDB-54-Pfalciparum3D7-Genome.fasta
 
-read -r SAMPLE TYPE QC BYTES URL < <(tail -n +2 $LIST | sed -n "${SLURM_ARRAY_TASK_ID}p")
+read -r SAMPLE TYPE QC BYTES URL MD5 < <(tail -n +2 $LIST | sed -n "${SLURM_ARRAY_TASK_ID}p")
 echo "== $SAMPLE ($TYPE, $((BYTES / 1000000)) MB) on $(hostname), $THREADS threads"
 if [ -s $PF8/output/$SAMPLE.window_stats.tsv ]; then echo "  already done"; exit 0; fi
 
@@ -42,30 +42,40 @@ fail() {
   exit 1
 }
 
-# ENA sometimes closes the connection partway through a large CRAM, and refuses new connections when
-# many tasks start at once, so: start at a random time in the first minute, then resume (-C -) until the
-# size matches ENA's, waiting longer after each failed try (30 s, 60 s, ...), up to 10 tries;
-# without the whole CRAM there is no point going on
+# ENA sometimes closes the connection partway through a large CRAM, and refuses new connections (403)
+# when many tasks ask at once, so: start at a random time in the first minute, then resume (-C -) until
+# the size matches ENA's, waiting longer after each failed try (30 s, 60 s, ... up to 5 min, plus up to
+# a minute at random so waiting tasks don't all ask again together), up to 20 tries.
+# A CRAM can be the right size but corrupt (even one downloaded in one go), so check it against ENA's MD5
+# and start again from scratch if it differs or is too big; without the whole CRAM there is no point
+# going on. ENA sometimes answers with a redirect (301) instead of the CRAM, which curl saves as the CRAM,
+# and sometimes can't resume (curl error 33): then also start again from scratch rather than resume
+[ -n "$MD5" ] || fail no_md5
 sleep $((RANDOM % 60))
 stage download bash -c '
-  for try in $(seq 10); do
-    curl -sS --fail -C - -o $1 $2
-    [ "$(stat -c %s $1 2>/dev/null)" = "$3" ] && { echo "  downloaded in $try tries"; exit 0; }
-    sleep $((30 * try))
+  for try in $(seq 20); do
+    code=$(curl -sS --fail -C - -o $1 -w "%{http_code}" $2); err=$?
+    if [ $err = 33 ] || [[ $code = 3* ]]; then
+      echo "  HTTP $code, curl exit $err: starting again from scratch"; rm -f $1
+    fi
+    size=$(stat -c %s $1 2>/dev/null || echo 0)
+    if [ $size = $3 ]; then
+      [ "$(md5sum < $1 | cut -d" " -f1)" = "$4" ] && { echo "  downloaded in $try tries, MD5 matches"; exit 0; }
+      echo "  MD5 differs from ENA, downloading again"; rm -f $1
+    elif [ $size -gt $3 ]; then
+      echo "  larger than ENA says, downloading again"; rm -f $1
+    fi
+    wait=$((30 * try)); sleep $(( (wait < 300 ? wait : 300) + RANDOM % 60 ))
   done
-  exit 1' _ $CRAM $URL $BYTES
+  exit 1' _ $CRAM $URL $BYTES $MD5
 if [ "$(tail -1 $TIMES | cut -f10)" != 0 ]; then
   rm -f $CRAM $TIMES.tmp; fail download
 fi
-# the index too (ENA refuses some requests when busy, with a 403 or an empty reply)
-stage download_crai bash -c '
-  for try in $(seq 10); do
-    curl -sS --fail -o $1 $2 && [ -s $1 ] && exit 0
-    sleep $((30 * try))
-  done
-  exit 1' _ $CRAM.crai $URL.crai
+# make the index here rather than download it: ENA sometimes sends a broken one, and samtools index
+# takes seconds and gives the same file
+stage index samtools index $CRAM
 if [ "$(tail -1 $TIMES | cut -f10)" != 0 ]; then
-  rm -f $CRAM $CRAM.crai $TIMES.tmp; fail download_crai
+  rm -f $CRAM $CRAM.crai $TIMES.tmp; fail index
 fi
 stage mosdepth mosdepth --threads $((THREADS - 1)) --fasta $REF $PREFIX $CRAM
 stage window_stats env PYTHONPATH=$REPO/src python -m krsim.output.pf8_profiles \
