@@ -53,14 +53,16 @@ krsim simulates the *P. falciparum* 3D7 reference genome used by MalariaGEN Pf8 
 
 ### Example zips from Pf8
 
-To try it without your own data, download one of two example zips from the [krsim releases](https://github.com/mrc-ide/KR_simulator/releases) (to be published):
+To try it without your own data, download one of two example zips from the krsim release [example-depth-data-v1](https://github.com/mrc-ide/KR_simulator/releases/tag/example-depth-data-v1):
 
 | Zip | Samples |
 |---|---|
 | `pf8_sWGA_100.zip` | 100 sWGA samples that passed Pf8 QC, picked at random |
 | `pf8_gDNA_100.zip` | 100 gDNA samples that passed Pf8 QC, picked at random |
 
-Each comes with a list of its samples (country, year, study). Use either zip as `--depth_zip`.
+Use either zip as `--depth_zip`. Each zip also holds `samples.tsv`, listing its samples with their country, year and study; krsim only reads the depth files, so it ignores this list.
+
+The example depth files are made from the reads of [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1), whose data are released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). If you use them, please cite: MalariaGEN et al. (2025). Pf8: an open dataset of *Plasmodium falciparum* genome variation in 33,325 worldwide samples. *Wellcome Open Research* 10:325.
 
 ## How it works
 

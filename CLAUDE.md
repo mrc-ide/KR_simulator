@@ -61,7 +61,7 @@ supply their own depth data (`krsim vcf-host-depth`). Don't push for further mod
    around that depth, split between strains as in `vcf-host-depth`.
 4. Maybe update RECORD.md with the new-20 results and the corrected wording above.
 
-## User depth zips for the host VCF (status, 2026-11-09, branch `depth-zip`, not yet committed)
+## User depth zips for the host VCF (status, 2026-11-09, branch `depth-zip`)
 
 `krsim vcf-host-depth --depth_zip FILE` replaces the old Pf8 download route (`--samples`, `--pf8_dir`, ENA
 download and mosdepth during the run were removed). The zip holds `<sample>.window_stats.tsv` files (mean and SD per
@@ -70,8 +70,9 @@ gets one file, picked at random by the seed without replacement; the zip needs a
 with the helper `krsim depth-zip --bed <sample>.per-base.bed.gz ... --output my.zip` (listed last in `krsim --help`
 as "Helper (not a pipeline step)"). Example zips of 100 sWGA and 100 gDNA QC-pass Pf8 samples are made by
 `real_data/pf8/all_samples/make_example_zips.py` into `/data/home/bty208/scratch/IMPERIAL/pf8_mosdepth/example_zips/`;
-they are meant for a GitHub Release, not git (about 94 MB together). Not published yet: check the Pf8 data terms
-and citation first. The module keeps the name `pf8_profiles` because the `real_data/pf8/` scripts call
+each zip also holds its own `samples.tsv` (sample, type, country, year, study), which krsim ignores. They are meant
+for a GitHub Release named `example-depth-data-v1`, not git (about 94 MB together); not published yet. Pf8 data are
+CC BY 4.0; the docs and release notes cite MalariaGEN et al. (2025), Wellcome Open Research 10:325. The module keeps the name `pf8_profiles` because the `real_data/pf8/` scripts call
 `python -m krsim.output.pf8_profiles`.
 
 ## Future work
