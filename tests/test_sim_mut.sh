@@ -5,7 +5,8 @@
 # the pedigree-tracing outputs, then the strain transmission map + pairwise
 # strain pedigree map (which only need Stage 1), then mutations,
 # coalescence/mutation time tables, strain/host VCFs (including the host VCF with
-# real Pf8 read depth, from the small profiles in tests/data/pf8/), and the coalescence-time
+# real read depth, from the three small depth profiles in tests/data/test_depth.zip),
+# the depth-zip helper (on a tiny made-up mosdepth file), and the coalescence-time
 # relatedness extras -- printing the resulting files so you can eyeball that
 # each stage worked.
 #
@@ -133,15 +134,35 @@ run_stage "Stage 5: Host VCF" \
     --output_dir "$OUT_DIR" \
     --save_proportions
 
-# depth profiles of three real Pf8 sWGA samples, kept in tests/data/pf8/ so nothing is downloaded
-run_stage "Stage 5 (alternative): Host VCF, read depth from real Pf8 samples" \
+# depth profiles of three real Pf8 sWGA samples, kept in tests/data/test_depth.zip so nothing is downloaded
+run_stage "Stage 5 (alternative): Host VCF, read depth from a zip of depth files" \
     krsim vcf-host-depth \
     --strain_vcf "$STRAIN_VCF" \
     --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \
-    --samples SPT52544 PF1066-Cx RCN08168 \
-    --pf8_dir "tests/data/pf8" \
+    --depth_zip "tests/data/test_depth.zip" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
+
+# a tiny made-up mosdepth per-base file: depth 30 along every 3D7 chromosome
+# (written outside $OUT_DIR, so the regression check doesn't compare it)
+DEPTH_TMP="$(mktemp -d)"
+python -c "
+import gzip
+from krsim.output.pf8_profiles import CHROM_LENGTHS
+with gzip.open('$DEPTH_TMP/toy.per-base.bed.gz', 'wt') as f:
+    for chrom, length in CHROM_LENGTHS.items():
+        f.write(f'{chrom}\t0\t{length}\t30\n')"
+
+run_stage "Helper: zip of depth files from mosdepth output (krsim depth-zip)" \
+    krsim depth-zip \
+    --bed "$DEPTH_TMP/toy.per-base.bed.gz" \
+    --output "$DEPTH_TMP/toy_depth.zip"
+check "
+import zipfile
+names = zipfile.ZipFile('$DEPTH_TMP/toy_depth.zip').namelist()
+assert names == ['toy.window_stats.tsv'], names
+print(f'toy_depth.zip: {len(names)} depth file ({names[0]})')"
+rm -rf "$DEPTH_TMP"
 
 run_stage "Extras: pairwise IBD fractions (krsim relate-strain)" \
     krsim relate-strain \

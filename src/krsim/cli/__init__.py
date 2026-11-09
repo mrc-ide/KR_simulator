@@ -18,6 +18,7 @@ from krsim.cli import (
     relate_host,
     strain_transmission_map,
     pairwise_strain_pedigree_map,
+    depth_zip,
 )
 
 # subcommand name -> module providing HELP, add_arguments(parser), run(args)
@@ -33,6 +34,8 @@ COMMANDS = {
     "relate-host": relate_host,
     "strain-transmission-map": strain_transmission_map,
     "pairwise-strain-pedigree-map": pairwise_strain_pedigree_map,
+    # helper, not a pipeline step: listed last
+    "depth-zip": depth_zip,
 }
 
 

@@ -107,16 +107,15 @@ Outputs `output_{seed}_host.vcf`. With `--save_proportions`, also writes `host_p
 krsim vcf-host-depth \
     --strain_vcf results/output_42_strain.vcf \
     --ind_node_map_csv results/sim_ind_node_map_42.csv \
-    --samples SPT52544 PF1066-Cx RCN08168 \
-    --pf8_dir ~/pf8 \
+    --depth_zip my_depth.zip \
     --random_seed 42 \
     --output_dir results/
 ```
 
-A more realistic alternative to `vcf-host`: instead of one constant `--depth`, each host's read depth follows a real *P. falciparum* sample from [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1).
+A more realistic alternative to `vcf-host`: instead of one constant `--depth`, each host's read depth follows a real sample's [depth profile](realistic-depth.qmd), the mean and SD of its read depth in every 500 bp window.
 
-- **`--samples`:** one Pf8 sample ID per host, in order (the 1st sample goes to the 1st host). The number of samples must equal the number of hosts, and each sample can be used once. IDs are the `Sample` column of Pf8's `Pf8_samples.txt`.
-- **Depth profiles:** a sample's profile is the mean and SD of its read depth in every 500 bp window. It is made the first time the sample is used and kept in `--pf8_dir`'s `output/` folder, so later runs reuse it. Making one downloads the sample's CRAM (0.5–11 GB, deleted afterwards) and needs [mosdepth](https://github.com/brentp/mosdepth): `conda install -c bioconda mosdepth`. Runs that only use existing profiles don't need mosdepth.
+- **`--depth_zip`:** a zip of `<sample>.window_stats.tsv` depth files, made from your own samples with [`krsim depth-zip`](#helper-depth-zip), or an example zip of 100 sWGA or 100 gDNA Pf8 samples. The files must come from reads mapped to the 3D7 reference used by MalariaGEN Pf8 (PlasmoDB-54); krsim checks every file it uses and stops if one doesn't match.
+- **Which file each host gets:** the zip needs at least one file per host. If it has more, files are picked at random, each used at most once. The pick is set by `--random_seed`, so the same seed always gives each host the same file.
 
 The model:
 
@@ -125,7 +124,19 @@ The model:
 3. The depth is split between the host's strains via Multinomial from the proportions
 4. Reads are counted by allele and written as `GT:AD:DP`, with the same genotype rules as `vcf-host` (`./.` where the depth is 0)
 
-Outputs `output_{seed}_host_depth.vcf`, `host_depth_profiles_{seed}.csv` (which Pf8 sample each host's depth came from) and `host_depth_proportions_{seed}.csv`.
+Outputs `output_{seed}_host_depth.vcf`, `host_depth_profiles_{seed}.csv` (which depth file each host got) and `host_depth_proportions_{seed}.csv`.
+:::
+
+::: {.stage}
+### 🧰 Helper — zip of depth files {#helper-depth-zip}
+
+```bash
+krsim depth-zip \
+    --bed sample1.per-base.bed.gz sample2.per-base.bed.gz \
+    --output my_depth.zip
+```
+
+Not a pipeline step: it prepares the input for `vcf-host-depth --depth_zip`. It turns each sample's [mosdepth](https://github.com/brentp/mosdepth) per-base output (`<sample>.per-base.bed.gz`) into a depth file (`<sample>.window_stats.tsv`: mean and SD of depth in every 500 bp window) and puts them all in one zip. Each file is checked against the 3D7 reference used by Pf8. It takes a few seconds per sample.
 :::
 
 ## Pedigree visualizations

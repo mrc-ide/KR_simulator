@@ -17,8 +17,8 @@ Every file name ends in the random seed passed with `--random_seed`. The Stage c
 | `output_{seed}_strain.vcf` | 4 | Per-strain genotypes (0/1) |
 | `output_{seed}_host.vcf` | 5 | Per-host genotypes (0/0, 0/1, 1/1; e.g. 1/2 at multi-allelic sites) with read counts per allele |
 | `host_proportions_{seed}.csv` | 5 | Dirichlet proportions and read counts per host |
-| `output_{seed}_host_depth.vcf` | 5 (alternative) | Per-host genotypes as above, with each host's read depth following a real Pf8 sample (`krsim vcf-host-depth`) |
-| `host_depth_profiles_{seed}.csv` | 5 (alternative) | Which Pf8 sample each host's depth came from, with its sample type, country and year |
+| `output_{seed}_host_depth.vcf` | 5 (alternative) | Per-host genotypes as above, with each host's read depth following a real sample's depth file (`krsim vcf-host-depth`) |
+| `host_depth_profiles_{seed}.csv` | 5 (alternative) | Which depth file each host got: `sim_id`, `ind_id`, `sample` and `depth_file` (its name in the zip) |
 | `host_depth_proportions_{seed}.csv` | 5 (alternative) | Dirichlet proportions per host |
 | `strain_transmission_map_{seed}.html` | additional | Interactive pedigree with mutations; explore it by chromosome and tree |
 | `pairwise_strain_pedigree_map_{seed}.html` | additional | Interactive pedigree coalescence trace for any two strains |

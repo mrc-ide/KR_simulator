@@ -1,4 +1,4 @@
-sim_id,ind_id,pf8_sample,sample_type,country,year
-123,3,SPT52544,sWGA,Mozambique,2017
-123,4,PF1066-Cx,sWGA,Ghana,2014
-123,5,RCN08168,sWGA,Bangladesh,2016
+sim_id,ind_id,sample,depth_file
+123,3,SPT52544,SPT52544.window_stats.tsv
+123,4,PF1066-Cx,PF1066-Cx.window_stats.tsv
+123,5,RCN08168,RCN08168.window_stats.tsv

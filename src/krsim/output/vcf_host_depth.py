@@ -6,7 +6,7 @@ log = logging.getLogger(__name__)
 import numpy as np
 from collections import defaultdict
 
-from krsim.output.pf8_profiles import WINDOW_SIZE, get_profiles, load_profile
+from krsim.output.pf8_profiles import WINDOW_SIZE, load_zip_profile, zip_samples
 
 
 def draw_depth(rng, mean, sd):
@@ -35,15 +35,19 @@ def host_field(counts):
     return f"{gt}:{','.join(str(n) for n in counts)}:{sum(counts)}"
 
 
-def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, samples, pf8_dir, output_dir, random_seed=None):
+def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, depth_zip, output_dir, random_seed=None):
     """
     Aggregates a node-level VCF to host level, with each host's read depth
-    following a real MalariaGEN Pf8 sample (a more realistic alternative to
-    process_host_vcf, which uses one constant depth).
+    following one real sample's depth profile from a zip made by `krsim depth-zip`
+    (a more realistic alternative to process_host_vcf, which uses one constant depth).
+
+    A profile is the mean and SD of read depth in every 500 bp window, in the
+    3D7 reference used by MalariaGEN Pf8.
 
     Once per host:
-      1. it gets one Pf8 sample's depth profile, in order (1st sample -> 1st host);
-         a profile is the mean and SD of depth in every 500 bp window
+      1. it gets one profile from the zip: if the zip has more profiles than
+         there are hosts, profiles are picked at random (set by random_seed),
+         each used at most once
       2. strain proportions are sampled from Dirichlet(alpha=[1, ..., 1])
     At every variant site, for every host:
       3. the host's depth is drawn from its profile window's mean m and SD s:
@@ -54,7 +58,7 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, samples, pf8_dir
          GT lists the two alleles with the most reads; ./. if there are no reads)
 
     Writes output_<seed>_host_depth.vcf, host_depth_profiles_<seed>.csv (which
-    Pf8 sample each host's depth came from) and host_depth_proportions_<seed>.csv.
+    profile each host's depth came from) and host_depth_proportions_<seed>.csv.
     Returns their paths.
     """
     rng = np.random.default_rng(random_seed)
@@ -87,17 +91,16 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, samples, pf8_dir
             ind_to_cols[ind_id].append(col_idx)
     ind_ids = sorted(ind_to_cols)
 
-    # --- one Pf8 sample per host, in order ---
-    if len(samples) != len(ind_ids):
-        raise ValueError(f"{len(ind_ids)} hosts in this simulation, so give exactly {len(ind_ids)} Pf8 samples "
-                         f"(one per host); got {len(samples)}")
-    if len(set(samples)) != len(samples):
-        raise ValueError("each host needs a different Pf8 sample; a sample is listed more than once")
-
-    profile_paths, meta = get_profiles(samples, pf8_dir)
+    # --- one profile per host, picked at random from the zip (sorted first, so a seed always picks the same) ---
+    in_zip = zip_samples(depth_zip)
+    if len(in_zip) < len(ind_ids):
+        raise ValueError(f"{len(ind_ids)} hosts in this simulation, but {depth_zip} has only {len(in_zip)} depth "
+                         f"files; it needs at least one per host")
+    samples = [str(s) for s in rng.choice(sorted(in_zip), size=len(ind_ids), replace=False)]
     host_sample = dict(zip(ind_ids, samples))
-    profiles = {s: load_profile(profile_paths[s]) for s in samples}
-    log.debug(f"{len(ind_ids)} hosts | profiles: " + ", ".join(f"{i}={s}" for i, s in host_sample.items()))
+    profiles = {s: load_zip_profile(depth_zip, in_zip[s]) for s in samples}
+    log.debug(f"{len(ind_ids)} hosts, {len(in_zip)} depth files in {depth_zip} | "
+              + ", ".join(f"{i}={s}" for i, s in host_sample.items()))
 
     # --- strain proportions, once per host ---
     proportions = {ind_id: rng.dirichlet(np.ones(len(ind_to_cols[ind_id]))) for ind_id in ind_ids}
@@ -108,7 +111,8 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, samples, pf8_dir
         for line in meta_lines:
             if line.startswith("##source="):
                 fout.write(line)
-                fout.write("##source=krsim vcf-host-depth (read depth from MalariaGEN Pf8 samples)\n")
+                fout.write("##source=krsim vcf-host-depth (read depth from real depth profiles)\n")
+                fout.write(f"##depth_zip={os.path.basename(depth_zip)}\n")
                 for ind_id in ind_ids:
                     fout.write(f"##depth_profile=<host={ind_id},sample={host_sample[ind_id]}>\n")
             elif line.startswith("##FORMAT=<ID=GT"):
@@ -118,7 +122,7 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, samples, pf8_dir
                 fout.write('##FORMAT=<ID=AD,Number=R,Type=Integer,Description='
                            '"Allelic depths for the ref and each alt allele">\n')
                 fout.write('##FORMAT=<ID=DP,Number=1,Type=Integer,Description='
-                           '"Read depth, drawn from the host\'s Pf8 depth profile">\n')
+                           '"Read depth, drawn from the host\'s depth profile">\n')
             else:
                 fout.write(line)
         fout.write("\t".join(header_cols[:9] + [str(i) for i in ind_ids]) + "\n")
@@ -128,7 +132,7 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, samples, pf8_dir
                 if line.startswith("#"):
                     continue
                 cols = line.rstrip("\n").split("\t")
-                # krsim names chromosomes 1-14, Pf8 Pf3D7_01_v3 ...; VCF positions start at 1
+                # krsim names chromosomes 1-14, profiles use the 3D7 names Pf3D7_01_v3 ...; VCF positions start at 1
                 chrom = f"Pf3D7_{int(cols[0]):02d}_v3"
                 window = (int(cols[1]) - 1) // WINDOW_SIZE
                 n_alleles = 1 + len(cols[4].split(","))
@@ -151,15 +155,14 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, samples, pf8_dir
     if not (os.path.exists(out_vcf) and os.path.getsize(out_vcf) > 0):
         raise RuntimeError(f"host VCF not created properly: {out_vcf}")
 
-    # --- which Pf8 sample each host's depth came from ---
+    # --- which profile each host's depth came from ---
     out_profiles = os.path.join(output_dir, f"host_depth_profiles_{sim_id}.csv")
     with open(out_profiles, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["sim_id", "ind_id", "pf8_sample", "sample_type", "country", "year"])
+        writer.writerow(["sim_id", "ind_id", "sample", "depth_file"])
         for ind_id in ind_ids:
             s = host_sample[ind_id]
-            writer.writerow([sim_id, ind_id, s, meta.loc[s, "Sample type"], meta.loc[s, "Country"],
-                             int(meta.loc[s, "Year"])])
+            writer.writerow([sim_id, ind_id, s, in_zip[s]])
 
     # --- each host's strain proportions ---
     out_props = os.path.join(output_dir, f"host_depth_proportions_{sim_id}.csv")
