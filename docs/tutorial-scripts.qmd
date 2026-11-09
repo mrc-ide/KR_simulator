@@ -20,18 +20,13 @@ krsim vcf-host   --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT
                  --depth 10 --random_seed 123 --output_dir $OUT
 ```
 
-`vcf-host-depth` gives each host the [realistic read depth](realistic-depth.qmd) of a real Pf8 sample, one sample per host. It needs a depth table for each sample; download three small ones from this website into `pf8/` first:
+`vcf-host-depth` gives each host the [realistic read depth](realistic-depth.qmd) of a real sample. It reads a zip of depth files, one per host or more; download a small one with three Pf8 samples from this website first:
 
 ```bash
-URL=https://mrc-ide.github.io/KR_simulator/data/pf8
-mkdir -p pf8/input pf8/output
-curl -o pf8/input/Pf8_samples.txt $URL/input/Pf8_samples.txt
-for s in SPT52544 PF1066-Cx RCN08168; do
-    curl -o pf8/output/$s.window_stats.tsv.gz $URL/output/$s.window_stats.tsv.gz
-done
+curl -O https://mrc-ide.github.io/KR_simulator/data/tutorial_depth.zip
 
 krsim vcf-host-depth --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT/sim_ind_node_map_123.csv \
-                     --samples SPT52544 PF1066-Cx RCN08168 --pf8_dir pf8 --random_seed 123 --output_dir $OUT
+                     --depth_zip tutorial_depth.zip --random_seed 123 --output_dir $OUT
 ```
 
 Each command prints the files it wrote. Every file name ends in the random seed (`123` here), and every command adds a record of what it ran to `KR_sim_123.log`.
@@ -43,6 +38,6 @@ Each command prints the files it wrote. Every file name ends in the random seed 
 | `coal-mut` | `ts_mut_123.trees` | `coal_T_123.csv`, `mut_T_123.csv` |
 | `vcf-strain` | `ts_mut_123.trees` | `output_123_strain.vcf` |
 | `vcf-host` | `output_123_strain.vcf`, `sim_ind_node_map_123.csv` | `output_123_host.vcf` |
-| `vcf-host-depth` | `output_123_strain.vcf`, `sim_ind_node_map_123.csv`, the Pf8 depth tables in `pf8/` | `output_123_host_depth.vcf`, `host_depth_profiles_123.csv`, `host_depth_proportions_123.csv` |
+| `vcf-host-depth` | `output_123_strain.vcf`, `sim_ind_node_map_123.csv`, `tutorial_depth.zip` | `output_123_host_depth.vcf`, `host_depth_profiles_123.csv`, `host_depth_proportions_123.csv` |
 
 See the [command-line reference](commands.qmd) for every option.

@@ -2,7 +2,7 @@
 title: "🧬 Realistic read depth"
 ---
 
-`krsim vcf-host` gives every host the same read depth at every site (`--depth`, e.g. 10 reads). Real sequencing is far less even. `krsim vcf-host-depth` is an alternative that gives each host the read depth of a **real *P. falciparum* sample** from [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1), so the host VCF has the gaps, spikes and low-depth sites of real data. Both commands read the same strain VCF, so you can make either host VCF, or both, from one simulation.
+`krsim vcf-host` gives every host the same read depth at every site (`--depth`, e.g. 10 reads). Real sequencing is far less even. `krsim vcf-host-depth` is an alternative that gives each host the read depth of a **real sample**: your own sequenced samples, or real *P. falciparum* samples from [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1). The host VCF then has the gaps, spikes and low-depth sites of real data. Both commands read the same strain VCF, so you can make either host VCF, or both, from one simulation.
 
 ## Why depth matters
 
@@ -16,25 +16,60 @@ Within each window, depth also varies more than pure chance (a Poisson distribut
 
 ![Spread of depth within each 500 bp window for 11 Pf8 sWGA samples: each dot is a window, and the dashed line is what a Poisson would give.](images/depth_spread_sWGA_samples.png){fig-alt="Eleven scatter panels of window SD against window mean on log-log axes, one per sample; in every panel most points lie above the dashed Poisson line, increasingly so at higher depth."}
 
+## What krsim needs: a zip of depth files
+
+krsim reads depth from **one zip file** that holds one small depth file per sample: `<sample>.window_stats.tsv`, the mean and SD of that sample's read depth in every 500 bp window of the genome. Each file is under 1 MB zipped, so a zip of 100 samples is about 50 MB.
+
+::: {.callout-important}
+## Use the 3D7 reference used by Pf8
+
+krsim simulates the *P. falciparum* 3D7 reference genome used by MalariaGEN Pf8 (PlasmoDB-54, chromosomes `Pf3D7_01_v3` … `Pf3D7_14_v3`). By default, your reads must be mapped to this reference, so that the depth files line up with the simulated sites. krsim checks the chromosome names and lengths in every file and stops with a message if they don't match.
+:::
+
+### Your own samples
+
+1. Run [mosdepth](https://github.com/brentp/mosdepth) on each sample's aligned reads (BAM or CRAM, mapped to the 3D7 reference above). It writes `<sample>.per-base.bed.gz`, the depth at every base:
+
+   ```bash
+   conda install -c bioconda mosdepth
+   mosdepth --fasta PlasmoDB-54-Pfalciparum3D7-Genome.fasta sample1 sample1.cram
+   ```
+
+2. Turn the per-base files into depth files and zip them with the helper `krsim depth-zip` (a few seconds per sample):
+
+   ```bash
+   krsim depth-zip --bed sample1.per-base.bed.gz sample2.per-base.bed.gz ... --output my_depth.zip
+   ```
+
+   The per-base files are large (tens of MB per sample), so krsim only takes the small depth files. If you make the depth files another way, zip them yourself: each needs the columns `chrom`, `start`, `end`, `mean` and `sd`, one row per 500 bp window, starting at 0.
+
+3. Make the host VCF:
+
+   ```bash
+   krsim vcf-host-depth --strain_vcf results/output_42_strain.vcf \
+       --ind_node_map_csv results/sim_ind_node_map_42.csv \
+       --depth_zip my_depth.zip --random_seed 42 --output_dir results/
+   ```
+
+### Example zips from Pf8
+
+To try it without your own data, download one of two example zips from the [krsim releases](https://github.com/mrc-ide/KR_simulator/releases) (to be published):
+
+| Zip | Samples |
+|---|---|
+| `pf8_sWGA_100.zip` | 100 sWGA samples that passed Pf8 QC, picked at random |
+| `pf8_gDNA_100.zip` | 100 gDNA samples that passed Pf8 QC, picked at random |
+
+Each comes with a list of its samples (country, year, study). Use either zip as `--depth_zip`.
+
 ## How it works
 
-Each host is given one Pf8 sample's **depth profile**: the mean and SD of that sample's read depth in every 500 bp window of the genome. Then, as in `vcf-host`, each host's strain proportions are drawn once from a Dirichlet. At every site, for every host:
-
-1. find the 500 bp window the site is in, and its mean and SD of depth
-2. draw the host's read depth there from a **negative binomial** with that mean and SD (it allows the extra variation real depth shows)
-3. split those reads between the host's strains, in proportion to the strains' shares (a Multinomial)
-4. count the reads carrying each allele, and write `GT:AD:DP` as in `vcf-host`
+1. **Each host gets one depth file.** The zip needs at least one file per host (`Nh`). If it has more, krsim picks files at random, each used at most once. The pick is set by `--random_seed`, so the same seed always gives each host the same file. `host_depth_profiles_<seed>.csv` records which file each host got.
+2. **Strain proportions**: as in `vcf-host`, each host's strain proportions are drawn once from a Dirichlet.
+3. At every site, for every host:
+   1. find the 500 bp window the site is in, and its mean and SD of depth
+   2. draw the host's read depth there from a **negative binomial** with that mean and SD (it allows the extra variation real depth shows)
+   3. split those reads between the host's strains, in proportion to the strains' shares (a Multinomial)
+   4. count the reads carrying each allele, and write `GT:AD:DP` as in `vcf-host`
 
 Only the read depth comes from the real sample. Which strains each host carries, their alleles and their proportions all come from the simulation, as before. See the [command reference](commands.qmd) for the full details.
-
-## Using other Pf8 samples
-
-Any sample in Pf8 can be used: pick IDs from the `Sample` column of Pf8's [`Pf8_samples.txt`](https://zenodo.org/records/18681980/files/Pf8_samples.txt) (for example, sWGA samples that passed QC, with `Sample type` = `sWGA` and `QC pass` = `True`). Give exactly one sample per host, each sample once.
-
-The first time a sample is used, krsim makes its depth profile: it downloads the sample's aligned reads (a CRAM file of 0.5–11 GB) from the [European Nucleotide Archive](https://www.ebi.ac.uk/ena/browser/view/PRJEB96783), counts the depth at every base with [mosdepth](https://github.com/brentp/mosdepth), saves the 500 bp window means and SDs in `--pf8_dir`'s `output/` folder, and deletes the CRAM. Later runs reuse the saved profile. This step needs mosdepth installed in your `krsim` environment:
-
-```bash
-conda install -c bioconda mosdepth
-```
-
-Runs that only use profiles you already have don't need mosdepth.

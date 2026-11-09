@@ -3,7 +3,7 @@ project:
   output-dir: _site
   resources:
     - maps/*.html
-    - data/pf8/**   # small Pf8 depth tables for the realistic-depth tutorial
+    - data/tutorial_depth.zip   # three small Pf8 depth files for the realistic-depth tutorial
 
 website:
   title: "krsim"
