@@ -5,7 +5,8 @@
 # the pedigree-tracing outputs, then the strain transmission map + pairwise
 # strain pedigree map (which only need Stage 1), then mutations,
 # coalescence/mutation time tables, strain/host VCFs (including the host VCF with
-# real read depth, from the three small depth profiles in tests/data/test_depth.zip),
+# real read depth, from the three small depth profiles in tests/data/test_depth.zip, and
+# with modelled sWGA and gDNA read depth),
 # the depth-zip helper (on a tiny made-up mosdepth file), and the coalescence-time
 # relatedness extras -- printing the resulting files so you can eyeball that
 # each stage worked.
@@ -142,6 +143,39 @@ run_stage "Stage 5 (alternative): Host VCF, read depth from a zip of depth files
     --depth_zip "tests/data/test_depth.zip" \
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
+
+# modelled depth, one run per sample type: both write output_<seed>_host_depth.vcf etc., so each runs in its
+# own folder and its files are moved into $OUT_DIR renamed *_model_<type>.* for the regression check
+for TYPE in sWGA gDNA; do
+    MODEL_TMP="$OUT_DIR/model_$TYPE"
+    run_stage "Stage 5 (alternative): Host VCF, modelled $TYPE read depth" \
+        krsim vcf-host-depth \
+        --strain_vcf "$STRAIN_VCF" \
+        --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \
+        --depth_model "$TYPE" \
+        --random_seed "$SEED" \
+        --output_dir "$MODEL_TMP"
+    mv "$MODEL_TMP/output_${SEED}_host_depth.vcf" "$OUT_DIR/output_${SEED}_host_depth_model_${TYPE}.vcf"
+    mv "$MODEL_TMP/host_depth_profiles_${SEED}.csv" "$OUT_DIR/host_depth_profiles_${SEED}_model_${TYPE}.csv"
+    mv "$MODEL_TMP/host_depth_proportions_${SEED}.csv" "$OUT_DIR/host_depth_proportions_${SEED}_model_${TYPE}.csv"
+    rm -rf "$MODEL_TMP"
+done
+check "
+import numpy as np
+from krsim.output.depth_model import model_settings, relative_track, host_depths
+from krsim.output.pf8_profiles import CHROMS
+for t in ['sWGA', 'gDNA']:
+    s = model_settings(t)
+    tr = relative_track(np.random.default_rng(1), s)
+    allw = np.concatenate([tr[c] for c in CHROMS])
+    assert allw.max() <= s['cap'] + 1e-9, 'cap not applied'
+    k = int(s['end_width'] // 500)
+    if k:
+        ends = np.concatenate([np.r_[tr[c][:k], tr[c][-k:]] for c in CHROMS])
+        assert np.median(ends) < 0.5 * np.median(allw), 'end zone not lowered'
+    assert np.all(host_depths(np.random.default_rng(1), model_settings(t, depth_spread=0.0), 5) == s['depth_mean'])
+    print(f'{t} model: median window {np.median(allw):.2f}x (expect about 1), highest {allw.max():.0f}x '
+          f'(cap {s[\"cap\"]:.0f}x), end zone {s[\"end_width\"]:,.0f} bp; --depth_spread 0 gives one typical depth')"
 
 # a tiny made-up mosdepth per-base file: depth 30 along every 3D7 chromosome
 # (written outside $OUT_DIR, so the regression check doesn't compare it)

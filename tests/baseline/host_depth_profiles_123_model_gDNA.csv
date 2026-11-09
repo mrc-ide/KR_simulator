@@ -1,0 +1,4 @@
+sim_id,ind_id,depth_model,typical_depth
+123,3,"ARMA(2,2) t",43.05
+123,4,"ARMA(2,2) t",125.845
+123,5,"ARMA(2,2) t",57.601

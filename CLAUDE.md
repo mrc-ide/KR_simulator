@@ -27,7 +27,7 @@ Full record: [real_data/pf8/model_comparison/RECORD.md](real_data/pf8/model_comp
 realistic starting point, better than one depth value across the whole genome. Users who need detail
 supply their own depth data (`krsim vcf-host-depth`). Don't push for further model refinement.
 
-**Not yet in krsim**: nothing in `src/` uses these models.
+**In krsim since 2026-11-09** (branch `depth-model`): `krsim vcf-host-depth --depth_model sWGA|gDNA`; see the section below.
 
 ### Where things are
 
@@ -53,14 +53,6 @@ supply their own depth data (`krsim vcf-host-depth`). Don't push for further mod
 - `best_simple_model.py <pf8_dir> <out>` expects `<pf8_dir>/samples.tsv` (columns `Sample`, `Sample type`) and
   `<pf8_dir>/<sample>/depth_plots/<sample>.window_stats.tsv`; point it at a folder laid out that way.
 
-**Next steps (waiting for the user's go-ahead before changing code):**
-1. Choose the parameters to ship (e.g. median over samples per type; maybe leave out the sWGA-like gDNA
-   samples QC0637-C, RCN12993, SPT00902).
-2. Decide how the depth level is set (user value or drawn from the real samples' range).
-3. Build it into krsim as a third host-VCF option: per host, log depth from the model, reads per site drawn
-   around that depth, split between strains as in `vcf-host-depth`.
-4. Maybe update RECORD.md with the new-20 results and the corrected wording above.
-
 ## User depth zips for the host VCF (status, 2026-11-09, branch `depth-zip`)
 
 `krsim vcf-host-depth --depth_zip FILE` replaces the old Pf8 download route (`--samples`, `--pf8_dir`, ENA
@@ -80,13 +72,33 @@ CC BY 4.0; the docs and release notes cite MalariaGEN et al. (2025), Wellcome Op
 - **Other references / chromosome lengths.** krsim is fixed to the 3D7 chromosome lengths used by Pf8
   (PlasmoDB-54, `COMP_BREAKPOINTS` / `GENOME_LENGTH` in `src/krsim/sim/params.py`), and depth files must match them.
   Later: an option to give other chromosome names and lengths.
-- **Modelled depth (`--depth_model sWGA|gDNA`).** Depth simulated from the chosen models above, then the same
-  Dirichlet + per-site Multinomial as `--depth_zip`. Simulate through every window (correlation; t kicks have no
-  closed-form jump) but keep only SNP windows. Open decisions, to go through one at a time with the user:
-  1. parameters: one median set per type (`model_fits/shared_params.tsv`) vs each host drawing a real sample's
-     fitted set (recommended: real between-host variation);
-  2. depth level: user value vs drawn from real sample medians (model is relative to the median);
-  3. within-window SD for the per-site draw (rough fit log sd = a + b log mean; noisy);
-  4. cap on extreme spikes (t kicks give absurd maxima, far beyond real data);
-  5. sWGA chromosome ends (50 kb trimmed from fits; ~57% of real sWGA end windows are near zero; gDNA fine);
-  6. CLI shape (proposed: `vcf-host-depth --depth_model`).
+
+## Modelled depth for the host VCF (status, 2026-11-09, branch `depth-model`)
+
+`krsim vcf-host-depth --depth_model sWGA|gDNA` (instead of `--depth_zip`). Code: `src/krsim/output/depth_model.py`;
+defaults: `src/krsim/data/depth_model_defaults.json`, made by
+`real_data/pf8/model_comparison/make_depth_model_defaults.py` (`reuse` rebuilds from the saved per-sample table
+`$PF8/model_fits/depth_model_samples.tsv` in seconds). Design agreed with the user, one part at a time:
+
+1. One shared model per type (sWGA AR(8) t, gDNA ARMA(2,2) t); defaults = Pf8 medians (`shared_params.tsv`).
+2. Each host's typical (median) depth drawn once from a log-normal of Pf8 sample medians: centre 63.0x / 76.8x,
+   SD of log 0.919 / 0.910 (robust, IQR / 1.349). `--depth_mean`, `--depth_spread` (0 = all hosts the same).
+3. Window depth = typical depth x relative track; relative track = exp(y + offset) - 0.05, ends lowered, scaled to
+   median 1 over the genome, capped. Site depth = Poisson(window depth). The whole track is simulated
+   (2,000-window burn-in per chromosome) but only SNP windows are kept.
+4. Cap = 99th percentile over samples of (highest window / median): 14,293x sWGA, 116x gDNA. The model's upper
+   tail is far heavier than real (typical simulated sWGA host max ~1,900x vs real 175x), so the cap binds often,
+   especially for gDNA.
+5. sWGA end zone: 5 kb end bins with median depth / sample median < 0.1 -> 30 kb at 0.0035x. Real sWGA stays
+   ~0.2x from 30 to 65 kb (not modelled). gDNA ends are slightly high (1.3-1.5x), so no zone.
+6. `--depth_params FILE.json` overrides any of ar, ma, mu, scale, nu, offset, cap, end_width, end_factor,
+   depth_mean, depth_spread; the defaults are listed in `vcf-host-depth --help` (no helper command, as the user chose).
+
+Outputs: VCF header `##depth_model=<...>` (all values) and `##depth_host=<host,typical_depth>`;
+`host_depth_profiles_<seed>.csv` columns sim_id, ind_id, depth_model, typical_depth. scipy is now a dependency.
+Check vs 100 real samples per type: typical depth, correlation (lag 1 and 20), spread and share of windows <5x all
+close; upper tail too heavy (99th percentile of window/median 26x vs 15x sWGA, 5.2x vs 2.0x gDNA); gDNA 10th
+percentile 0.42 vs 0.32 (too few low windows). Tests: `tests/test_sim_mut.sh` runs both types (outputs renamed
+`*_model_<type>.*`) plus checks of the cap, end zone and `--depth_spread 0`.
+
+Open: the user may replace constant-depth `vcf-host` with this; revisit.

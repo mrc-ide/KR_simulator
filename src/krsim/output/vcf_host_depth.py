@@ -7,6 +7,7 @@ import numpy as np
 from collections import defaultdict
 
 from krsim.output.pf8_profiles import WINDOW_SIZE, load_zip_profile, zip_samples
+from krsim.output import depth_model as dm
 
 
 def draw_depth(rng, mean, sd):
@@ -35,32 +36,39 @@ def host_field(counts):
     return f"{gt}:{','.join(str(n) for n in counts)}:{sum(counts)}"
 
 
-def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, depth_zip, output_dir, random_seed=None):
+def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, output_dir, random_seed=None,
+                           depth_zip=None, depth_model=None):
     """
-    Aggregates a node-level VCF to host level, with each host's read depth
-    following one real sample's depth profile from a zip made by `krsim depth-zip`
-    (a more realistic alternative to process_host_vcf, which uses one constant depth).
+    Aggregates a node-level VCF to host level with realistic read depth (an
+    alternative to process_host_vcf, which uses one constant depth). The depth
+    comes from one of two sources; give exactly one:
 
-    A profile is the mean and SD of read depth in every 500 bp window, in the
-    3D7 reference used by MalariaGEN Pf8.
+    depth_zip: real depth profiles, from a zip made by `krsim depth-zip`. A
+      profile is the mean and SD of read depth in every 500 bp window, in the 3D7
+      reference used by MalariaGEN Pf8. Each host gets one profile; if the zip has
+      more profiles than hosts, they are picked at random (set by random_seed),
+      each used at most once. At each site the depth is drawn from the window's
+      mean m and SD s: negative binomial (r = m^2 / (s^2 - m), p = r / (r + m));
+      Poisson(m) if s^2 <= m; 0 if m = 0.
 
-    Once per host:
-      1. it gets one profile from the zip: if the zip has more profiles than
-         there are hosts, profiles are picked at random (set by random_seed),
-         each used at most once
-      2. strain proportions are sampled from Dirichlet(alpha=[1, ..., 1])
-    At every variant site, for every host:
-      3. the host's depth is drawn from its profile window's mean m and SD s:
-         negative binomial (r = m^2 / (s^2 - m), p = r / (r + m)); Poisson(m)
-         if s^2 <= m; 0 if m = 0
-      4. the depth is split between the host's strains: Multinomial(depth, proportions)
-      5. reads are tallied by allele -> GT:AD:DP (AD has one count per allele;
-         GT lists the two alleles with the most reads; ./. if there are no reads)
+    depth_model: settings from depth_model.model_settings (sWGA AR(8) t or gDNA
+      ARMA(2,2) t). Each host gets a typical depth drawn from a log-normal and its
+      own simulated depth track along the genome (see krsim.output.depth_model);
+      at each site the depth is Poisson(window depth).
 
-    Writes output_<seed>_host_depth.vcf, host_depth_profiles_<seed>.csv (which
-    profile each host's depth came from) and host_depth_proportions_<seed>.csv.
-    Returns their paths.
+    Then, as for both:
+      - strain proportions, once per host, from Dirichlet(alpha=[1, ..., 1])
+      - at every variant site, the depth is split between the host's strains:
+        Multinomial(depth, proportions), and reads are tallied by allele -> GT:AD:DP
+        (AD has one count per allele; GT lists the two alleles with the most reads;
+        ./. if there are no reads)
+
+    Writes output_<seed>_host_depth.vcf, host_depth_profiles_<seed>.csv (each
+    host's depth source: profile, or typical depth for the model) and
+    host_depth_proportions_<seed>.csv. Returns their paths.
     """
+    if (depth_zip is None) == (depth_model is None):
+        raise ValueError("give exactly one depth source: a depth zip or a depth model")
     rng = np.random.default_rng(random_seed)
 
     # --- build node_id -> ind_id from CSV for this sim_id ---
@@ -91,19 +99,46 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, depth_zip, outpu
             ind_to_cols[ind_id].append(col_idx)
     ind_ids = sorted(ind_to_cols)
 
-    # --- one profile per host, picked at random from the zip (sorted first, so a seed always picks the same) ---
-    in_zip = zip_samples(depth_zip)
-    if len(in_zip) < len(ind_ids):
-        raise ValueError(f"{len(ind_ids)} hosts in this simulation, but {depth_zip} has only {len(in_zip)} depth "
-                         f"files; it needs at least one per host")
-    samples = [str(s) for s in rng.choice(sorted(in_zip), size=len(ind_ids), replace=False)]
-    host_sample = dict(zip(ind_ids, samples))
-    profiles = {s: load_zip_profile(depth_zip, in_zip[s]) for s in samples}
-    log.debug(f"{len(ind_ids)} hosts, {len(in_zip)} depth files in {depth_zip} | "
-              + ", ".join(f"{i}={s}" for i, s in host_sample.items()))
+    if depth_zip is not None:
+        # --- one profile per host, picked at random from the zip (sorted first, so a seed always picks the same) ---
+        in_zip = zip_samples(depth_zip)
+        if len(in_zip) < len(ind_ids):
+            raise ValueError(f"{len(ind_ids)} hosts in this simulation, but {depth_zip} has only {len(in_zip)} "
+                             f"depth files; it needs at least one per host")
+        samples = [str(s) for s in rng.choice(sorted(in_zip), size=len(ind_ids), replace=False)]
+        host_sample = dict(zip(ind_ids, samples))
+        profiles = {s: load_zip_profile(depth_zip, in_zip[s]) for s in samples}
+        log.debug(f"{len(ind_ids)} hosts, {len(in_zip)} depth files in {depth_zip} | "
+                  + ", ".join(f"{i}={s}" for i, s in host_sample.items()))
+
+        def site_depth(ind_id, chrom, window):
+            means, sds = profiles[host_sample[ind_id]][chrom]
+            return draw_depth(rng, means[window], sds[window])
 
     # --- strain proportions, once per host ---
     proportions = {ind_id: rng.dirichlet(np.ones(len(ind_to_cols[ind_id]))) for ind_id in ind_ids}
+
+    if depth_model is not None:
+        # --- modelled depth: a typical depth per host, then its own track along the genome, kept only at the
+        # windows that hold a variant site (the whole track is simulated, so its correlation along the genome holds)
+        typical = dict(zip(ind_ids, dm.host_depths(rng, depth_model, len(ind_ids))))
+        site_windows = defaultdict(set)
+        with open(input_vcf) as fin:
+            for line in fin:
+                if not line.startswith("#"):
+                    chrom, pos = line.split("\t", 2)[:2]
+                    site_windows[f"Pf3D7_{int(chrom):02d}_v3"].add((int(pos) - 1) // WINDOW_SIZE)
+        site_windows = {c: np.array(sorted(w)) for c, w in site_windows.items()}
+        where = {c: {int(w): i for i, w in enumerate(ws)} for c, ws in site_windows.items()}
+        kept = {}
+        for ind_id in ind_ids:
+            track = dm.relative_track(rng, depth_model)
+            kept[ind_id] = {c: typical[ind_id] * track[c][ws] for c, ws in site_windows.items()}
+        log.debug(f"{len(ind_ids)} hosts, modelled depth ({depth_model['model']}) | typical depth: "
+                  + ", ".join(f"{i}={typical[i]:.1f}" for i in ind_ids))
+
+        def site_depth(ind_id, chrom, window):
+            return int(rng.poisson(kept[ind_id][chrom][where[chrom][window]]))
 
     # --- write host-level VCF: one depth draw per site per host, split between its strains ---
     out_vcf = os.path.join(output_dir, f"output_{sim_id}_host_depth.vcf")
@@ -111,10 +146,16 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, depth_zip, outpu
         for line in meta_lines:
             if line.startswith("##source="):
                 fout.write(line)
-                fout.write("##source=krsim vcf-host-depth (read depth from real depth profiles)\n")
-                fout.write(f"##depth_zip={os.path.basename(depth_zip)}\n")
-                for ind_id in ind_ids:
-                    fout.write(f"##depth_profile=<host={ind_id},sample={host_sample[ind_id]}>\n")
+                if depth_zip is not None:
+                    fout.write("##source=krsim vcf-host-depth (read depth from real depth profiles)\n")
+                    fout.write(f"##depth_zip={os.path.basename(depth_zip)}\n")
+                    for ind_id in ind_ids:
+                        fout.write(f"##depth_profile=<host={ind_id},sample={host_sample[ind_id]}>\n")
+                else:
+                    fout.write("##source=krsim vcf-host-depth (modelled read depth)\n")
+                    fout.write(f"##depth_model=<{dm.describe(depth_model)}>\n")
+                    for ind_id in ind_ids:
+                        fout.write(f"##depth_host=<host={ind_id},typical_depth={typical[ind_id]:.3f}>\n")
             elif line.startswith("##FORMAT=<ID=GT"):
                 fout.write('##FORMAT=<ID=GT,Number=1,Type=String,Description="Host genotype from reads: '
                            '0/0=all ref reads, 1/1=all alt reads, 0/1=mixed reads; '
@@ -122,7 +163,8 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, depth_zip, outpu
                 fout.write('##FORMAT=<ID=AD,Number=R,Type=Integer,Description='
                            '"Allelic depths for the ref and each alt allele">\n')
                 fout.write('##FORMAT=<ID=DP,Number=1,Type=Integer,Description='
-                           '"Read depth, drawn from the host\'s depth profile">\n')
+                           '"Read depth, drawn from the host\'s ' + ("depth profile" if depth_zip is not None else "modelled depth")
+                           + '">\n')
             else:
                 fout.write(line)
         fout.write("\t".join(header_cols[:9] + [str(i) for i in ind_ids]) + "\n")
@@ -139,8 +181,7 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, depth_zip, outpu
 
                 sample_fields = []
                 for ind_id in ind_ids:
-                    means, sds = profiles[host_sample[ind_id]][chrom]
-                    depth = draw_depth(rng, means[window], sds[window])
+                    depth = site_depth(ind_id, chrom, window)
                     strain_reads = rng.multinomial(depth, proportions[ind_id])
                     counts = [0] * n_alleles
                     for reads, col_idx in zip(strain_reads, ind_to_cols[ind_id]):
@@ -155,14 +196,19 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, depth_zip, outpu
     if not (os.path.exists(out_vcf) and os.path.getsize(out_vcf) > 0):
         raise RuntimeError(f"host VCF not created properly: {out_vcf}")
 
-    # --- which profile each host's depth came from ---
+    # --- each host's depth source: which profile, or its typical depth under the model ---
     out_profiles = os.path.join(output_dir, f"host_depth_profiles_{sim_id}.csv")
     with open(out_profiles, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["sim_id", "ind_id", "sample", "depth_file"])
-        for ind_id in ind_ids:
-            s = host_sample[ind_id]
-            writer.writerow([sim_id, ind_id, s, in_zip[s]])
+        if depth_zip is not None:
+            writer.writerow(["sim_id", "ind_id", "sample", "depth_file"])
+            for ind_id in ind_ids:
+                s = host_sample[ind_id]
+                writer.writerow([sim_id, ind_id, s, in_zip[s]])
+        else:
+            writer.writerow(["sim_id", "ind_id", "depth_model", "typical_depth"])
+            for ind_id in ind_ids:
+                writer.writerow([sim_id, ind_id, depth_model["model"], round(float(typical[ind_id]), 3)])
 
     # --- each host's strain proportions ---
     out_props = os.path.join(output_dir, f"host_depth_proportions_{sim_id}.csv")

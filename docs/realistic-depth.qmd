@@ -2,7 +2,14 @@
 title: "🧬 Realistic read depth"
 ---
 
-`krsim vcf-host` gives every host the same read depth at every site (`--depth`, e.g. 10 reads). Real sequencing is far less even. `krsim vcf-host-depth` is an alternative that gives each host the read depth of a **real sample**: your own sequenced samples, or real *P. falciparum* samples from [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1). The host VCF then has the gaps, spikes and low-depth sites of real data. Both commands read the same strain VCF, so you can make either host VCF, or both, from one simulation.
+`krsim vcf-host` gives every host the same read depth at every site (`--depth`, e.g. 10 reads). Real sequencing is far less even. `krsim vcf-host-depth` is an alternative that gives each host realistic read depth, so the host VCF has the gaps, spikes and low-depth sites of real data. It has two ways to get the depth:
+
+| Option | Depth comes from | You need |
+|---|---|---|
+| [**1. Depth files**](#option-1-depth-files) (`--depth_zip`) | real samples: your own, or example *P. falciparum* samples from [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1) | a zip of depth files (or an example zip) |
+| [**2. Depth model**](#option-2-depth-model) (`--depth_model sWGA` or `gDNA`) | a model of depth along the genome, fitted to Pf8 | nothing: just pick the sample type |
+
+`vcf-host` and `vcf-host-depth` read the same strain VCF, so you can make either host VCF, or both, from one simulation.
 
 ## Why depth matters
 
@@ -16,7 +23,7 @@ Within each window, depth also varies more than pure chance (a Poisson distribut
 
 ![Spread of depth within each 500 bp window for 11 Pf8 sWGA samples: each dot is a window, and the dashed line is what a Poisson would give.](images/depth_spread_sWGA_samples.png){fig-alt="Eleven scatter panels of window SD against window mean on log-log axes, one per sample; in every panel most points lie above the dashed Poisson line, increasingly so at higher depth."}
 
-## What krsim needs: a zip of depth files
+## Option 1: depth files {#option-1-depth-files}
 
 krsim reads depth from **one zip file** that holds one small depth file per sample: `<sample>.window_stats.tsv`, the mean and SD of that sample's read depth in every 500 bp window of the genome. Each file is under 1 MB zipped, so a zip of 100 samples is about 50 MB.
 
@@ -64,7 +71,7 @@ Use either zip as `--depth_zip`. Each zip also holds `samples.tsv`, listing its 
 
 The example depth files are made from the reads of [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1), whose data are released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). If you use them, please cite: MalariaGEN et al. (2025). Pf8: an open dataset of *Plasmodium falciparum* genome variation in 33,325 worldwide samples. *Wellcome Open Research* 10:325.
 
-## How it works
+### How option 1 works
 
 1. **Each host gets one depth file.** The zip needs at least one file per host (`Nh`). If it has more, krsim picks files at random, each used at most once. The pick is set by `--random_seed`, so the same seed always gives each host the same file. `host_depth_profiles_<seed>.csv` records which file each host got.
 2. **Strain proportions**: as in `vcf-host`, each host's strain proportions are drawn once from a Dirichlet.
@@ -74,4 +81,59 @@ The example depth files are made from the reads of [MalariaGEN Pf8](https://doi.
    3. split those reads between the host's strains, in proportion to the strains' shares (a Multinomial)
    4. count the reads carrying each allele, and write `GT:AD:DP` as in `vcf-host`
 
-Only the read depth comes from the real sample. Which strains each host carries, their alleles and their proportions all come from the simulation, as before. See the [command reference](commands.qmd) for the full details.
+Only the read depth comes from the real sample. Which strains each host carries, their alleles and their proportions all come from the simulation, as before.
+
+## Option 2: depth model {#option-2-depth-model}
+
+No depth files needed: krsim simulates each host's depth along the genome from a model fitted to the QC-pass samples of MalariaGEN Pf8. Pick the sample type:
+
+```bash
+krsim vcf-host-depth --strain_vcf results/output_42_strain.vcf \
+    --ind_node_map_csv results/sim_ind_node_map_42.csv \
+    --depth_model sWGA --random_seed 42 --output_dir results/
+```
+
+| `--depth_model` | Model of depth along the genome | Fitted to |
+|---|---|---|
+| `sWGA` | AR(8) with Student t kicks | 17,330 QC-pass Pf8 sWGA samples |
+| `gDNA` | ARMA(2,2) with Student t kicks | 6,815 QC-pass Pf8 gDNA samples |
+
+These were the best of the models we compared on held-out data, for most samples of each type. Nearby windows have similar depth (the AR / ARMA part), and the Student t kicks allow the sudden drops and spikes real depth shows.
+
+### How option 2 works
+
+The model describes depth **relative to a host's own typical depth**, e.g. "this window is 3× the usual" or "a tenth of it". So each host's depth is:
+
+**window depth = the host's typical depth × the model's relative value for that window**
+
+1. **Typical depth, once per host**: drawn from a log-normal fitted to the typical depths of Pf8 samples, so some hosts are sequenced more deeply than others, as in real data (by default centred on 63× for sWGA and 77× for gDNA).
+2. **Depth along the genome, once per host**: the host's own random track of relative depth from the model, one value per 500 bp window. Every host's track is different, so dips and spikes fall in different places; what hosts share is the model, i.e. how patchy depth is.
+3. **Two limits from real data**: no window above a cap (14,293× the typical depth for sWGA, 116× for gDNA: only 1% of real Pf8 samples have a window above it), and, for sWGA only, low depth near chromosome ends (the last 30 kb of each end gets 0.004× the depth), since sWGA barely amplifies the subtelomeres.
+4. **Strain proportions**: as in option 1, once per host from a Dirichlet.
+5. At every site, for every host: the read depth is drawn from a Poisson around the window's depth, split between the host's strains with a Multinomial, and written as `GT:AD:DP`.
+
+`host_depth_profiles_<seed>.csv` records each host's typical depth, and the VCF header lists every model value used.
+
+### Changing the model
+
+The defaults are the median values over all QC-pass Pf8 samples of each type; `krsim vcf-host-depth --help` lists them all. To change them:
+
+- `--depth_mean 30`: centre the hosts' typical depths on 30× instead
+- `--depth_spread 0`: give every host the same typical depth (`--depth_mean`), e.g. to test a method at one fixed depth
+- `--depth_params my_params.json`: change any other value. List only what you want to change, e.g.
+
+  ```json
+  {"nu": 3.0, "cap": 1000}
+  ```
+
+  The settings are `ar` and `ma` (lists of model coefficients), `mu`, `scale` and `nu` (the t kicks: centre, size and tail weight; a smaller `nu` gives more big jumps), `offset`, `cap`, `end_width` (bp) and `end_factor`, and `depth_mean` and `depth_spread`.
+
+### What the model leaves out
+
+The model is a realistic starting point, not a copy of real data. If you need these details, use option 1 with real depth files:
+
+- In real data, the same regions tend to be low in every sample; here each host's dips fall in different places.
+- All hosts share one level of patchiness; only their typical depth differs.
+- Read depth within a window varies only by chance (Poisson); real depth varies a little more.
+
+See the [command reference](commands.qmd) for the full details of both options.
