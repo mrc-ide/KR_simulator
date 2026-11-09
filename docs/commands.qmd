@@ -101,30 +101,47 @@ Outputs `output_{seed}_host.vcf`. With `--save_proportions`, also writes `host_p
 :::
 
 ::: {.stage}
-### 🧍 Stage 5 (alternative) — Host-level VCF with real read depth
+### 🧍 Stage 5 (alternative) — Host-level VCF with realistic read depth
 
 ```bash
+# depth from real depth files
 krsim vcf-host-depth \
     --strain_vcf results/output_42_strain.vcf \
     --ind_node_map_csv results/sim_ind_node_map_42.csv \
     --depth_zip my_depth.zip \
     --random_seed 42 \
     --output_dir results/
+
+# or modelled depth, no data needed
+krsim vcf-host-depth \
+    --strain_vcf results/output_42_strain.vcf \
+    --ind_node_map_csv results/sim_ind_node_map_42.csv \
+    --depth_model sWGA \
+    --random_seed 42 \
+    --output_dir results/
 ```
 
-A more realistic alternative to `vcf-host`: instead of one constant `--depth`, each host's read depth follows a real sample's [depth profile](realistic-depth.qmd), the mean and SD of its read depth in every 500 bp window.
+A more realistic alternative to `vcf-host`: instead of one constant `--depth`, each host's read depth varies along the genome as in real data (see [realistic read depth](realistic-depth.qmd)). Give one depth source:
 
-- **`--depth_zip`:** a zip of `<sample>.window_stats.tsv` depth files, made from your own samples with [`krsim depth-zip`](#helper-depth-zip), or an example zip of 100 sWGA or 100 gDNA Pf8 samples. The files must come from reads mapped to the 3D7 reference used by MalariaGEN Pf8 (PlasmoDB-54); krsim checks every file it uses and stops if one doesn't match.
-- **Which file each host gets:** the zip needs at least one file per host. If it has more, files are picked at random, each used at most once. The pick is set by `--random_seed`, so the same seed always gives each host the same file.
+- **`--depth_zip FILE`:** a zip of `<sample>.window_stats.tsv` depth files (mean and SD of depth in every 500 bp window), made from your own samples with [`krsim depth-zip`](#helper-depth-zip), or an example zip of 100 sWGA or 100 gDNA Pf8 samples. The files must come from reads mapped to the 3D7 reference used by MalariaGEN Pf8 (PlasmoDB-54); krsim checks every file it uses and stops if one doesn't match. The zip needs at least one file per host. If it has more, files are picked at random, each used at most once, set by `--random_seed`.
+- **`--depth_model sWGA|gDNA`:** depth simulated from a model fitted to Pf8: AR(8) for sWGA, ARMA(2,2) for gDNA, both with Student t kicks. Optional:
+  - `--depth_mean X`: centre of the hosts' typical depths
+  - `--depth_spread S`: how much hosts' typical depths differ (SD of log depth); `0` gives every host `--depth_mean`
+  - `--depth_params FILE`: a JSON file changing any other model value, e.g. `{"nu": 3.0, "cap": 1000}`; values not listed keep their defaults. The settings are `ar`, `ma`, `mu`, `scale`, `nu`, `offset`, `cap`, `end_width`, `end_factor`, `depth_mean` and `depth_spread`; `krsim vcf-host-depth --help` lists the defaults
 
 The model:
 
 1. Within-host strain proportions sampled once per host from Dirichlet(α=1 per strain), as in `vcf-host`
-2. At each variant site, the host's depth is drawn from its profile window's mean *m* and SD *s*: a negative binomial with that mean and SD (*r* = *m*² / (*s*² − *m*), *p* = *r* / (*r* + *m*)), since real read depth varies more than a Poisson. If *s*² ≤ *m* it is Poisson(*m*); if *m* = 0 the depth is 0
-3. The depth is split between the host's strains via Multinomial from the proportions
-4. Reads are counted by allele and written as `GT:AD:DP`, with the same genotype rules as `vcf-host` (`./.` where the depth is 0)
+2. Each host's depth along the genome:
+   - with `--depth_zip`: its depth file's mean *m* and SD *s* in each window
+   - with `--depth_model`: a typical depth drawn once per host from a log-normal, times the host's own relative depth track from the model, capped at `cap` times the typical depth and, for sWGA, lowered near chromosome ends
+3. At each variant site, the host's depth is drawn for the site's window:
+   - with `--depth_zip`: a negative binomial with mean *m* and SD *s* (*r* = *m*² / (*s*² − *m*), *p* = *r* / (*r* + *m*)), since real read depth varies more than a Poisson; Poisson(*m*) if *s*² ≤ *m*; 0 if *m* = 0
+   - with `--depth_model`: Poisson around the window's depth
+4. The depth is split between the host's strains via Multinomial from the proportions
+5. Reads are counted by allele and written as `GT:AD:DP`, with the same genotype rules as `vcf-host` (`./.` where the depth is 0)
 
-Outputs `output_{seed}_host_depth.vcf`, `host_depth_profiles_{seed}.csv` (which depth file each host got) and `host_depth_proportions_{seed}.csv`.
+Outputs `output_{seed}_host_depth.vcf` (its header records the depth source and, for `--depth_model`, every value used), `host_depth_profiles_{seed}.csv` (each host's depth file, or its typical depth) and `host_depth_proportions_{seed}.csv`.
 :::
 
 ::: {.stage}

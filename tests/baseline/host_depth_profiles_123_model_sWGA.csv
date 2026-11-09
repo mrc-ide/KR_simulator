@@ -1,0 +1,4 @@
+sim_id,ind_id,depth_model,typical_depth
+123,3,AR(8) t,35.109
+123,4,AR(8) t,103.677
+123,5,AR(8) t,47.105
