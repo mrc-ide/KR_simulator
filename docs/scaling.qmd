@@ -44,6 +44,30 @@ For all four commands together, with a suggested request (1 core each time):
 - **`vcf-strain` and `vcf-host-depth`** grow faster, roughly with **Nh²**, and together they take most of the disk. `vcf-host-depth` is the slowest step from about Nh = 400: at Nh = 1000 it takes about 33 minutes, against about 10 minutes for `simulate`. It uses little memory (under 0.5 GB).
 - **`mutate`** stays small throughout.
 
+### Time for each command
+
+Typical laptop or computing-cluster core (the same estimate as the tables above):
+
+| Hosts (`--Nh`) | `simulate` | `mutate` | `vcf-strain` | `vcf-host-depth` | All four |
+|---:|---:|---:|---:|---:|---:|
+| 50 | 31 s | 2 s | 5 s | 23 s | **1 min** |
+| 100 | 58 s | 2 s | 8 s | 36 s | **1.7 min** |
+| 200 | 1.9 min | 2 s | 25 s | 1.5 min | **3.9 min** |
+| 400 | 3.8 min | 3 s | 1.3 min | 5 min | **10 min** |
+| 1000 | 10 min | 5 s | 8.5 min | 33 min | **51 min** |
+
+Measured on one core of a computing cluster (Queen Mary's Apocrita), with no estimates. This core was 2 to 4 times slower than the laptop, so expect times somewhere between these and the table above:
+
+| Hosts (`--Nh`) | `simulate` | `mutate` | `vcf-strain` | `vcf-host-depth` | All four |
+|---:|---:|---:|---:|---:|---:|
+| 50 | 55 s | 1 s | 4 s | 21 s | **1.4 min** |
+| 100 | 1.8 min | 4 s | 10 s | 41 s | **2.7 min** |
+| 200 | 3.5 min | 1 s | 31 s | 1.8 min | **5.9 min** |
+| 400 | 7.3 min | 2 s | 1.6 min | 6.1 min | **15 min** |
+| 1000 | 18 min | 5 s | 9.9 min | 38 min | **67 min** |
+
+The suggested time requests above leave room for a slow core: at Nh = 1000, 2 hours covers the 67 minutes measured here.
+
 If you don't need the VCFs, a run needs only the `simulate` time and memory, and a few MB of disk.
 
 ## Other parameters
