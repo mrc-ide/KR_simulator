@@ -77,7 +77,7 @@ import tskit
 ts = tskit.load('$TS_FILE')
 print(f'ts_${SEED}.trees: {ts.num_trees} trees, {ts.num_samples} samples, {ts.num_nodes} nodes')"
 
-run_stage "Pairwise strain pedigree map (only needs Stage 1's --save_lineage)" \
+run_stage "Helper: pairwise strain pedigree map (only needs Stage 1's --save_lineage)" \
     krsim pairwise-strain-pedigree-map \
     --lineage_csv "$OUT_DIR/lineage_${SEED}.csv" \
     --node_id_map_csv "$OUT_DIR/node_id_map_${SEED}.csv" \
@@ -97,7 +97,7 @@ import tskit
 ts = tskit.load('$MUT_TS_FILE')
 print(f'ts_mut_${SEED}.trees: {ts.num_mutations} mutations at {ts.num_sites} sites across {ts.num_trees} trees')"
 
-run_stage "Strain transmission map (needs Stage 1's --save_lineage and Stage 2's mutations)" \
+run_stage "Helper: strain transmission map (needs Stage 1's --save_lineage and Stage 2's mutations)" \
     krsim strain-transmission-map \
     --lineage_csv "$OUT_DIR/lineage_${SEED}.csv" \
     --node_id_map_csv "$OUT_DIR/node_id_map_${SEED}.csv" \
@@ -105,7 +105,7 @@ run_stage "Strain transmission map (needs Stage 1's --save_lineage and Stage 2's
     --random_seed "$SEED" \
     --output_dir "$OUT_DIR"
 
-run_stage "Stage 3: Coalescence & mutation time tables" \
+run_stage "Helper: coalescence & mutation time tables (krsim coal-mut)" \
     krsim coal-mut \
     --ts "$MUT_TS_FILE" \
     --random_seed "$SEED" \
@@ -118,7 +118,7 @@ pairs = coal[['sample_1', 'sample_2']].drop_duplicates()
 print(f'coal_T_${SEED}.csv: {len(coal):,} coalescence events (one per strain pair per tree; {len(pairs)} strain pairs coalesce)')
 print(f'mut_T_${SEED}.csv: {len(mut):,} mutations')"
 
-run_stage "Stage 4: Strain VCF" \
+run_stage "Stage 3: Strain VCF" \
     krsim vcf-strain \
     --ts "$MUT_TS_FILE" \
     --random_seed "$SEED" \
@@ -127,7 +127,7 @@ run_stage "Stage 4: Strain VCF" \
 STRAIN_VCF="$OUT_DIR/output_${SEED}_strain.vcf"
 
 # depth profiles of three real Pf8 sWGA samples, kept in tests/data/test_depth.zip so nothing is downloaded
-run_stage "Stage 5: Host VCF, read depth from a zip of depth files" \
+run_stage "Stage 4: Host VCF, read depth from a zip of depth files" \
     krsim vcf-host-depth \
     --strain_vcf "$STRAIN_VCF" \
     --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \
@@ -139,7 +139,7 @@ run_stage "Stage 5: Host VCF, read depth from a zip of depth files" \
 # own folder and its files are moved into $OUT_DIR renamed *_model_<type>.* for the regression check
 for TYPE in sWGA gDNA; do
     MODEL_TMP="$OUT_DIR/model_$TYPE"
-    run_stage "Stage 5: Host VCF, modelled $TYPE read depth" \
+    run_stage "Stage 4: Host VCF, modelled $TYPE read depth" \
         krsim vcf-host-depth \
         --strain_vcf "$STRAIN_VCF" \
         --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \
@@ -172,6 +172,37 @@ for t in ['sWGA', 'gDNA']:
     print(f'{t} model: median window {np.median(allw):.2f}x (expect about 1), highest {allw.max():.0f}x '
           f'(cap {s[\"cap\"]:.0f}x), end zone {s[\"end_width\"]:,.0f} bp; --depth_spread 0 gives one typical depth; scale 0 gives flat depth')"
 
+# sample-level error: rates of 1 flip every strain allele (written outside $OUT_DIR, so the regression check
+# doesn't compare it; rates of 0, the default, give the outputs checked against the baseline above)
+ERR_TMP="$(mktemp -d)"
+run_stage "Stage 4: Host VCF with sample-level error (every MUT read as WT)" \
+    krsim vcf-host-depth \
+    --strain_vcf "$STRAIN_VCF" \
+    --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \
+    --depth_model sWGA \
+    --error_mut_wt 1 \
+    --random_seed "$SEED" \
+    --output_dir "$ERR_TMP"
+check "
+import numpy as np
+from krsim.output.vcf_host_depth import apply_errors
+alt = 0
+for line in open('$ERR_TMP/output_${SEED}_host_depth.vcf'):
+    if line.startswith('##error_rates'):
+        assert 'wt_mut=0,mut_wt=1' in line, line
+    elif not line.startswith('#'):
+        alt += sum(sum(int(n) for n in f.split(':')[1].split(',')[1:]) for f in line.split('\t')[9:])
+assert alt == 0, f'{alt} MUT reads left with --error_mut_wt 1'
+# WT -> MUT at a site with 3 ALT alleles: each ALT about equally often; MUT -> WT always gives 0
+rng = np.random.default_rng(1)
+a = np.array([[0] * 3000 + [2] * 3000])
+use = np.ones_like(a, dtype=bool)
+assert apply_errors(rng, a, use, 4, 1.0, 1.0) == (3000, 3000)
+share = np.bincount(a[0, :3000], minlength=4)[1:] / 3000
+assert np.all(np.abs(share - 1 / 3) < 0.05) and np.all(a[0, 3000:] == 0), share
+print('--error_mut_wt 1: no MUT reads left; WT -> MUT picks each ALT about equally (', np.round(share, 2), ')')"
+rm -rf "$ERR_TMP"
+
 # a tiny made-up mosdepth per-base file: depth 30 along every 3D7 chromosome
 # (written outside $OUT_DIR, so the regression check doesn't compare it)
 DEPTH_TMP="$(mktemp -d)"
@@ -193,14 +224,14 @@ assert names == ['toy.window_stats.tsv'], names
 print(f'toy_depth.zip: {len(names)} depth file ({names[0]})')"
 rm -rf "$DEPTH_TMP"
 
-run_stage "Extras: pairwise IBD fractions (krsim relate-strain)" \
+run_stage "Helper: pairwise IBD fractions (krsim relate-strain)" \
     krsim relate-strain \
     --coal_csv "$OUT_DIR/coal_T_${SEED}.csv" \
     --random_seed "$SEED" \
     --time_boundary 2 \
     --output_dir "$OUT_DIR"
 
-run_stage "Extras: host relatedness (krsim relate-host)" \
+run_stage "Helper: host relatedness (krsim relate-host)" \
     krsim relate-host \
     --relate_csv "$OUT_DIR/relate_strain_${SEED}.csv" \
     --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \

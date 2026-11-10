@@ -58,8 +58,32 @@ def host_field(counts):
     return f"{gt}:{','.join(str(n) for n in counts)}:{sum(counts)}"
 
 
+def check_error_rates(error_wt_mut, error_mut_wt):
+    """Both rates must be numbers from 0 to 1."""
+    for name, rate in (("--error_wt_mut", error_wt_mut), ("--error_mut_wt", error_mut_wt)):
+        if not 0.0 <= rate <= 1.0:
+            raise ValueError(f"{name} must be from 0 to 1 (a chance), got {rate}")
+
+
+def apply_errors(rng, alleles, use, n_alleles, error_wt_mut, error_mut_wt):
+    """
+    Sample-level error, in place: each strain's allele in its host (hosts x strain slots, `use` marks real
+    alleles) is read wrong with a chance that depends on its true allele. WT (allele 0) is read as MUT with
+    chance error_wt_mut, as one of the site's ALT alleles picked with equal chance; MUT (any ALT) is read as
+    WT with chance error_mut_wt. Returns the number of (WT -> MUT, MUT -> WT) flips.
+    """
+    u = rng.random(alleles.shape)
+    wt_mut = use & (alleles == 0) & (u < error_wt_mut)
+    mut_wt = use & (alleles > 0) & (u < error_mut_wt)
+    n_wt_mut, n_mut_wt = int(wt_mut.sum()), int(mut_wt.sum())
+    alleles[mut_wt] = 0
+    if n_wt_mut:
+        alleles[wt_mut] = 1 if n_alleles == 2 else rng.integers(1, n_alleles, n_wt_mut)
+    return n_wt_mut, n_mut_wt
+
+
 def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, output_dir, random_seed=None,
-                           depth_zip=None, depth_model=None):
+                           depth_zip=None, depth_model=None, error_wt_mut=0.0, error_mut_wt=0.0):
     """
     Aggregates a node-level VCF to host level with realistic read depth. The
     depth comes from one of two sources; give exactly one:
@@ -83,6 +107,10 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, output_dir, rand
         Multinomial(depth, proportions), and reads are tallied by allele -> GT:AD:DP
         (AD has one count per allele; GT lists the two alleles with the most reads;
         ./. if there are no reads)
+      - sample-level error (if error_wt_mut or error_mut_wt is above 0): before the reads are
+        split, each strain's allele in its host is read wrong with that chance (see apply_errors),
+        and all that strain's reads go to the wrong allele. The strain VCF is not changed, so it
+        stays the truth. With both rates 0 nothing extra is drawn, so the output is unchanged.
 
     Writes output_<seed>_host_depth.vcf, host_depth_profiles_<seed>.csv (each
     host's depth source: profile, or typical depth for the model) and
@@ -90,6 +118,9 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, output_dir, rand
     """
     if (depth_zip is None) == (depth_model is None):
         raise ValueError("give exactly one depth source: a depth zip or a depth model")
+    check_error_rates(error_wt_mut, error_mut_wt)
+    with_errors = error_wt_mut > 0 or error_mut_wt > 0
+    n_wt_mut = n_mut_wt = 0
     rng = np.random.default_rng(random_seed)
 
     # --- build node_id -> ind_id from CSV for this sim_id ---
@@ -198,6 +229,9 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, output_dir, rand
                     fout.write(f"##depth_model=<{dm.describe(depth_model)}>\n")
                     for ind_id in ind_ids:
                         fout.write(f"##depth_host=<host={ind_id},typical_depth={typical[ind_id]:.3f}>\n")
+                fout.write(f"##error_rates=<wt_mut={error_wt_mut:g},mut_wt={error_mut_wt:g},Description=\"Chance "
+                           "that a strain's allele in a host is read wrong: WT as MUT (wt_mut), MUT as WT (mut_wt); "
+                           "the strain VCF holds the true alleles\">\n")
             elif line.startswith("##FORMAT=<ID=GT"):
                 fout.write('##FORMAT=<ID=GT,Number=1,Type=String,Description="Host genotype from reads: '
                            '0/0=all ref reads, 1/1=all alt reads, 0/1=mixed reads; '
@@ -225,6 +259,10 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, output_dir, rand
                 strain_reads = rng.multinomial(site_depths(chrom, window), slot_props)
                 alleles = site_alleles(line.rstrip("\n").split("\t", 9)[9], n_strains)[np.maximum(slot_cols, 0)]
                 use = is_slot & (alleles >= 0) & (alleles < n_alleles)
+                if with_errors:
+                    flips = apply_errors(rng, alleles, use, n_alleles, error_wt_mut, error_mut_wt)
+                    n_wt_mut += flips[0]
+                    n_mut_wt += flips[1]
                 counts = np.zeros((n_hosts, n_alleles), dtype=np.int64)
                 np.add.at(counts, (slot_host[use], alleles[use]), strain_reads[use])
                 sample_fields = host_fields(counts)
@@ -234,6 +272,9 @@ def process_host_depth_vcf(sim_id, input_vcf, ind_node_map_csv, output_dir, rand
 
     if not (os.path.exists(out_vcf) and os.path.getsize(out_vcf) > 0):
         raise RuntimeError(f"host VCF not created properly: {out_vcf}")
+    if with_errors:
+        log.info(f"sample-level error: {n_wt_mut:,} strain alleles read WT -> MUT, {n_mut_wt:,} MUT -> WT "
+                 f"(rates {error_wt_mut:g}, {error_mut_wt:g})")
 
     # --- each host's depth source: which profile, or its typical depth under the model ---
     out_profiles = os.path.join(output_dir, f"host_depth_profiles_{sim_id}.csv")

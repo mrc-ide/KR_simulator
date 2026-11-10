@@ -72,11 +72,6 @@ CC BY 4.0; the docs and release notes cite MalariaGEN et al. (2025), Wellcome Op
 - **Other references / chromosome lengths.** krsim is fixed to the 3D7 chromosome lengths used by Pf8
   (PlasmoDB-54, `COMP_BREAKPOINTS` / `GENOME_LENGTH` in `src/krsim/sim/params.py`), and depth files must match them.
   Later: an option to give other chromosome names and lengths.
-- **Sample-level error rates in the host VCF (planned 2026-11-10, waiting on the user's literature review).**
-  Two rates in `vcf-host-depth` only (strain VCF stays the truth): WT->MUT and MUT->WT (the latter usually a
-  little larger). Undecided: per read (flip reads, AD then GT) or per call (flip GT), which depends on what kind of
-  rates the literature gives; argument names (e.g. `--error_wt_mut`, `--error_mut_wt`, default 0); multiallelic
-  sites; recording the rates in the VCF header.
 
 ## Modelled depth for the host VCF (status, 2026-11-09, branch `depth-model`)
 
@@ -120,3 +115,29 @@ This changed the random draw order, so the host-depth baselines were renewed (st
 `benchmarks/scaling.py pipeline` now times `vcf-host-depth --depth_model sWGA` (`--csv` writes elsewhere).
 Scaling page: vcf-host-depth timed on the cluster (SLURM job 35715664, Nh 50-1000; Nh 1000 = 38 min, 0.46 GB) and
 scaled to the laptop by the vcf-strain time ratio (~0.43) in `benchmarks/pipeline.csv`; stated on the page as rough.
+
+## Sample-level error rates (2026-11-10, branch `error-rates`)
+
+From the user's supervisor: error at the sample level only, with two rates, WT->MUT and MUT->WT (the latter usually a bit
+larger, "strains mis-called as WT"). `vcf-host-depth --error_wt_mut P --error_mut_wt P`, default 0, each 0-1, with either
+depth source. Decided with the user one part at a time:
+1. The rate is per strain allele in the sample: at each site in each host, each strain's allele flips before the
+   Multinomial split (`apply_errors` in `output/vcf_host_depth.py`), so all its reads go to the wrong allele and
+   AD/DP/GT follow. It is conditional on the true allele (P(read WT | true MUT)). The strain VCF is not changed and
+   stays the truth. Not per read, and not per final GT call.
+2. WT = allele 0, MUT = any ALT. MUT->WT gives 0; WT->MUT gives a random ALT at the site, each equally likely;
+   there is no MUT->MUT.
+3. Records: the rates in `##error_rates=<...>` (always written, also when 0) and the flip counts on screen and in
+   the log. No per-flip file: the user rejected `--save_errors` (too many arguments already; the seed reproduces
+   the flips).
+With both rates 0 no extra random numbers are drawn, so the outputs are identical to before (the baselines are
+unchanged). The test runs `--error_mut_wt 1` (no MUT reads left) and checks that the ALT pick is even.
+
+## `krsim --help` sections and stage numbers (2026-11-10, branch `error-rates`)
+
+The user asked for two sections: "Main commands" (simulate, mutate, vcf-strain, vcf-host-depth = Stages 1-4) and
+"Helper commands" (optional, names in pink: coal-mut, relate-strain, relate-host, both maps, depth-zip). `coal-mut` is
+no longer Stage 3 (it isn't needed for the VCFs), so vcf-strain is Stage 3 and vcf-host-depth Stage 4 everywhere
+(CLI, commands/outputs/tutorial-scripts/realistic-depth pages, tutorial notebook headings, test labels). The sections
+are built in `cli/__init__.py` by moving the subcommand help lines into two argument groups (`HELPERS`); parsing is
+unchanged. The pipeline figure still shows coal-mut (it is still a command the quick start runs).

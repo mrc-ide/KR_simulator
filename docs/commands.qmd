@@ -4,7 +4,9 @@ title: "💻 Command line"
 
 Every command is run as `krsim <command>`, and `krsim <command> --help` lists all of its options. The examples use seed `42` and write to `results/`.
 
-## Main pipeline
+## Main commands
+
+The simulator itself: run these four in order to go from a transmission genealogy to host VCFs.
 
 ::: {.stage}
 ### 🦟 Stage 1 — Simulate genealogy
@@ -49,25 +51,7 @@ If `--mutation_rate` is not given, `1e-6` per bp is used. Outputs `ts_mut_{seed}
 :::
 
 ::: {.stage}
-### ⏳ Stage 3 — Coalescence & mutation times
-
-```bash
-krsim coal-mut \
-    --ts results/ts_mut_42.trees \
-    --random_seed 42 \
-    --output_dir results/
-```
-
-Outputs `coal_T_{seed}.csv` (pairwise MRCA times per tree interval) and `mut_T_{seed}.csv` (position and age of every mutation). Both tables include a `chromosome` column (1-indexed, from `krsim/sim/params.py`'s `COMP_BREAKPOINTS`), with `position`/`left`/`right` given as chromosome-local coordinates rather than genome-wide ones. `coal_T` only contains rows where the sample pair has a common ancestor in that tree interval — pairs with no shared ancestry anywhere in the ARG are simply absent from the table.
-
-::: {.callout-warning}
-## Small runs only
-`coal_T` has one row for every pair of strains in every tree, so it is easy to read for a small run like the [quick start](quickstart.qmd), but very computationally expensive for larger populations. See [Running at scale](scaling.qmd#coal-mut-is-for-small-runs).
-:::
-:::
-
-::: {.stage}
-### 🧬 Stage 4 — Strain-level VCF
+### 🧬 Stage 3 — Strain-level VCF
 
 ```bash
 krsim vcf-strain \
@@ -80,7 +64,7 @@ Outputs `output_{seed}_strain.vcf` — one sample column per parasite strain (no
 :::
 
 ::: {.stage}
-### 🧍 Stage 5 — Host-level VCF
+### 🧍 Stage 4 — Host-level VCF
 
 ```bash
 # depth from real depth files
@@ -113,6 +97,13 @@ Mixes each host's strains the way sequencing a blood sample would, with realisti
 For an idealised control with no depth variation, use `--depth_spread 0` (every host the same typical depth) with `--depth_params` set to `{"scale": 0, "end_width": 0}` (no variation along the genome, and no low-depth sWGA chromosome ends). Each site's read count is still a Poisson draw, so a site can occasionally get 0 reads. This isn't realistic, but it lets you test a method without the effect of uneven depth.
 :::
 
+**Sample-level error** (optional, either depth source; both `0` by default, so no error):
+
+- `--error_wt_mut P`: the chance that a strain's WT allele is read as MUT in its host. At a site with several ALT alleles, it becomes one of them, each equally likely
+- `--error_mut_wt P`: the chance that a strain's MUT allele is read as WT in its host. This is usually the larger of the two: strains carrying MUT are more often mis-called as WT than the other way round
+
+At each site, in each host, each strain's allele is read wrong with that chance, and all that strain's reads go to the wrong allele, so `AD`, `DP` and `GT` follow from them. The error applies to the host VCF only: the strain VCF is not changed, so it still holds the true alleles to compare against. The rates are written to the VCF header (`##error_rates`), and the number of flipped alleles to the screen and the log. For example, `--error_wt_mut 0.005 --error_mut_wt 0.01`.
+
 The model:
 
 1. Within-host strain proportions sampled once per host from Dirichlet(α=1 per strain)
@@ -122,14 +113,19 @@ The model:
 3. At each variant site, the host's depth is drawn for the site's window:
    - with `--depth_zip`: a negative binomial with mean *m* and SD *s* (*r* = *m*² / (*s*² − *m*), *p* = *r* / (*r* + *m*)), since real read depth varies more than a Poisson; Poisson(*m*) if *s*² ≤ *m*; 0 if *m* = 0
    - with `--depth_model`: Poisson around the window's depth
-4. The depth is split between the host's strains via Multinomial from the proportions
-5. Reads are counted by allele and written as `GT:AD:DP`: `0/0` when all reads carry the ref allele, `1/1` when all carry the alt, `0/1` when both are seen (a mixed infection), and `./.` where the depth is 0. At a multi-allelic site (more than one ALT allele, from recurrent mutation), `AD` gives the reads for every allele and `GT` lists the two alleles with the most reads (e.g. `1/2`)
+4. With sample-level error: each strain's allele is read wrong with chance `--error_wt_mut` (WT read as MUT) or `--error_mut_wt` (MUT read as WT)
+5. The depth is split between the host's strains via Multinomial from the proportions
+6. Reads are counted by allele and written as `GT:AD:DP`: `0/0` when all reads carry the ref allele, `1/1` when all carry the alt, `0/1` when both are seen (a mixed infection), and `./.` where the depth is 0. At a multi-allelic site (more than one ALT allele, from recurrent mutation), `AD` gives the reads for every allele and `GT` lists the two alleles with the most reads (e.g. `1/2`)
 
-Outputs `output_{seed}_host_depth.vcf` (its header records the depth source and, for `--depth_model`, every value used), `host_depth_profiles_{seed}.csv` (each host's depth file, or its typical depth) and `host_depth_proportions_{seed}.csv`.
+Outputs `output_{seed}_host_depth.vcf` (its header records the depth source, for `--depth_model` every value used, and the error rates), `host_depth_profiles_{seed}.csv` (each host's depth file, or its typical depth) and `host_depth_proportions_{seed}.csv`.
 :::
 
+## Helper commands
+
+Optional: none of these are needed to make the VCFs. They prepare input (`depth-zip`), give the true coalescence times and relatedness to check results against (`coal-mut`, `relate-strain`, `relate-host`), or draw the transmission pedigree (the two maps). In `krsim --help` they are listed in pink under *Helper commands*.
+
 ::: {.stage}
-### 🧰 Helper — zip of depth files {#helper-depth-zip}
+### 🧰 Zip of depth files {#helper-depth-zip}
 
 ```bash
 krsim depth-zip \
@@ -140,44 +136,27 @@ krsim depth-zip \
 Not a pipeline step: it prepares the input for `vcf-host-depth --depth_zip`. It turns each sample's [mosdepth](https://github.com/brentp/mosdepth) per-base output (`<sample>.per-base.bed.gz`) into a depth file (`<sample>.window_stats.tsv`: mean and SD of depth in every 500 bp window) and puts them all in one zip. Each file is checked against the 3D7 reference used by Pf8. It takes a few seconds per sample.
 :::
 
-## Pedigree visualizations
-
-Both maps need Stage 1 run with `--save_lineage`; the transmission map also needs the mutated tree sequence from Stage 2. See them in action in the [tutorial](quickstart.qmd#visualise-transmission).
-
 ::: {.stage}
-### Strain transmission map — visualize the pedigree
+### ⏳ Coalescence & mutation times
 
 ```bash
-krsim strain-transmission-map \
-    --lineage_csv results/lineage_42.csv \
-    --node_id_map_csv results/node_id_map_42.csv \
+krsim coal-mut \
     --ts results/ts_mut_42.trees \
     --random_seed 42 \
     --output_dir results/
 ```
 
-Needs `--save_lineage` from Stage 1 and `ts_mut_{seed}.trees` from Stage 2. Renders an interactive, self-contained `strain_transmission_map_{seed}.html` — a generation-by-generation pedigree diagram (founders at top, current samples at bottom, one lane per host) built from the pre-simplify `lineage_{seed}.csv`, so it shows the true parentage that `simplify()` compresses away. Each strain is labeled with its pre-simplify ID (with its post-simplify ID as a small corner badge, where one exists); clicking a strain traces and highlights its full ancestry and descendants. Every mutation is drawn as a × on the pedigree link, and at the time, where it happened. Pick a chromosome and a tree to fade out everything except the genealogy of that stretch of genome and its mutations. Open the file directly in a browser — no server or dependencies needed. Intended for small debug runs (a handful of hosts, a few dozen generations); it warns in-page and degrades gracefully past that, but isn't meant for production-scale runs (`--Nh 100`, etc.).
+Outputs `coal_T_{seed}.csv` (pairwise MRCA times per tree interval) and `mut_T_{seed}.csv` (position and age of every mutation). Both tables include a `chromosome` column (1-indexed, from `krsim/sim/params.py`'s `COMP_BREAKPOINTS`), with `position`/`left`/`right` given as chromosome-local coordinates rather than genome-wide ones. `coal_T` only contains rows where the sample pair has a common ancestor in that tree interval — pairs with no shared ancestry anywhere in the ARG are simply absent from the table.
+
+::: {.callout-warning}
+## Small runs only
+`coal_T` has one row for every pair of strains in every tree, so it is easy to read for a small run like the [quick start](quickstart.qmd), but very computationally expensive for larger populations. See [Running at scale](scaling.qmd#coal-mut-is-for-small-runs).
+:::
 :::
 
-::: {.stage}
-### Pairwise strain pedigree map — trace two strains back to their shared ancestor
+### Relatedness statistics
 
-```bash
-krsim pairwise-strain-pedigree-map \
-    --lineage_csv results/lineage_42.csv \
-    --node_id_map_csv results/node_id_map_42.csv \
-    --random_seed 42 \
-    --output_dir results/
-```
-
-Also only needs `--save_lineage` from Stage 1 — same inputs as the transmission map. Renders `pairwise_strain_pedigree_map_{seed}.html`: pick any two current-generation strains (dropdowns, or click two strains in the diagram) and it traces each one's full ancestry back through the pedigree, drawing strain 1's lineage in one color and strain 2's in another. Where the two colors overlap is a shared ancestor; the *most recent* shared ancestor(s) are highlighted as the coalescence point(s), with the number of generations back reported for each strain. Because a strain can have up to two immediate parents (one per gamete in the oocyst that produced it), there can be more than one coalescence point — the two ancestries can independently merge via more than one path.
-
-This is a **pedigree** trace, not a genomic one: a shared ancestor here means the two strains' host lineages shared a parasite at that generation, not that any specific genomic region was actually inherited from it — recombination can replace a segment with DNA from the other parent at every step. Same small-debug-run scope as the transmission map.
-:::
-
-## Relatedness statistics
-
-Optional ground-truth relatedness, computed from Stage 3's `coal_T` table. Not part of the tutorial — run these when you need true IBD.
+Optional ground-truth relatedness, computed from the `coal_T` table written by `coal-mut` (above). Not part of the tutorial — run these when you need true IBD.
 
 ```bash
 krsim relate-strain \
@@ -196,3 +175,38 @@ krsim relate-host \
 `krsim relate-strain`: for each strain pair in `coal_T_{seed}.csv`, sums the length of tree intervals where `coal_time <= --time_boundary` and divides by `GENOME_LENGTH` to give the fraction of the genome that is IBD below that time threshold. Pairs with no recorded coalescence anywhere in the ARG are not written as a row (rather than a `0` row). Outputs `relate_strain_{seed}.csv` (`sample_1`, `sample_2`, `frac_IBD`).
 
 `krsim relate-host`: for each currently-infected host (from `sim_ind_node_map_{seed}.csv`, restricted to `time == 0`, i.e. the most recent generation), takes every pairwise combination of that host's strain nodes and averages their `frac_IBD` from `relate_strain_{seed}.csv`. Pairs missing from that table (no recorded coalescence) are treated as `frac_IBD = 0`. Hosts with fewer than two strains get an empty average. Outputs `relate_host_{seed}.csv` (`host`, `avg_frac_IBD`).
+
+### Pedigree visualizations
+
+Both maps need Stage 1 run with `--save_lineage`; the transmission map also needs the mutated tree sequence from Stage 2. See them in action in the [tutorial](quickstart.qmd#visualise-transmission).
+
+::: {.stage}
+#### Strain transmission map — visualize the pedigree
+
+```bash
+krsim strain-transmission-map \
+    --lineage_csv results/lineage_42.csv \
+    --node_id_map_csv results/node_id_map_42.csv \
+    --ts results/ts_mut_42.trees \
+    --random_seed 42 \
+    --output_dir results/
+```
+
+Needs `--save_lineage` from Stage 1 and `ts_mut_{seed}.trees` from Stage 2. Renders an interactive, self-contained `strain_transmission_map_{seed}.html` — a generation-by-generation pedigree diagram (founders at top, current samples at bottom, one lane per host) built from the pre-simplify `lineage_{seed}.csv`, so it shows the true parentage that `simplify()` compresses away. Each strain is labeled with its pre-simplify ID (with its post-simplify ID as a small corner badge, where one exists); clicking a strain traces and highlights its full ancestry and descendants. Every mutation is drawn as a × on the pedigree link, and at the time, where it happened. Pick a chromosome and a tree to fade out everything except the genealogy of that stretch of genome and its mutations. Open the file directly in a browser — no server or dependencies needed. Intended for small debug runs (a handful of hosts, a few dozen generations); it warns in-page and degrades gracefully past that, but isn't meant for production-scale runs (`--Nh 100`, etc.).
+:::
+
+::: {.stage}
+#### Pairwise strain pedigree map — trace two strains back to their shared ancestor
+
+```bash
+krsim pairwise-strain-pedigree-map \
+    --lineage_csv results/lineage_42.csv \
+    --node_id_map_csv results/node_id_map_42.csv \
+    --random_seed 42 \
+    --output_dir results/
+```
+
+Also only needs `--save_lineage` from Stage 1 — same inputs as the transmission map. Renders `pairwise_strain_pedigree_map_{seed}.html`: pick any two current-generation strains (dropdowns, or click two strains in the diagram) and it traces each one's full ancestry back through the pedigree, drawing strain 1's lineage in one color and strain 2's in another. Where the two colors overlap is a shared ancestor; the *most recent* shared ancestor(s) are highlighted as the coalescence point(s), with the number of generations back reported for each strain. Because a strain can have up to two immediate parents (one per gamete in the oocyst that produced it), there can be more than one coalescence point — the two ancestries can independently merge via more than one path.
+
+This is a **pedigree** trace, not a genomic one: a shared ancestor here means the two strains' host lineages shared a parasite at that generation, not that any specific genomic region was actually inherited from it — recombination can replace a segment with DNA from the other parent at every step. Same small-debug-run scope as the transmission map.
+:::
