@@ -1,10 +1,10 @@
-"""krsim vcf-strain — Stage 4: per-strain VCF."""
+"""krsim vcf-strain — Stage 3: per-strain VCF."""
 
 import os
 
 from krsim.cli._common import Run
 
-HELP = "Stage 4: per-strain VCF"
+HELP = "Stage 3: per-strain VCF"
 
 EPILOG = """\
 Outputs:

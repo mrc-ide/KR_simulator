@@ -1,11 +1,11 @@
-"""krsim vcf-host-depth — Stage 5: per-host VCF with realistic read depth."""
+"""krsim vcf-host-depth — Stage 4: per-host VCF with realistic read depth."""
 
 import json
 from importlib import resources
 
 from krsim.cli._common import KrsimError, Run
 
-HELP = "Stage 5: per-host VCF, realistic read depth from depth files or a model"
+HELP = "Stage 4: per-host VCF, realistic read depth from depth files or a model"
 
 
 def _defaults_table():

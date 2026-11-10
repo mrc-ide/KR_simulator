@@ -23,21 +23,21 @@ from krsim.cli import (
 # subcommand name -> module providing HELP, add_arguments(parser), run(args)
 # and EPILOG (outputs + example, shown at the end of its --help)
 COMMANDS = {
+    # main commands: the simulator itself, in pipeline order
     "simulate": simulate,
     "mutate": mutate,
-    "coal-mut": coal,
     "vcf-strain": vcf_strain,
     "vcf-host-depth": vcf_host_depth,
+    # helper commands: optional extras, not needed for the VCFs (listed in their own section, names in pink)
+    "coal-mut": coal,
     "relate-strain": relate_strain,
     "relate-host": relate_host,
     "strain-transmission-map": strain_transmission_map,
     "pairwise-strain-pedigree-map": pairwise_strain_pedigree_map,
-    # helper, not a pipeline step: listed last
     "depth-zip": depth_zip,
 }
-
-# optional extras (truth tables and maps), not needed for the VCFs: their names are pink in `krsim --help`
-EXTRAS = {"coal-mut", "relate-strain", "relate-host", "strain-transmission-map", "pairwise-strain-pedigree-map"}
+HELPERS = {"coal-mut", "relate-strain", "relate-host", "strain-transmission-map", "pairwise-strain-pedigree-map",
+           "depth-zip"}
 
 
 class HelpFormatter(RawDescriptionRichHelpFormatter):
@@ -48,6 +48,9 @@ class HelpFormatter(RawDescriptionRichHelpFormatter):
     highlights = [*RawDescriptionRichHelpFormatter.highlights,
                   r"(?m)^(?P<section>Outputs:|Example:|Needs)"]
     styles = {**RawDescriptionRichHelpFormatter.styles, "argparse.section": "bold hot_pink"}
+
+    # section headings as written ("Main commands"), not Title Cased
+    group_name_formatter = staticmethod(lambda title: title[:1].upper() + title[1:])
 
     def __init__(self, prog, **kwargs):
         kwargs.setdefault("max_help_position", 34)
@@ -62,8 +65,8 @@ class HelpFormatter(RawDescriptionRichHelpFormatter):
 
     def _rich_format_action_invocation(self, action):
         text = super()._rich_format_action_invocation(action)
-        # a command in the list (no --option strings) that is an optional extra: pink, not the usual blue
-        if not action.option_strings and action.dest in EXTRAS:
+        # a helper command in the list (no --option strings): pink, not the usual blue
+        if not action.option_strings and action.dest in HELPERS:
             text.stylize("bold hot_pink", 0, len(text))
         return text
 
@@ -101,7 +104,7 @@ def main(argv=None):
         add_help=False,
     )
     _add_help(parser)
-    subparsers = parser.add_subparsers(title="commands", dest="command", required=True, metavar="<command>",
+    subparsers = parser.add_subparsers(dest="command", required=True, metavar="<command>",
                                        parser_class=Parser)
 
     for name, module in COMMANDS.items():
@@ -116,8 +119,18 @@ def main(argv=None):
         sub._action_groups.sort(key=lambda group: group.title != "required arguments")
         sub.set_defaults(func=module.run)
 
+    # two sections in `krsim --help`: argparse lists every subcommand under one heading, so their help lines are
+    # moved into two plain groups and the subcommand block itself is hidden; parsing is unchanged
+    main_group = parser.add_argument_group("main commands")
+    helper_group = parser.add_argument_group("helper commands (optional, not needed for the VCFs)")
+    for line in list(subparsers._choices_actions):
+        (helper_group if line.dest in HELPERS else main_group)._group_actions.append(line)
+    subparsers._choices_actions.clear()
+    subparsers.help = argparse.SUPPRESS
+
     # list the commands before the -h/--help option
-    parser._action_groups.sort(key=lambda group: group.title != "commands")
+    order = {main_group.title: 0, helper_group.title: 1}
+    parser._action_groups.sort(key=lambda group: order.get(group.title, 2))
 
     args = parser.parse_args(argv)
     try:

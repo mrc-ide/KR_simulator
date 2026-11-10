@@ -8,7 +8,7 @@ import tempfile
 
 from krsim.cli._common import KrsimError, format_elapsed
 
-HELP = "Helper (not a pipeline step): mosdepth per-base files -> zip for vcf-host-depth"
+HELP = "mosdepth per-base files -> zip for vcf-host-depth"
 
 EPILOG = """\
 Turns each sample's mosdepth per-base output (<sample>.per-base.bed.gz) into its

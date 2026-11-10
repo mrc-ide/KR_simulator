@@ -1,10 +1,10 @@
-"""krsim coal-mut — Stage 3: coalescence and mutation time tables."""
+"""krsim coal-mut — helper: coalescence and mutation time tables."""
 
 import os
 
 from krsim.cli._common import Run
 
-HELP = "Stage 3: coalescence-time and mutation-time tables"
+HELP = "Coalescence-time and mutation-time tables (small runs only)"
 
 EPILOG = """\
 Outputs:

@@ -2,7 +2,7 @@
 title: "🧬 Realistic read depth"
 ---
 
-Real sequencing reads are spread very unevenly along the genome. `krsim vcf-host-depth`, which makes the host VCF (stage 5), gives each host realistic read depth, so the host VCF has the gaps, spikes and low-depth sites of real data. It has two ways to get the depth:
+Real sequencing reads are spread very unevenly along the genome. `krsim vcf-host-depth`, which makes the host VCF (stage 4), gives each host realistic read depth, so the host VCF has the gaps, spikes and low-depth sites of real data. It has two ways to get the depth:
 
 | Option | Depth comes from | You need |
 |---|---|---|

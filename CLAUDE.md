@@ -132,3 +132,12 @@ depth source. Decided with the user one part at a time:
    the flips).
 With both rates 0 no extra random numbers are drawn, so the outputs are identical to before (the baselines are
 unchanged). The test runs `--error_mut_wt 1` (no MUT reads left) and checks that the ALT pick is even.
+
+## `krsim --help` sections and stage numbers (2026-11-10, branch `error-rates`)
+
+The user asked for two sections: "Main commands" (simulate, mutate, vcf-strain, vcf-host-depth = Stages 1-4) and
+"Helper commands" (optional, names in pink: coal-mut, relate-strain, relate-host, both maps, depth-zip). `coal-mut` is
+no longer Stage 3 (it isn't needed for the VCFs), so vcf-strain is Stage 3 and vcf-host-depth Stage 4 everywhere
+(CLI, commands/outputs/tutorial-scripts/realistic-depth pages, tutorial notebook headings, test labels). The sections
+are built in `cli/__init__.py` by moving the subcommand help lines into two argument groups (`HELPERS`); parsing is
+unchanged. The pipeline figure still shows coal-mut (it is still a command the quick start runs).
