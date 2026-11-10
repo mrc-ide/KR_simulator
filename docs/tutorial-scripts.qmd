@@ -13,14 +13,14 @@ krsim coal-mut   --ts $OUT/ts_mut_123.trees --random_seed 123 --output_dir $OUT
 krsim vcf-strain --ts $OUT/ts_mut_123.trees --random_seed 123 --output_dir $OUT
 ```
 
-For the host VCF (stage 5), use either command. Both read the same strain VCF, so you can also run both. `vcf-host` gives every host the same read depth (`--depth`) at every site:
+For the host VCF (stage 5), `vcf-host-depth` gives each host [realistic read depth](realistic-depth.qmd). The simplest way uses krsim's depth model for sWGA samples, which needs no data:
 
 ```bash
-krsim vcf-host   --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT/sim_ind_node_map_123.csv \
-                 --depth 10 --random_seed 123 --output_dir $OUT
+krsim vcf-host-depth --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT/sim_ind_node_map_123.csv \
+                     --depth_model sWGA --random_seed 123 --output_dir $OUT
 ```
 
-`vcf-host-depth` gives each host the [realistic read depth](realistic-depth.qmd) of a real sample. It reads a zip of depth files, one per host or more; download a small one with three Pf8 samples from this website first:
+Use `--depth_model gDNA` for gDNA samples. To use the depth of real samples instead, give a zip of depth files, one per host or more; download a small one with three Pf8 samples from this website:
 
 ```bash
 curl -O https://mrc-ide.github.io/KR_simulator/data/tutorial_depth.zip
@@ -28,6 +28,8 @@ curl -O https://mrc-ide.github.io/KR_simulator/data/tutorial_depth.zip
 krsim vcf-host-depth --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT/sim_ind_node_map_123.csv \
                      --depth_zip tutorial_depth.zip --random_seed 123 --output_dir $OUT
 ```
+
+Both write the same files, so run them in different `--output_dir` folders if you want to keep both.
 
 Each command prints the files it wrote. Every file name ends in the random seed (`123` here), and every command adds a record of what it ran to `KR_sim_123.log`.
 
@@ -37,7 +39,6 @@ Each command prints the files it wrote. Every file name ends in the random seed 
 | `mutate` | `ts_123.trees` | `ts_mut_123.trees` |
 | `coal-mut` | `ts_mut_123.trees` | `coal_T_123.csv`, `mut_T_123.csv` |
 | `vcf-strain` | `ts_mut_123.trees` | `output_123_strain.vcf` |
-| `vcf-host` | `output_123_strain.vcf`, `sim_ind_node_map_123.csv` | `output_123_host.vcf` |
-| `vcf-host-depth` | `output_123_strain.vcf`, `sim_ind_node_map_123.csv`, `tutorial_depth.zip` | `output_123_host_depth.vcf`, `host_depth_profiles_123.csv`, `host_depth_proportions_123.csv` |
+| `vcf-host-depth` | `output_123_strain.vcf`, `sim_ind_node_map_123.csv` (and `tutorial_depth.zip` with `--depth_zip`) | `output_123_host_depth.vcf`, `host_depth_profiles_123.csv`, `host_depth_proportions_123.csv` |
 
 See the [command-line reference](commands.qmd) for every option.

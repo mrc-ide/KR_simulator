@@ -48,7 +48,7 @@ From the `KR_simulator` folder with the environment active, run:
 bash tests/test_sim_mut.sh
 ```
 
-The test runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/` (decimal numbers only need to match to 12 significant digits, since the last digit can vary between machines). If everything is installed correctly, it ends with `All 16 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.
+The test runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/` (decimal numbers only need to match to 12 significant digits, since the last digit can vary between machines). If everything is installed correctly, it ends with `All 20 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.
 
 ## Website
 
@@ -79,7 +79,10 @@ KR_SIM/
 │   │   ├── node_id_map.py    #   Builds node_id_map_{seed}.csv
 │   │   ├── coal_mut_times.py #   coal_T / mut_T tables
 │   │   ├── vcf_strain_single.py
-│   │   └── vcf_host_single.py
+│   │   ├── vcf_host_depth.py #   Host VCF with realistic read depth (depth files or the depth model)
+│   │   ├── depth_model.py    #   sWGA AR(8) / gDNA ARMA(2,2) t depth model (--depth_model)
+│   │   └── pf8_profiles.py   #   Depth files: window_stats, zips, 3D7 checks (--depth_zip, depth-zip)
+│   ├── data/             #   depth_model_defaults.json: the Pf8 defaults for --depth_model
 │   ├── stats/            #   Ground-truth relatedness
 │   │   ├── relate_strain.py  #   Pairwise strain IBD fraction (from coal_T)
 │   │   └── relate_host.py    #   Per-host average of relate_strain

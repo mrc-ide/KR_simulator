@@ -65,7 +65,7 @@ At the end of the run the tree sequence is simplified to the strains in the curr
 - **Mutations** are added on top of the genealogy with [msprime](https://tskit.dev/msprime), at rate `--mutation_rate` (default `1e-6` per base pair, following [Kwiatkowski (2024)](https://doi.org/10.12688/wellcomeopenres.19092.1)).
 - **Coalescence times** are read directly from the genealogy: for every pair of strains and every stretch of genome, when their ancestry last met.
 - **Strain VCF**: one haploid genotype per strain, as if each strain were sequenced on its own.
-- **Host VCF**: mimics sequencing a mixed infection from a blood sample. Each host's strain proportions are drawn from a Dirichlet distribution, `--depth` reads are shared between its strains, and a site is called `0/1` when the reads carry both alleles.
+- **Host VCF**: mimics sequencing a mixed infection from a blood sample. Each host gets realistic read depth along the genome, either from real samples' depth files or from a model fitted to [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1) sWGA or gDNA samples (see [realistic read depth](realistic-depth.qmd)). Each host's strain proportions are drawn from a Dirichlet distribution, the reads at each site are shared between its strains, and a site is called `0/1` when the reads carry both alleles.
 
 The VCFs have the same form as real sequencing data, while krsim also knows the true ancestry behind them. This makes them a way to benchmark whole-genome methods against a known truth: for example, comparing the IBD that [hmmIBD](https://github.com/glipsnort/hmmIBD) infers from the strain VCF with the true relatedness from `krsim relate-strain`.
 

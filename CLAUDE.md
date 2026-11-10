@@ -72,6 +72,11 @@ CC BY 4.0; the docs and release notes cite MalariaGEN et al. (2025), Wellcome Op
 - **Other references / chromosome lengths.** krsim is fixed to the 3D7 chromosome lengths used by Pf8
   (PlasmoDB-54, `COMP_BREAKPOINTS` / `GENOME_LENGTH` in `src/krsim/sim/params.py`), and depth files must match them.
   Later: an option to give other chromosome names and lengths.
+- **Sample-level error rates in the host VCF (planned 2026-11-10, waiting on the user's literature review).**
+  Two rates in `vcf-host-depth` only (strain VCF stays the truth): WT->MUT and MUT->WT (the latter usually a
+  little larger). Undecided: per read (flip reads, AD then GT) or per call (flip GT), which depends on what kind of
+  rates the literature gives; argument names (e.g. `--error_wt_mut`, `--error_mut_wt`, default 0); multiallelic
+  sites; recording the rates in the VCF header.
 
 ## Modelled depth for the host VCF (status, 2026-11-09, branch `depth-model`)
 
@@ -101,4 +106,17 @@ close; upper tail too heavy (99th percentile of window/median 26x vs 15x sWGA, 5
 percentile 0.42 vs 0.32 (too few low windows). Tests: `tests/test_sim_mut.sh` runs both types (outputs renamed
 `*_model_<type>.*`) plus checks of the cap, end zone and `--depth_spread 0`.
 
-Open: the user may replace constant-depth `vcf-host` with this; revisit.
+## Constant-depth `vcf-host` removed (2026-11-10, branch `remove-vcf-host`)
+
+The user decided constant depth is unrealistic: `krsim vcf-host` (`cli/vcf_host.py`, `output/vcf_host_single.py`),
+its outputs (`output_<seed>_host.vcf`, `host_proportions_<seed>.csv`) and its tests are gone; `vcf-host-depth` is
+Stage 5 everywhere (docs, tutorial notebook re-run, pipeline figure redrawn by `docs/images/make_pipeline.py`,
+benchmarks). For a test control, flat depth: `--depth_spread 0` + `--depth_params {"scale": 0, "end_width": 0}`
+(scale may now be 0); documented as not realistic, sites are still Poisson so can get 0 reads.
+Speed: the per-site loop now draws every host at once (vectorised depth, `rng.multinomial` with padded 2-D pvals,
+allele parsing from bytes, biallelic GT text in one pass): about 4x faster (Nh 100: 89 s -> 21 s on a cluster
+core, about 3x vcf-strain). A per-strain binomial split was slower (hosts have up to ~20 strains), so not used.
+This changed the random draw order, so the host-depth baselines were renewed (statistically the same; checked).
+`benchmarks/scaling.py pipeline` now times `vcf-host-depth --depth_model sWGA` (`--csv` writes elsewhere).
+Scaling page: vcf-host-depth timed on the cluster (SLURM job 35715664, Nh 50-1000; Nh 1000 = 38 min, 0.46 GB) and
+scaled to the laptop by the vcf-strain time ratio (~0.43) in `benchmarks/pipeline.csv`; stated on the page as rough.

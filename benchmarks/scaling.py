@@ -9,6 +9,8 @@ Parameters not given are at the baseline (Nh 100, T 1000, K 10, chi 0.2, C 3).
 Run one benchmark at a time so the timings don't compete for the CPU.
 
 pipeline.csv: each command run as its own process, with its time, peak RAM and output size.
+  The vcf-host-depth rows were timed on a cluster core (python scaling.py pipeline --csv ...) and their time_s
+  scaled to the laptop by laptop / cluster vcf-strain time at the same Nh (about 0.43); RAM and output as measured.
 benchmarks.csv: krsim simulate across parameters, split into its parts.
 """
 
@@ -70,7 +72,7 @@ def pipeline(args):
 
     p = {k: getattr(args, k) for k in BASELINE}
     seed = str(args.random_seed)
-    out = tempfile.mkdtemp(prefix="krsim_bench_")
+    out = tempfile.mkdtemp(prefix="krsim_bench_")  # set TMPDIR to a disk with room: the VCFs reach tens of GB
     f = lambda name: os.path.join(out, name)
     steps = [
         ("simulate", f(f"ts_{seed}.trees"),
@@ -80,9 +82,9 @@ def pipeline(args):
          ["krsim", "mutate", "--ts", f(f"ts_{seed}.trees"), "--random_seed", seed, "--output_dir", out]),
         ("vcf-strain", f(f"output_{seed}_strain.vcf"),
          ["krsim", "vcf-strain", "--ts", f(f"ts_mut_{seed}.trees"), "--random_seed", seed, "--output_dir", out]),
-        ("vcf-host", f(f"output_{seed}_host.vcf"),
-         ["krsim", "vcf-host", "--strain_vcf", f(f"output_{seed}_strain.vcf"),
-          "--ind_node_map_csv", f(f"sim_ind_node_map_{seed}.csv"), "--depth", "10",
+        ("vcf-host-depth", f(f"output_{seed}_host_depth.vcf"),
+         ["krsim", "vcf-host-depth", "--strain_vcf", f(f"output_{seed}_strain.vcf"),
+          "--ind_node_map_csv", f(f"sim_ind_node_map_{seed}.csv"), "--depth_model", "sWGA",
           "--random_seed", seed, "--output_dir", out]),
     ]
     rows = []
@@ -100,13 +102,14 @@ def pipeline(args):
         shutil.rmtree(out)  # the VCFs can be tens of GB
     df = pd.DataFrame([{**r, **sizes} for r in rows])
     # replace any earlier measurements of this parameter set rather than adding duplicates
-    if os.path.exists(PIPELINE_CSV):
-        old = pd.read_csv(PIPELINE_CSV)
+    csv_path = args.csv or PIPELINE_CSV
+    if os.path.exists(csv_path):
+        old = pd.read_csv(csv_path)
         same = np.ones(len(old), dtype=bool)
         for k, v in p.items():
             same &= np.isclose(old[k].astype(float), float(v))
         df = pd.concat([old[~same], df], ignore_index=True)
-    df.to_csv(PIPELINE_CSV, index=False)
+    df.to_csv(csv_path, index=False)
 
 
 def run(args):
@@ -177,7 +180,7 @@ def plot(args):
     # --- every command against Nh: time, peak RAM, output size ---
     pipe = pd.read_csv(PIPELINE_CSV)
     pipe = pipe[(pipe["T"] == BASELINE["T"]) & (pipe["K"] == BASELINE["K"])].sort_values("Nh")
-    commands = [("simulate", BLUE), ("mutate", ORANGE), ("vcf-strain", AQUA), ("vcf-host", YELLOW)]
+    commands = [("simulate", BLUE), ("mutate", ORANGE), ("vcf-strain", AQUA), ("vcf-host-depth", YELLOW)]
     # one column, three rows, so each panel is large on the website
     fig, axes = plt.subplots(3, 1, figsize=(10, 17))
     for ax, col, label, scale in [(axes[0], "time_s", "Time (minutes, typical laptop)", 60 / TYPICAL_SLOWDOWN),
@@ -224,6 +227,8 @@ if __name__ == "__main__":
         for param, typ in [("Nh", int), ("T", int), ("K", int), ("chi", float), ("C", int)]:
             s.add_argument(f"--{param}", type=typ, default=BASELINE[param])
         s.add_argument("--random_seed", type=int, default=42)
+        if name == "pipeline":
+            s.add_argument("--csv", help="write to this CSV instead of pipeline.csv (e.g. for another machine)")
     sub.add_parser("plot", help="draw the figures from the CSVs")
     args = parser.parse_args()
     {"pipeline": pipeline, "run": run, "plot": plot}[args.command](args)

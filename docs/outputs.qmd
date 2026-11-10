@@ -15,11 +15,9 @@ Every file name ends in the random seed passed with `--random_seed`. The Stage c
 | `coal_T_{seed}.csv` | 3 | Pairwise coalescence times per tree interval (chromosome-local coordinates) |
 | `mut_T_{seed}.csv` | 3 | Mutation chromosome, position, and age |
 | `output_{seed}_strain.vcf` | 4 | Per-strain genotypes (0/1) |
-| `output_{seed}_host.vcf` | 5 | Per-host genotypes (0/0, 0/1, 1/1; e.g. 1/2 at multi-allelic sites) with read counts per allele |
-| `host_proportions_{seed}.csv` | 5 | Dirichlet proportions and read counts per host |
-| `output_{seed}_host_depth.vcf` | 5 (alternative) | Per-host genotypes as above, with realistic read depth from a depth file or the depth model (`krsim vcf-host-depth`); the header records the depth source and the model values used |
-| `host_depth_profiles_{seed}.csv` | 5 (alternative) | Each host's depth source. With `--depth_zip`: `sim_id`, `ind_id`, `sample` and `depth_file` (its name in the zip). With `--depth_model`: `sim_id`, `ind_id`, `depth_model` and `typical_depth` (the host's drawn typical depth) |
-| `host_depth_proportions_{seed}.csv` | 5 (alternative) | Dirichlet proportions per host |
+| `output_{seed}_host_depth.vcf` | 5 | Per-host genotypes (0/0, 0/1, 1/1; e.g. 1/2 at multi-allelic sites; ./. with no reads) with read counts per allele, from realistic read depth (a depth file or the depth model); the header records the depth source and the model values used |
+| `host_depth_profiles_{seed}.csv` | 5 | Each host's depth source. With `--depth_zip`: `sim_id`, `ind_id`, `sample` and `depth_file` (its name in the zip). With `--depth_model`: `sim_id`, `ind_id`, `depth_model` and `typical_depth` (the host's drawn typical depth) |
+| `host_depth_proportions_{seed}.csv` | 5 | Dirichlet strain proportions per host |
 | `strain_transmission_map_{seed}.html` | additional | Interactive pedigree with mutations; explore it by chromosome and tree |
 | `pairwise_strain_pedigree_map_{seed}.html` | additional | Interactive pedigree coalescence trace for any two strains |
 | `relate_strain_{seed}.csv` | stats | Pairwise strain IBD fraction (`krsim relate-strain`) |
