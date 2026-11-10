@@ -60,6 +60,14 @@ Flat depth (a test control, not realistic): --depth_spread 0 with
 
 Defaults (median over QC-pass Pf8 samples):
 {_defaults_table()}
+Sample-level error (optional, both 0 by default = no error): at each site, each
+strain's allele in its host is read wrong with a chance set by its true allele:
+--error_wt_mut for WT read as MUT (a random ALT at sites with several), and
+--error_mut_wt for MUT read as WT (usually the larger). That strain's reads all
+go to the wrong allele, and AD, DP and GT follow. The strain VCF is not
+changed, so it stays the truth. The rates go in the VCF header, the number of
+flips on screen and in the log.
+
 Outputs:
   always  output_<seed>_host_depth.vcf      (header lists the depth source and values used)
           host_depth_profiles_<seed>.csv     (each host's depth file, or its typical depth)
@@ -73,6 +81,11 @@ Examples:
   krsim vcf-host-depth --strain_vcf results/output_42_strain.vcf \\
       --ind_node_map_csv results/sim_ind_node_map_42.csv \\
       --depth_model sWGA --depth_mean 30 --random_seed 42 --output_dir results/
+
+  krsim vcf-host-depth --strain_vcf results/output_42_strain.vcf \\
+      --ind_node_map_csv results/sim_ind_node_map_42.csv \\
+      --depth_model gDNA --error_wt_mut 0.005 --error_mut_wt 0.01 \\
+      --random_seed 42 --output_dir results/
 """
 
 
@@ -104,6 +117,12 @@ def add_arguments(parser):
     model.add_argument("--depth_params", type=str, metavar="FILE",
                        help="JSON file changing any other model value, e.g. {\"nu\": 3.0}")
 
+    errors = parser.add_argument_group("sample-level error (either depth source)")
+    errors.add_argument("--error_wt_mut", type=float, default=0.0, metavar="P",
+                        help="Chance a strain's WT allele is read as MUT in its host (default 0)")
+    errors.add_argument("--error_mut_wt", type=float, default=0.0, metavar="P",
+                        help="Chance a strain's MUT allele is read as WT in its host (default 0)")
+
 
 def run(args):
     if (args.depth_zip is None) == (args.depth_model is None):
@@ -132,6 +151,8 @@ def run(args):
             random_seed=args.random_seed,
             depth_zip=args.depth_zip,
             depth_model=settings,
+            error_wt_mut=args.error_wt_mut,
+            error_mut_wt=args.error_mut_wt,
         )
     except ValueError as exc:
         raise KrsimError(str(exc)) from exc
