@@ -126,17 +126,8 @@ run_stage "Stage 4: Strain VCF" \
 
 STRAIN_VCF="$OUT_DIR/output_${SEED}_strain.vcf"
 
-run_stage "Stage 5: Host VCF" \
-    krsim vcf-host \
-    --strain_vcf "$STRAIN_VCF" \
-    --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \
-    --random_seed "$SEED" \
-    --depth 10 \
-    --output_dir "$OUT_DIR" \
-    --save_proportions
-
 # depth profiles of three real Pf8 sWGA samples, kept in tests/data/test_depth.zip so nothing is downloaded
-run_stage "Stage 5 (alternative): Host VCF, read depth from a zip of depth files" \
+run_stage "Stage 5: Host VCF, read depth from a zip of depth files" \
     krsim vcf-host-depth \
     --strain_vcf "$STRAIN_VCF" \
     --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \
@@ -148,7 +139,7 @@ run_stage "Stage 5 (alternative): Host VCF, read depth from a zip of depth files
 # own folder and its files are moved into $OUT_DIR renamed *_model_<type>.* for the regression check
 for TYPE in sWGA gDNA; do
     MODEL_TMP="$OUT_DIR/model_$TYPE"
-    run_stage "Stage 5 (alternative): Host VCF, modelled $TYPE read depth" \
+    run_stage "Stage 5: Host VCF, modelled $TYPE read depth" \
         krsim vcf-host-depth \
         --strain_vcf "$STRAIN_VCF" \
         --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \
@@ -174,8 +165,12 @@ for t in ['sWGA', 'gDNA']:
         ends = np.concatenate([np.r_[tr[c][:k], tr[c][-k:]] for c in CHROMS])
         assert np.median(ends) < 0.5 * np.median(allw), 'end zone not lowered'
     assert np.all(host_depths(np.random.default_rng(1), model_settings(t, depth_spread=0.0), 5) == s['depth_mean'])
+    flat = model_settings(t, depth_spread=0.0)
+    flat.update(scale=0.0, end_width=0.0)
+    ft = np.concatenate([relative_track(np.random.default_rng(1), flat)[c] for c in CHROMS])
+    assert np.allclose(ft, 1.0), 'scale 0 should give a flat track'
     print(f'{t} model: median window {np.median(allw):.2f}x (expect about 1), highest {allw.max():.0f}x '
-          f'(cap {s[\"cap\"]:.0f}x), end zone {s[\"end_width\"]:,.0f} bp; --depth_spread 0 gives one typical depth')"
+          f'(cap {s[\"cap\"]:.0f}x), end zone {s[\"end_width\"]:,.0f} bp; --depth_spread 0 gives one typical depth; scale 0 gives flat depth')"
 
 # a tiny made-up mosdepth per-base file: depth 30 along every 3D7 chromosome
 # (written outside $OUT_DIR, so the regression check doesn't compare it)

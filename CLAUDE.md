@@ -101,4 +101,15 @@ close; upper tail too heavy (99th percentile of window/median 26x vs 15x sWGA, 5
 percentile 0.42 vs 0.32 (too few low windows). Tests: `tests/test_sim_mut.sh` runs both types (outputs renamed
 `*_model_<type>.*`) plus checks of the cap, end zone and `--depth_spread 0`.
 
-Open: the user may replace constant-depth `vcf-host` with this; revisit.
+## Constant-depth `vcf-host` removed (2026-11-10, branch `remove-vcf-host`)
+
+The user decided constant depth is unrealistic: `krsim vcf-host` (`cli/vcf_host.py`, `output/vcf_host_single.py`),
+its outputs (`output_<seed>_host.vcf`, `host_proportions_<seed>.csv`) and its tests are gone; `vcf-host-depth` is
+Stage 5 everywhere (docs, tutorial notebook re-run, pipeline figure redrawn by `docs/images/make_pipeline.py`,
+benchmarks). For a test control, flat depth: `--depth_spread 0` + `--depth_params {"scale": 0, "end_width": 0}`
+(scale may now be 0); documented as not realistic, sites are still Poisson so can get 0 reads.
+Speed: the per-site loop now draws every host at once (vectorised depth, `rng.multinomial` with padded 2-D pvals,
+allele parsing from bytes, biallelic GT text in one pass): about 4x faster (Nh 100: 89 s -> 21 s on a cluster
+core, about 3x vcf-strain). A per-strain binomial split was slower (hosts have up to ~20 strains), so not used.
+This changed the random draw order, so the host-depth baselines were renewed (statistically the same; checked).
+`benchmarks/scaling.py pipeline` now times `vcf-host-depth --depth_model sWGA` (`--csv` writes elsewhere).

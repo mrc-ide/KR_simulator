@@ -15,7 +15,7 @@ A forward simulator that brings together malaria modelling and population geneti
 
 krsim runs as a series of commands. Each one reads the files written by an earlier stage and writes new ones.
 
-![](images/pipeline.png){width="75%" fig-align="center" fig-alt="The krsim pipeline: simulate writes the tree sequence and host–strain map; mutate adds mutations; coal-mut writes coalescence and mutation times; vcf-strain writes the strain VCF; vcf-host combines it with the host–strain map into the host VCF."}
+![](images/pipeline.png){width="75%" fig-align="center" fig-alt="The krsim pipeline: simulate writes the tree sequence and host–strain map; mutate adds mutations; coal-mut writes coalescence and mutation times; vcf-strain writes the strain VCF; vcf-host-depth combines it with the host–strain map into the host VCF, with realistic read depth."}
 
 Each grey box is a `krsim` command, and the files inside its dashed outline are the ones it writes. Arrows show which files each command reads. Every command also records what it did in `KR_sim_{seed}.log` in its `--output_dir`.
 

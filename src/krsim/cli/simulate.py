@@ -79,7 +79,7 @@ def run(args):
     run.wrote(trees_path)
     run.detail(f"  {ts.num_trees} trees, {ts.num_samples} samples, {ts.num_nodes} nodes, {ts.num_edges} edges")
 
-    # always save the individual-node mapping: vcf-host and relate-host need it
+    # always save the individual-node mapping: vcf-host-depth and relate-host need it
     df = append_ind_node_map(ts, sim_id=args.random_seed, output_dir=args.output_dir)
     run.wrote(os.path.join(args.output_dir, f"sim_ind_node_map_{args.random_seed}.csv"), rows=len(df))
 

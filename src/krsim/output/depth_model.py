@@ -17,6 +17,10 @@ Per host:
   3. capped at `cap` times the typical depth
 The read depth at each site is then Poisson(window depth).
 
+Flat depth (an idealised control, not realistic): depth_spread = 0 gives every host the same typical
+depth; scale = 0 removes the kicks, so the track is flat along the genome (with end_width = 0, also at
+chromosome ends). Each site's depth is still Poisson around that depth, so a site can get 0 reads.
+
 Defaults: src/krsim/data/depth_model_defaults.json, made from the Pf8 fits by
 real_data/pf8/model_comparison/make_depth_model_defaults.py.
 """
@@ -83,10 +87,10 @@ def model_settings(depth_model, depth_mean=None, depth_spread=None, params_file=
         if not isinstance(s[k], (int, float)) or isinstance(s[k], bool) or not np.isfinite(s[k]):
             raise ValueError(f"{k} must be a number, got {s[k]!r}")
         s[k] = float(s[k])
-    for k in ("scale", "nu", "cap", "depth_mean"):
+    for k in ("nu", "cap", "depth_mean"):
         if s[k] <= 0:
             raise ValueError(f"{k} must be above 0, got {s[k]}")
-    for k in ("end_width", "end_factor", "depth_spread"):
+    for k in ("scale", "end_width", "end_factor", "depth_spread"):
         if s[k] < 0:
             raise ValueError(f"{k} must be 0 or more, got {s[k]}")
     if s["ar"]:

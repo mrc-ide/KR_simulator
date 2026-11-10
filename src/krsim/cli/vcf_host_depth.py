@@ -1,11 +1,11 @@
-"""krsim vcf-host-depth — Stage 5 (alternative): per-host VCF with realistic read depth."""
+"""krsim vcf-host-depth — Stage 5: per-host VCF with realistic read depth."""
 
 import json
 from importlib import resources
 
 from krsim.cli._common import KrsimError, Run
 
-HELP = "Stage 5 (alternative): per-host VCF, realistic read depth from depth files or a model"
+HELP = "Stage 5: per-host VCF, realistic read depth from depth files or a model"
 
 
 def _defaults_table():
@@ -53,6 +53,10 @@ comes from the model, capped, and for sWGA lowered near chromosome ends. The
 read depth at each site is Poisson around its window's depth. Any value below
 can be changed in a JSON file given to --depth_params, e.g.
 {{"nu": 3.0, "cap": 1000}}; values not listed keep their defaults.
+
+Flat depth (a test control, not realistic): --depth_spread 0 with
+--depth_params {{"scale": 0, "end_width": 0}} gives every host and every window
+--depth_mean; each site's reads are still Poisson, so a site can get 0 reads.
 
 Defaults (median over QC-pass Pf8 samples):
 {_defaults_table()}
