@@ -36,6 +36,9 @@ COMMANDS = {
     "depth-zip": depth_zip,
 }
 
+# optional extras (truth tables and maps), not needed for the VCFs: their names are pink in `krsim --help`
+EXTRAS = {"coal-mut", "relate-strain", "relate-host", "strain-transmission-map", "pairwise-strain-pedigree-map"}
+
 
 class HelpFormatter(RawDescriptionRichHelpFormatter):
     """Raw* keeps the line layout of each command's EPILOG (outputs + example);
@@ -56,6 +59,13 @@ class HelpFormatter(RawDescriptionRichHelpFormatter):
         # which pushes the longest command name's description onto its own line
         if isinstance(action, argparse._SubParsersAction):
             self._action_max_length += self._indent_increment
+
+    def _rich_format_action_invocation(self, action):
+        text = super()._rich_format_action_invocation(action)
+        # a command in the list (no --option strings) that is an optional extra: pink, not the usual blue
+        if not action.option_strings and action.dest in EXTRAS:
+            text.stylize("bold hot_pink", 0, len(text))
+        return text
 
 
 class Parser(argparse.ArgumentParser):
