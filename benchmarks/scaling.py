@@ -9,6 +9,8 @@ Parameters not given are at the baseline (Nh 100, T 1000, K 10, chi 0.2, C 3).
 Run one benchmark at a time so the timings don't compete for the CPU.
 
 pipeline.csv: each command run as its own process, with its time, peak RAM and output size.
+  The vcf-host-depth rows were timed on a cluster core (python scaling.py pipeline --csv ...) and their time_s
+  scaled to the laptop by laptop / cluster vcf-strain time at the same Nh (about 0.43); RAM and output as measured.
 benchmarks.csv: krsim simulate across parameters, split into its parts.
 """
 

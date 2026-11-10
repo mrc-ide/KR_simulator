@@ -72,6 +72,11 @@ CC BY 4.0; the docs and release notes cite MalariaGEN et al. (2025), Wellcome Op
 - **Other references / chromosome lengths.** krsim is fixed to the 3D7 chromosome lengths used by Pf8
   (PlasmoDB-54, `COMP_BREAKPOINTS` / `GENOME_LENGTH` in `src/krsim/sim/params.py`), and depth files must match them.
   Later: an option to give other chromosome names and lengths.
+- **Sample-level error rates in the host VCF (planned 2026-11-10, waiting on the user's literature review).**
+  Two rates in `vcf-host-depth` only (strain VCF stays the truth): WT->MUT and MUT->WT (the latter usually a
+  little larger). Undecided: per read (flip reads, AD then GT) or per call (flip GT), which depends on what kind of
+  rates the literature gives; argument names (e.g. `--error_wt_mut`, `--error_mut_wt`, default 0); multiallelic
+  sites; recording the rates in the VCF header.
 
 ## Modelled depth for the host VCF (status, 2026-11-09, branch `depth-model`)
 
@@ -113,3 +118,5 @@ allele parsing from bytes, biallelic GT text in one pass): about 4x faster (Nh 1
 core, about 3x vcf-strain). A per-strain binomial split was slower (hosts have up to ~20 strains), so not used.
 This changed the random draw order, so the host-depth baselines were renewed (statistically the same; checked).
 `benchmarks/scaling.py pipeline` now times `vcf-host-depth --depth_model sWGA` (`--csv` writes elsewhere).
+Scaling page: vcf-host-depth timed on the cluster (SLURM job 35715664, Nh 50-1000; Nh 1000 = 38 min, 0.46 GB) and
+scaled to the laptop by the vcf-strain time ratio (~0.43) in `benchmarks/pipeline.csv`; stated on the page as rough.
