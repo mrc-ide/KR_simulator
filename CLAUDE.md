@@ -79,6 +79,14 @@ CC BY 4.0; the docs and release notes cite MalariaGEN et al. (2025), Wellcome Op
   far heavier than real (typical simulated sWGA host max ~1,900x vs a typical real sample's 175x), and the max rests
   on one outlier sample. Options to compare later: 99th or 90th percentile (3,858x / 29x), or the median sample's
   highest spike (175x / 11x), against real samples' highest spikes and share of windows above 10x / 100x.
+  **Checked 2026-11-11** (`real_data/pf8/model_comparison/check_depth_cap.py`, 300 simulated hosts vs 300 random
+  real samples per type, same tracks under every cap; `results/depth_cap/cap_check.tsv`): the highest and the 99th
+  percentile cap give identical closeness (KS on highest / p99.9 / p99 / share >10x / >100x: mean 0.543 sWGA, 0.817
+  gDNA); the cap only trims the top hosts (top-10% host's highest: real 5,432x sWGA / 30x gDNA; highest cap 37,623x /
+  610x; 99th 14,293x / 116x; 90th-pct cap 3,858x / 29x, the closest, and gDNA mean KS 0.69). A typical host never
+  reaches the cap (highest ~2,545x sWGA vs real 216x; ~133x gDNA vs real 11x). The real mismatch is the model: spikes
+  too frequent, and hosts too alike (one shared parameter set; real samples vary more, e.g. real 90th pct of p99 is
+  86x vs 28x simulated for sWGA). The user kept the highest cap (no closeness cost).
 
 ## Modelled depth for the host VCF (status, 2026-11-09, branch `depth-model`)
 
