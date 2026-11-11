@@ -1,0 +1,84 @@
+sWGA, 300 real samples
+
+1. Real depth by distance from the chromosome end (median sample, 5 kb bins):
+     0-5   kb  0.0019x
+     5-10  kb  0.0014x
+    10-15  kb  0.0020x
+    15-20  kb  0.0044x
+    20-25  kb  0.0086x
+    25-30  kb  0.0883x
+    30-35  kb  0.1545x
+    35-40  kb  0.2137x
+    40-45  kb  0.3059x
+    45-50  kb  0.2708x
+    50-55  kb  0.2485x
+    55-60  kb  0.2703x
+    60-65  kb  0.3999x
+    65-70  kb  0.5159x
+    70-75  kb  0.5732x
+    75-80  kb  0.4803x
+    80-85  kb  0.4880x
+    85-90  kb  0.5563x
+    90-95  kb  0.7654x
+    95-100 kb  0.7495x
+   100-105 kb  0.7856x
+   105-110 kb  0.6363x
+   110-115 kb  0.8951x
+   115-120 kb  1.0864x
+
+   Zone width each threshold gives (bins from the end below it):
+   below 0.01x ->  25 kb
+   below 0.02x ->  25 kb
+   below 0.05x ->  25 kb
+   below 0.1 x ->  30 kb
+   below 0.15x ->  30 kb
+   below 0.2 x ->  35 kb
+   below 0.3 x ->  40 kb
+   below 0.5 x ->  65 kb
+   below 0.8 x -> 110 kb
+
+   Steepest rise (500 bp windows): 0.5-1.0 kb from the end, x9 (0.0000x -> 0.001x)
+     0-25  kb: median 0.0029x
+    25-30  kb: median 0.0946x
+    30-50  kb: median 0.2413x
+    50-100 kb: median 0.5021x
+   100-150 kb: median 0.9827x
+   150-200 kb: median 1.0796x
+
+2. Factor: krsim uses 0.0035x over 30 kb (median of the 5 kb bin medians, all 17,330 samples)
+   This sample set: median of 0-30 kb windows 0.0033x
+   Real: share of 0-30 kb windows with no reads at all, median sample 33% (middle 50% of samples 7%-57%)
+   krsim, host typical depth  14x: expected reads per site 0.05, sites with 0 reads 95%
+   krsim, host typical depth  30x: expected reads per site 0.11, sites with 0 reads 90%
+   krsim, host typical depth  63x: expected reads per site 0.22, sites with 0 reads 80%
+   krsim, host typical depth 132x: expected reads per site 0.46, sites with 0 reads 63%
+   krsim, host typical depth 300x: expected reads per site 1.05, sites with 0 reads 35%
+
+3. Mean |log10(simulated / real)| of the median end profile (0 = identical, 1 = 10x off):
+                           option  0-30 kb  30-100 kb  0-200 kb  factor
+                   flat zone 0 kb    2.329      0.419     0.531   1.000
+                  flat zone 10 kb    1.464      0.427     0.404   0.002
+                  flat zone 20 kb    0.704      0.436     0.293   0.002
+                  flat zone 25 kb    0.459      0.441     0.258   0.003
+      flat zone 30 kb (krsim now)    0.496      0.445     0.265   0.003
+                  flat zone 35 kb    0.510      0.500     0.287   0.004
+                  flat zone 40 kb    0.576      0.540     0.311   0.007
+                  flat zone 50 kb    0.764      0.596     0.360   0.015
+                  flat zone 75 kb    1.685      0.209     0.364   0.201
+                 flat zone 100 kb    1.827      0.195     0.382   0.273
+end profile (5 kb bins to 150 kb)    0.203      0.075     0.091   0.002
+
+4. Whole genome, every window (median over real samples / simulated hosts):
+                                share <0.01x median  share <0.1x median  share <0.5x median  p1 median  p5 median  p10 median
+genome                                                                                                                       
+REAL                                         0.0346              0.0837              0.2948     0.0000     0.0316      0.1301
+AR(8) alone                                  0.0139              0.0632              0.3028     0.0002     0.0785      0.1569
+AR(8) + 30 kb zone (krsim now)               0.0420              0.0930              0.3132     0.0000     0.0199      0.1126
+AR(8) + end profile                          0.0375              0.0946              0.3177     0.0000     0.0269      0.1089
+
+   KS distance to real (0 = same distribution over samples):
+                                share <0.01x KS  share <0.1x KS  share <0.5x KS  p1 KS  p5 KS  p10 KS  mean KS
+genome                                                                                                        
+AR(8) alone                               0.797           0.748           0.493  0.167  0.892   0.582    0.613
+AR(8) + 30 kb zone (krsim now)            0.570           0.530           0.567  0.350  0.547   0.532    0.516
+AR(8) + end profile                       0.455           0.535           0.598  0.350  0.425   0.552    0.486

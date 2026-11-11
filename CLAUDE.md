@@ -106,7 +106,9 @@ defaults: `src/krsim/data/depth_model_defaults.json`, made by
    tail is far heavier than real (typical simulated sWGA host max ~1,900x vs real 175x), so the cap binds often,
    especially for gDNA.
 5. sWGA end zone: 5 kb end bins with median depth / sample median < 0.1 -> 30 kb at 0.0035x. Real sWGA stays
-   ~0.2x from 30 to 65 kb (not modelled). gDNA ends are slightly high (1.3-1.5x), so no zone.
+   ~0.2x from 30 to 65 kb (not modelled). Evidence (thresholds, flat zones 0-100 kb vs an end profile, whole-genome KS):
+   `check_swga_ends.py`, `results/swga_ends/`; the user kept the flat 30 kb zone for simplicity. All post-fit decisions
+   and methods wording: `real_data/pf8/model_comparison/METHODS_NOTES.md`. gDNA ends are slightly high (1.3-1.5x), so no zone.
 6. `--depth_params FILE.json` overrides any of ar, ma, mu, scale, nu, offset, cap, end_width, end_factor,
    depth_mean, depth_spread; the defaults are listed in `vcf-host-depth --help` (no helper command, as the user chose).
 

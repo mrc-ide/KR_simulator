@@ -12,6 +12,7 @@ every detail uses real depth profiles (Pf8, or their own CRAMs).
 | Sample list (21 samples) and CRAM URLs | [`pf8_samples/samples.tsv`](pf8_samples/samples.tsv), [`pf8_samples/crams.tsv`](pf8_samples/crams.tsv) |
 | Scripts that made the depth data and comparison plots | [`pf8_samples/`](pf8_samples/) (`run_samples.sh`, `compare.sh`, `compare_depth.py`, `compare_samples.py`) |
 | Model comparison scripts | this folder: `compare_processes.py`, `plot_processes.py`, `best_simple_model.py`, `compare_kick_models.py`, `compare_arma_kicks.py` (see [README](README.md)) |
+| Decisions after the fits (trim, cap, sWGA end zone, KS checks, limitations), for the paper | [`METHODS_NOTES.md`](METHODS_NOTES.md) |
 | All results (tables, figures) | [`results/`](results/) |
 | All figures with explanations, one PDF | [`results/figures_guide/figures_guide.pdf`](results/figures_guide/figures_guide.pdf) |
 | Depth data (per-base and 500 bp windows, ~1.6 GB) | **not in git**; on the first laptop in `RA_POSTDOC_IMPERIAL/pf8_samples/`; rebuild with the steps below |
