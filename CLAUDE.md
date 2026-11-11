@@ -72,6 +72,21 @@ CC BY 4.0; the docs and release notes cite MalariaGEN et al. (2025), Wellcome Op
 - **Other references / chromosome lengths.** krsim is fixed to the 3D7 chromosome lengths used by Pf8
   (PlasmoDB-54, `COMP_BREAKPOINTS` / `GENOME_LENGTH` in `src/krsim/sim/params.py`), and depth files must match them.
   Later: an option to give other chromosome names and lengths.
+- **Revisit the depth-model cap (set 2026-11-11, to look at later).** The cap is now the *highest* real spike
+  (highest window / median of any QC-pass Pf8 sample: 37,623x sWGA, 610x gDNA; `CAP_PCT = 100` in
+  `make_depth_model_defaults.py`), was the 99th percentile (14,293x / 116x). The user chose it so the most extreme
+  real spike can also happen in simulation, knowing it is probably too extreme: the model's upper tail is already
+  far heavier than real (typical simulated sWGA host max ~1,900x vs a typical real sample's 175x), and the max rests
+  on one outlier sample. Options to compare later: 99th or 90th percentile (3,858x / 29x), or the median sample's
+  highest spike (175x / 11x), against real samples' highest spikes and share of windows above 10x / 100x.
+  **Checked 2026-11-11** (`real_data/pf8/model_comparison/check_depth_cap.py`, 300 simulated hosts vs 300 random
+  real samples per type, same tracks under every cap; `results/depth_cap/cap_check.tsv`): the highest and the 99th
+  percentile cap give identical closeness (KS on highest / p99.9 / p99 / share >10x / >100x: mean 0.543 sWGA, 0.817
+  gDNA); the cap only trims the top hosts (top-10% host's highest: real 5,432x sWGA / 30x gDNA; highest cap 37,623x /
+  610x; 99th 14,293x / 116x; 90th-pct cap 3,858x / 29x, the closest, and gDNA mean KS 0.69). A typical host never
+  reaches the cap (highest ~2,545x sWGA vs real 216x; ~133x gDNA vs real 11x). The real mismatch is the model: spikes
+  too frequent, and hosts too alike (one shared parameter set; real samples vary more, e.g. real 90th pct of p99 is
+  86x vs 28x simulated for sWGA). The user kept the highest cap (no closeness cost).
 
 ## Modelled depth for the host VCF (status, 2026-11-09, branch `depth-model`)
 
@@ -86,7 +101,8 @@ defaults: `src/krsim/data/depth_model_defaults.json`, made by
 3. Window depth = typical depth x relative track; relative track = exp(y + offset) - 0.05, ends lowered, scaled to
    median 1 over the genome, capped. Site depth = Poisson(window depth). The whole track is simulated
    (2,000-window burn-in per chromosome) but only SNP windows are kept.
-4. Cap = 99th percentile over samples of (highest window / median): 14,293x sWGA, 116x gDNA. The model's upper
+4. Cap = 99th percentile over samples of (highest window / median): 14,293x sWGA, 116x gDNA (since 2026-11-11 the
+   highest over samples instead, 37,623x / 610x; see Future work). The model's upper
    tail is far heavier than real (typical simulated sWGA host max ~1,900x vs real 175x), so the cap binds often,
    especially for gDNA.
 5. sWGA end zone: 5 kb end bins with median depth / sample median < 0.1 -> 30 kb at 0.0035x. Real sWGA stays
