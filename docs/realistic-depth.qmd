@@ -129,7 +129,7 @@ In full, for each host:
 
 1. **Typical depth, once per host**: drawn from a log-normal fitted to the typical depths of Pf8 samples, so some hosts are sequenced more deeply than others, as in real data (by default centred on 63× for sWGA and 77× for gDNA).
 2. **Depth along the genome, once per host**: the host's own random track of relative depth from the model, one value per 500 bp window. Every host's track is different, so dips and spikes fall in different places; what hosts share is the model, i.e. how patchy depth is.
-3. **Two limits from real data**: no window above a cap (14,293× the typical depth for sWGA, 116× for gDNA: only 1% of real Pf8 samples have a window above it), and, for sWGA only, low depth near chromosome ends (the last 30 kb of each end gets 0.004× the depth), since sWGA barely amplifies the subtelomeres.
+3. **Two limits from real data**: no window above a cap (37,623× the typical depth for sWGA, 610× for gDNA: the highest window, relative to its median, of any QC-pass Pf8 sample, so the simulation can reach the most extreme spike seen in real data), and, for sWGA only, low depth near chromosome ends (the last 30 kb of each end gets 0.004× the depth), since sWGA barely amplifies the subtelomeres.
 4. **Strain proportions**: as in option 1, once per host from a Dirichlet.
 5. At every site, for every host: the read depth is drawn from a Poisson around the window's depth, split between the host's strains with a Multinomial, and written as `GT:AD:DP`.
 

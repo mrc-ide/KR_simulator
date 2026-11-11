@@ -7,7 +7,7 @@ fit_chosen_models.py merge): sWGA AR(8) + Student t kicks, gDNA ARMA(2,2) + Stud
 From each sample's window stats (nuclear chromosomes, 500 bp windows), as in the fits:
   typical depth   median window depth                         -> log-normal of hosts' typical depths
   offset          mean of log(depth / median + 0.05), ends trimmed (the fits removed it)
-  highest spike   highest window / median                     -> cap: 99th percentile over samples
+  highest spike   highest window / median                     -> cap: highest over samples (CAP_PCT = 100)
   end depth       window / median by distance from each chromosome end (5 kb bins, up to 150 kb)
                   -> sWGA end zone: the bins whose median over samples is below END_LOW;
                      factor = median over samples of the zone's windows / median
@@ -36,7 +36,7 @@ TRIM = 50_000 // WINDOW
 END_BIN = 10       # windows per end bin (5 kb)
 END_BINS = 30      # bins from each end (150 kb)
 END_LOW = 0.1      # an end bin is in the zone if its median depth / sample median is below this (almost no reads)
-CAP_PCT = 99
+CAP_PCT = 100   # 100 = the highest spike of any sample (the user's choice, 2026-11-11; was 99, see CLAUDE.md)
 MODELS = {"sWGA": ("AR(8) t", 8, 0), "gDNA": ("ARMA(2,2) t", 2, 2)}
 
 
