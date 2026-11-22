@@ -62,12 +62,15 @@ gets one file, picked at random by the seed without replacement; the zip needs a
 with the helper `krsim depth-zip --bed <sample>.per-base.bed.gz ... --output my.zip` (listed last in `krsim --help`
 as "Helper (not a pipeline step)"). Example zips of 100 sWGA and 100 gDNA QC-pass Pf8 samples are made by
 `real_data/pf8/all_samples/make_example_zips.py` into `/data/home/bty208/scratch/IMPERIAL/pf8_mosdepth/example_zips/`;
-each zip also holds its own `samples.tsv` (sample, type, country, year, study), which krsim ignores. They are meant
-for a GitHub Release named `example-depth-data-v1`, not git (about 94 MB together); not published yet. Pf8 data are
+each zip also holds its own `samples.tsv` (sample, type, country, year, study), which krsim ignores. They are on
+the GitHub Release `example-depth-data-v1` (published 2026-11-09), not in git (about 94 MB together). Pf8 data are
 CC BY 4.0; the docs and release notes cite MalariaGEN et al. (2025), Wellcome Open Research 10:325. The module keeps the name `pf8_profiles` because the `real_data/pf8/` scripts call
 `python -m krsim.output.pf8_profiles`.
 
 ## Future work
+
+- **Realistic default error rates (to do, noted 2026-11-22).** `--error_wt_mut` / `--error_mut_wt` stay
+  user-set, default 0 for now. The user will choose realistic defaults after a literature review, then set them.
 
 - **Other references / chromosome lengths.** krsim is fixed to the 3D7 chromosome lengths used by Pf8
   (PlasmoDB-54, `COMP_BREAKPOINTS` / `GENOME_LENGTH` in `src/krsim/sim/params.py`), and depth files must match them.
@@ -159,3 +162,13 @@ no longer Stage 3 (it isn't needed for the VCFs), so vcf-strain is Stage 3 and v
 (CLI, commands/outputs/tutorial-scripts/realistic-depth pages, tutorial notebook headings, test labels). The sections
 are built in `cli/__init__.py` by moving the subcommand help lines into two argument groups (`HELPERS`); parsing is
 unchanged. The pipeline figure still shows coal-mut (it is still a command the quick start runs).
+
+## Coalescence-time sweep (2026-11-20, branch `cap-highest`)
+
+`analysis/coalescence_sweep/coal_sweep.py` (+ `coal_sweep.sbatch`, 51 SLURM runs, 3 seeds, T 1000): share of the
+genome coalescing per generation for strain pairs in the same host and in different hosts (tskit
+`pair_coalescence_counts`), varying Nh, K, C, chi one at a time. Set `paper` (user's write-up; their "Q" = K):
+Nh 50/**100**/150/200/300, K 3/**5**/10/25/50, C **1**/2/3/5/10, chi 0.05/0.1/0.2/**0.5**/0.9; set `real_scale`
+(baseline as docs/real-scale.qmd). Figures in `results/<set>/`: 2 rows (same / different host) x 4 parameters, log y,
+views 0-20, 0-100 (one point per generation), 0-1000 and cumulative. The user decided 3 seeds are enough (pattern
+clear) and that merging mono- and superinfected hosts into "same host" is fine.
