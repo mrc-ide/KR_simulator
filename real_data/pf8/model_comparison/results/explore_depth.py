@@ -6,7 +6,7 @@ Works on log depth per 500 bp window, y = log(mean + 1), for the samples of one 
   shared window effect = the mean across samples of (y - sample level), per window (means, so the parts add up)
   residual             = what is left; its own patchiness along the genome
 
-Writes <type>_explore.png and <type>_explore.txt into this folder.
+Writes <type>_explore.txt into this folder and <type>_explore.png into figures/pf8_data/.
 
 Usage:
     python explore_depth.py sWGA
@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+FIGURES = os.path.normpath(os.path.join(HERE, "..", "..", "..", "..", "figures", "pf8_data"))
 TOP = os.path.dirname(HERE)
 REF = os.path.join(TOP, "reference", "PlasmoDB-54-Pfalciparum3D7-Genome.fasta")
 WINDOW = 500
@@ -151,5 +152,5 @@ for ax in axes.flat:
         ax.spines[side].set_visible(False)
 fig.suptitle(f"{sample_type} ({len(samples)} samples): structure of log depth in 500 bp windows", x=0.01, ha="left", fontsize=12)
 fig.tight_layout(rect=(0, 0, 1, 0.96))
-fig.savefig(os.path.join(HERE, f"{sample_type}_explore.png"), dpi=130, facecolor="white")
-print("wrote", os.path.join(HERE, f"{sample_type}_explore.png"))
+fig.savefig(os.path.join(FIGURES, f"{sample_type}_explore.png"), dpi=130, facecolor="white")
+print("wrote", os.path.join(FIGURES, f"{sample_type}_explore.png"))

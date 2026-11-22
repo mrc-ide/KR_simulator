@@ -16,7 +16,7 @@ This fits AR(p) with five kick models and compares them by held-out likelihood a
 
 All models use the same conditional likelihood: each chromosome's first p windows are only used as
 predictors, so every model is scored on exactly the same windows. Held-out = fit on odd chromosomes, score
-even ones, then swap. Writes kick_fits.tsv, kick_summary.tsv and kick_models.png into <output_dir>.
+even ones, then swap. Writes kick_fits.tsv, kick_summary.tsv into <output_dir>, and kick_models.png into figures/kicks/.
 """
 
 import argparse
@@ -33,6 +33,8 @@ from scipy.signal import lfilter
 from scipy.special import expit, gammaln
 
 from compare_processes import load
+
+FIGURES = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "figures", "kicks"))
 
 LOG2PI = np.log(2 * np.pi)
 
@@ -302,12 +304,12 @@ def main():
         median_kick_clustering=("std |kick| corr lag 1", "median"),
     ).round(2)
     summary.to_csv(os.path.join(args.output_dir, "kick_summary.tsv"), sep="\t")
-    plot(res, os.path.join(args.output_dir, "kick_models.png"), args.type, args.p)
+    plot(res, os.path.join(FIGURES, "kick_models.png"), args.type, args.p)
     print(summary.to_string())
     extra = [c for c in res.columns if c in ("nu (t tail weight)", "GARCH a", "GARCH b", "sigma calm", "sigma jumpy",
                                              "share jumpy", "jumpy stretch (kb)", "calm stretch (kb)")]
     print(res.groupby("model", sort=False)[extra].median().round(3).to_string())
-    print(f"wrote kick_fits.tsv, kick_summary.tsv and kick_models.png in {args.output_dir}")
+    print(f"wrote kick_fits.tsv, kick_summary.tsv in {args.output_dir} and kick_models.png in {FIGURES}")
 
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ from fit_garch_kicks import GARCH_OUT, KICKS, chosen_x, clustering, standardised
 from plot_chosen_models import GRID, MUTED, TEXT, comma, ranges, tidy, title
 
 KCOL = {"Gaussian": "#8a8984", "t": "#2a78d6", "GARCH t": "#eb6834"}
-EXAMPLES = {"sWGA": "SPT43924", "gDNA": "PD0048-C"}      # the samples of results/kick_gain/ figures 7a/7b
+EXAMPLES = {"sWGA": "SPT43924", "gDNA": "PD0048-C"}      # the samples of figures/kicks/ figures 7a/7b
 DROP, SPIKE = "lowest 0.1% (expect 0.1)", "highest 0.1% (expect 0.1)"
 
 

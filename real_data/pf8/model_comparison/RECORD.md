@@ -103,7 +103,7 @@ genome map of low/high regions. Real depth profiles cover those.
 ## 5. Concepts (short)
 
 - **Kick**: the random surprise added at each window: new value = prediction from the past + kick.
-  Diagram: `results/notes/kicks_diagram.png`.
+  Diagram: `figures/model_screen/kicks_diagram.png` (repo root).
 - **AR(p)**: predict from the previous p depths. **ARMA(p, q)**: p previous depths + q previous kicks.
 - **t kicks**: like Gaussian but with heavier tails (more big jumps); ν sets how heavy (small ν = heavier).
 - **Held-out log-likelihood**: how unsurprised a model is by chromosomes it was not fitted to.

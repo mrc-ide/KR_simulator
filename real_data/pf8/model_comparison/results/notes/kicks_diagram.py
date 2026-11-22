@@ -92,5 +92,7 @@ ax.legend(frameon=False, fontsize=8.5, loc="upper right")
 style(ax)
 
 fig.suptitle("Kicks: the random surprise added at each window", x=0.01, ha="left", fontsize=14, color=TEXT)
-fig.savefig("/Users/bty208/Desktop/RA_POSTDOC_IMPERIAL/pf8_samples/model/notes/kicks_diagram.png",
+import os  # noqa: E402
+fig.savefig(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "..", "..", "figures",
+                         "model_screen", "kicks_diagram.png"),
             dpi=160, facecolor="white", bbox_inches="tight")

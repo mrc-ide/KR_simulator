@@ -36,7 +36,7 @@ supply their own depth data (`krsim vcf-host-depth`). Don't push for further mod
 - `real_data/pf8/model_comparison/results/simple_models_new20/`: the same for 20 new samples (10 gDNA, 10 sWGA),
   list in its `samples.tsv`. Made by
   `python best_simple_model.py <pf8_samples dir> results/simple_models_new20` (~30 s on a laptop).
-- `real_data/pf8/model_comparison/results/kick_gain/`: Gaussian vs t figures, all from `plot_kick_gain.py`:
+- `figures/kicks/` (repo root): Gaussian vs t figures, all from `results/kick_gain/plot_kick_gain.py`:
   1 kick shapes; 2 score gain per sample; 3 tail check; 4 / 4b every model shape × kick type (first 21 / new 20);
   5 simulated Gaussian vs t kicks and depth; 6 how the held-out score is built; 7a / 7b real sample (PD0048-C gDNA,
   SPT43924 sWGA) next to genomes simulated from its own Gaussian and t fits.
@@ -126,7 +126,7 @@ percentile 0.42 vs 0.32 (too few low windows). Tests: `tests/test_sim_mut.sh` ru
 
 The user decided constant depth is unrealistic: `krsim vcf-host` (`cli/vcf_host.py`, `output/vcf_host_single.py`),
 its outputs (`output_<seed>_host.vcf`, `host_proportions_<seed>.csv`) and its tests are gone; `vcf-host-depth` is
-Stage 5 everywhere (docs, tutorial notebook re-run, pipeline figure redrawn by `docs/images/make_pipeline.py`,
+Stage 5 everywhere (docs, tutorial notebook re-run, pipeline figure redrawn by `figures/simulator/make_pipeline.py`,
 benchmarks). For a test control, flat depth: `--depth_spread 0` + `--depth_params {"scale": 0, "end_width": 0}`
 (scale may now be 0); documented as not realistic, sites are still Poisson so can get 0 reads.
 Speed: the per-site loop now draws every host at once (vectorised depth, `rng.multinomial` with padded 2-D pvals,
@@ -172,3 +172,12 @@ Nh 50/**100**/150/200/300, K 3/**5**/10/25/50, C **1**/2/3/5/10, chi 0.05/0.1/0.
 (baseline as docs/real-scale.qmd). Figures in `results/<set>/`: 2 rows (same / different host) x 4 parameters, log y,
 views 0-20, 0-100 (one point per generation), 0-1000 and cumulative. The user decided 3 seeds are enough (pattern
 clear) and that merging mono- and superinfected hosts into "same host" is fine.
+
+## One figures folder (2026-11-22, branch `cap-highest`)
+
+`figures/` (repo root) is the only home of every figure, by topic: simulator, pf8_data, model_screen, kicks,
+model_choice, realism, coalescence. Index: `figures/README.md` (what each shows, the script that makes it, and
+Website / Paper columns; the user marks paper figures `main` / `supp` there, with no copies). Scripts write their figures
+straight into `figures/<topic>/` (their tables stay in their own results folders). The website's figures are copied
+into `docs/images/` (not in git) by `docs/copy_figures.py`, a Quarto pre-render step; to show a new figure, add it
+to `WEBSITE` there. `paper_figures/` and `results/figures_guide/figures/` (copies) were removed.

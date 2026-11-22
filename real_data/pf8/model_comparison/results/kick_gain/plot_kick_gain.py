@@ -24,6 +24,7 @@ from matplotlib.ticker import FuncFormatter
 from scipy import stats
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+FIGURES = os.path.normpath(os.path.join(HERE, "..", "..", "..", "..", "..", "figures", "kicks"))
 TABLES = os.path.join(HERE, "..", "simple_models")
 PF8_SAMPLES = os.path.expanduser("~/pf8_data/pf8_samples")      # depth data for figures 7a/7b (change on another computer)
 TEXT, MUTED, GRID = "#0b0b0b", "#6b6a66", "#e6e5e1"
@@ -392,21 +393,21 @@ def real_compared(sample, sample_type, path, out_png, chrom=6):
 def main():
     res = pd.read_csv(os.path.join(TABLES, "simple_fits.tsv"), sep="\t")
     calib = pd.read_csv(os.path.join(TABLES, "simple_calibration.tsv"), sep="\t")
-    kick_shapes(os.path.join(HERE, "1_kick_shapes.png"))
-    score_gain(res, os.path.join(HERE, "2_score_gain.png"))
-    tail_check(calib, os.path.join(HERE, "3_tail_check.png"))
-    all_models(res, os.path.join(HERE, "4_all_models.png"))
+    kick_shapes(os.path.join(FIGURES, "1_kick_shapes.png"))
+    score_gain(res, os.path.join(FIGURES, "2_score_gain.png"))
+    tail_check(calib, os.path.join(FIGURES, "3_tail_check.png"))
+    all_models(res, os.path.join(FIGURES, "4_all_models.png"))
     new20 = os.path.join(HERE, "..", "simple_models_new20", "simple_fits.tsv")
     if os.path.exists(new20):
-        all_models(pd.read_csv(new20, sep="\t"), os.path.join(HERE, "4b_all_models_new20.png"),
+        all_models(pd.read_csv(new20, sep="\t"), os.path.join(FIGURES, "4b_all_models_new20.png"),
                    "the 20 new samples")
-    kicks_compared(os.path.join(HERE, "5_kicks_compared.png"))
-    how_scored(os.path.join(HERE, "6_how_scored.png"))
+    kicks_compared(os.path.join(FIGURES, "5_kicks_compared.png"))
+    how_scored(os.path.join(FIGURES, "6_how_scored.png"))
     for s, t, tag in [("PD0048-C", "gDNA", "7a"), ("SPT43924", "sWGA", "7b")]:
         path = os.path.join(PF8_SAMPLES, s, "depth_plots", f"{s}.window_stats.tsv")
         if os.path.exists(path):
-            real_compared(s, t, path, os.path.join(HERE, f"{tag}_real_{t}_{s}.png"))
-    print(f"wrote figures in {HERE}")
+            real_compared(s, t, path, os.path.join(FIGURES, f"{tag}_real_{t}_{s}.png"))
+    print(f"wrote figures in {FIGURES}")
 
 
 if __name__ == "__main__":

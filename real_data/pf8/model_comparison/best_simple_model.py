@@ -8,7 +8,8 @@ calibration (do the kicks land where the model's own distribution says they shou
 
     python best_simple_model.py <pf8_dir> <output_dir>          # --workers N
 
-Writes simple_fits.tsv, simple_summary.tsv, simple_calibration.tsv and simple_models.png into <output_dir>.
+Writes simple_fits.tsv, simple_summary.tsv, simple_calibration.tsv into <output_dir>, and the figure into
+figures/model_choice/<output_dir name>.png (simple_models.png, simple_models_new20.png).
 """
 
 import argparse
@@ -25,6 +26,12 @@ from compare_arma_kicks import arma_kicks, kick_cdf, load, score, unpack
 CORR = [(1, 0), (2, 0), (4, 0), (8, 0), (1, 1), (2, 1), (2, 2)]
 KICKS = ["Gaussian", "t"]
 CLOSE = 10            # held-out score within this of the sample's best counts as "as good"
+FIGURES = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "figures", "model_choice"))
+
+
+def figure_path(output_dir):
+    """figures/model_choice/<output_dir name>.png, e.g. simple_models.png or simple_models_new20.png."""
+    return os.path.join(FIGURES, os.path.basename(os.path.normpath(output_dir)) + ".png")
 
 
 def label(p, q):
@@ -109,10 +116,10 @@ def plot(res, calib, out_png):
 
 
 def replot(output_dir):
-    """Redraw simple_models.png from the saved tables."""
+    """Redraw the figure from the saved tables."""
     res = pd.read_csv(os.path.join(output_dir, "simple_fits.tsv"), sep="\t")
     calib = pd.read_csv(os.path.join(output_dir, "simple_calibration.tsv"), sep="\t")
-    plot(res, calib, os.path.join(output_dir, "simple_models.png"))
+    plot(res, calib, figure_path(output_dir))
 
 
 def main():
@@ -151,8 +158,8 @@ def main():
         for t, g in summ.groupby("sample type"):
             print(f"\n== {t}")
             print(g.drop(columns="sample type").sort_values("median_dHeldout").to_string(index=False))
-    plot(res, calib, os.path.join(args.output_dir, "simple_models.png"))
-    print(f"wrote simple_fits.tsv, simple_summary.tsv, simple_calibration.tsv and simple_models.png in {args.output_dir}")
+    plot(res, calib, figure_path(args.output_dir))
+    print(f"wrote simple_fits.tsv, simple_summary.tsv, simple_calibration.tsv in {args.output_dir} and {figure_path(args.output_dir)}")
 
 
 if __name__ == "__main__":

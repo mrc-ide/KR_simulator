@@ -24,12 +24,14 @@ import pandas as pd
 import check_depth_cap as c
 from krsim.output import depth_model as dm
 
+FIGURES = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "figures", "realism"))
+
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 300
 COLOUR = {"Real Pf8 samples": "#0f2333", "Model, no cap": "#eb6834", "Model, max cap": "#2a78d6"}
 
 
 def main():
-    os.makedirs(c.OUT, exist_ok=True)
+    os.makedirs(FIGURES, exist_ok=True)
     table = pd.read_csv(f"{c.PF8}/model_fits/depth_model_samples.tsv", sep="\t")
     rng = np.random.default_rng(c.SEED)
     plt.rcParams.update({"font.size": 13, "axes.spines.top": False, "axes.spines.right": False})
@@ -62,8 +64,8 @@ def main():
                  x=0.01, ha="left", fontsize=14)
     plt.tight_layout()
     for ext in ("png", "pdf"):
-        plt.savefig(os.path.join(c.OUT, f"cap_compare.{ext}"), dpi=200)
-    print("wrote", os.path.join(c.OUT, "cap_compare.{png,pdf}"))
+        plt.savefig(os.path.join(FIGURES, f"cap_compare.{ext}"), dpi=200)
+    print("wrote", os.path.join(FIGURES, "cap_compare.{png,pdf}"))
 
 
 if __name__ == "__main__":

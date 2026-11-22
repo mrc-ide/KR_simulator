@@ -1,7 +1,7 @@
 """
-Draws docs/images/pipeline.png, the krsim pipeline figure on the website's home page.
+Draws figures/simulator/pipeline.png, the krsim pipeline figure on the website's home page.
 
-    python docs/images/make_pipeline.py
+    python figures/simulator/make_pipeline.py
 
 Grey boxes are krsim commands, pink pills the files each writes (inside its dashed outline), and arrows
 show which files each command reads. Coordinates are in pixels of a 2,100 x 1,640 canvas, y downwards.

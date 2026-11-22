@@ -3,7 +3,7 @@ Benchmarks behind the website's "Running at scale" page (docs/scaling.qmd).
 
     python scaling.py pipeline --Nh 100 --T 1000     # times every krsim command for one run, appends to pipeline.csv
     python scaling.py run --Nh 100 --T 1000           # times the parts of krsim simulate, appends to benchmarks.csv
-    python scaling.py plot                            # redraws docs/images/scaling_pipeline.png
+    python scaling.py plot                            # redraws figures/simulator/scaling_pipeline.png
 
 Parameters not given are at the baseline (Nh 100, T 1000, K 10, chi 0.2, C 3).
 Run one benchmark at a time so the timings don't compete for the CPU.
@@ -29,7 +29,7 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 CSV = os.path.join(HERE, "benchmarks.csv")
 PIPELINE_CSV = os.path.join(HERE, "pipeline.csv")
-IMAGES = os.path.join(HERE, "..", "docs", "images")
+IMAGES = os.path.normpath(os.path.join(HERE, "..", "figures", "simulator"))
 BASELINE = {"Nh": 100, "T": 1000, "K": 10, "chi": 0.2, "C": 3}
 
 # typical laptop / cluster core is about this many times slower than the benchmark laptop
@@ -215,7 +215,7 @@ def plot(args):
     plt.savefig(os.path.join(IMAGES, "scaling_pipeline.png"), dpi=110)
     plt.close()
 
-    print("wrote docs/images/scaling_pipeline.png")
+    print("wrote figures/simulator/scaling_pipeline.png")
 
 
 if __name__ == "__main__":

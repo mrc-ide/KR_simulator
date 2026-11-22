@@ -25,6 +25,7 @@ Scores (all on the -2 log-likelihood scale, so they can be compared; lower = bet
 Writes into <output_dir>:
   fits.tsv      every sample x model: LL, k, n, AIC, BIC, held-out LL and the three scores
   summary.tsv   per sample type x model: wins and median rank under each score, median of each score
+and into figures/model_screen/:
   scores.png    median score per model, sWGA against gDNA
 """
 
@@ -43,6 +44,7 @@ WINDOW = 500      # bp per window, as made by krsim.output.pf8_profiles
 PSEUDO = 0.05     # added before taking the log, so windows with zero depth do not give -inf
 TRIM_KB = 50      # drop this many kb from each end of every chromosome (subtelomeric dropouts)
 K = 200           # each window is predicted from at most this many previous windows (100 kb)
+FIGURES = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "figures", "model_screen"))
 AR_ORDERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20]
 ARMA_ORDERS = [(1, 1), (2, 1), (2, 2)]
 N_PSI = 20000     # psi weights kept for the ARMA autocovariance
@@ -311,10 +313,10 @@ def main():
     res.round(2).to_csv(os.path.join(args.output_dir, "fits.tsv"), sep="\t", index=False)
     summary = summarise(res)
     summary.to_csv(os.path.join(args.output_dir, "summary.tsv"), sep="\t", index=False)
-    plot(res, os.path.join(args.output_dir, "scores.png"))
+    plot(res, os.path.join(FIGURES, "scores.png"))
     with pd.option_context("display.width", 200, "display.max_columns", 20):
         print(summary.to_string(index=False))
-    print(f"wrote fits.tsv, summary.tsv and scores.png in {args.output_dir}")
+    print(f"wrote fits.tsv, summary.tsv in {args.output_dir} and scores.png in {FIGURES}")
 
 
 if __name__ == "__main__":

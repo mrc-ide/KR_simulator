@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FIG = os.path.join(HERE, "figures")
+FIG = os.path.normpath(os.path.join(HERE, "..", "..", "..", "..", "..", "figures", "model_screen"))
 TEXT, MUTED = "#0b0b0b", "#52514e"
 
 PAGES = [
-    ("Kicks: the random surprise at each window", "1_kicks_diagram.png", [
+    ("Kicks: the random surprise at each window", "kicks_diagram.png", [
         ("What's on it", [
             "Panel 1: each window's new value = a prediction from the past (blue circle) + a random kick (orange arrow).",
             "Panel 2: kicks are drawn from a Gaussian with mean 0 and spread σ. 68% fall within ±1σ, 95% within ±2σ, 99.7% within ±3σ.",
@@ -26,7 +26,7 @@ PAGES = [
             "ARMA(1,3) does both: a bump for 3 windows, then a fade.",
         ]),
     ]),
-    ("AR: how far back does the model need to look?", "2_ar_lookback.png", [
+    ("AR: how far back does the model need to look?", "ar_lookback.png", [
         ("What's on it", [
             "x-axis: how far back the model looks (kb), with the AR order underneath (AR(1) = 0.5 kb, AR(8) = 4 kb).",
             "y-axis: held-out score, i.e. how far behind each sample's best model (lower = better, log scale).",
@@ -38,7 +38,7 @@ PAGES = [
             "gDNA (orange) flattens at about 45-70 and never reaches 0. No AR does as well as gDNA's best model, ARMA(2,2), however far back it looks.",
         ]),
     ]),
-    ("ARMA and Gaussian-process models", "3_arma_gp.png", [
+    ("ARMA and Gaussian-process models", "arma_gp.png", [
         ("What's on it", [
             "Median held-out score per model, sWGA (blue) and gDNA (orange) side by side, with the number on each bar.",
             "Left: the three ARMA models. Right: the five GP kernels.",
@@ -50,7 +50,7 @@ PAGES = [
             "Check: GP exponential (2,868) matches AR(1) (2,867), because they are the same model.",
         ]),
     ]),
-    ("Every model in order, per sample type", "4_ranking.png", [
+    ("Every model in order, per sample type", "ranking.png", [
         ("What's on it", [
             "Models sorted from worst (bottom) to best (top) by median held-out score. Shorter bar = better.",
             "The coloured bar is the best model; '(n wins)' = best for n samples.",
@@ -61,7 +61,7 @@ PAGES = [
             "Both: AR(1), GP exponential and GP squared exponential are at the bottom.",
         ]),
     ]),
-    ("Which model wins for each sample?", "5_ranks.png", [
+    ("Which model wins for each sample?", "ranks.png", [
         ("What's on it", [
             "Rows = samples (sWGA above the black line, gDNA below). Columns = models.",
             "Number = that model's rank for that sample (1 = best, 20 = worst); darker = better.",
@@ -73,7 +73,7 @@ PAGES = [
             "The right-hand columns (smooth GPs, AR(1)) are pale for every sample.",
         ]),
     ]),
-    ("Every sample: real vs AR(1) vs the best model", "6_examples.png", [
+    ("Every sample: real vs AR(1) vs the best model", "examples.png", [
         ("What's on it", [
             "One panel per sample (sWGA on top, gDNA below), ordered from AR(1) closest to the best model to furthest.",
             "Lines: how similar windows are by distance over the first 5 kb: real (black), AR(1) (grey dashed), the type's best model (colour).",
@@ -86,7 +86,7 @@ PAGES = [
             "but is clearly off for the two TRAC2 samples (2,898 and 3,499).",
         ]),
     ]),
-    ("gDNA in detail: what ARMA(2,2) says", "7_gdna_arma22.png", [
+    ("gDNA in detail: what ARMA(2,2) says", "gdna_arma22.png", [
         ("What's on it", [
             "Left: the 9 typical gDNA samples (TRAC2 left out), sorted by depth. ARMA(2,2) split into a fast part (blue), "
             "a slow part (green) and a 'noise' part (grey, negative). Text: how long the fast and slow ups and downs last.",
@@ -100,7 +100,7 @@ PAGES = [
             "The same shape from 10x to 177x: it does not depend on sequencing depth. The fit (orange) follows the real curves (black).",
         ]),
     ]),
-    ("All scores: AIC, BIC and held-out", "8_scores.png", [
+    ("All scores: AIC, BIC and held-out", "scores.png", [
         ("What's on it", [
             "Every model's score in every sample (dots) and the median (bar), sWGA and gDNA side by side, under AIC, BIC and held-out.",
         ]),

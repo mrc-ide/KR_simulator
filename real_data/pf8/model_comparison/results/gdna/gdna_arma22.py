@@ -3,7 +3,7 @@
 ARMA(2,2) = a fast AR(1) level + a slow AR(1) level + independent noise on every window.
 For each gDNA sample: fit ARMA(2,2), read the two fading speeds from its AR part, and split the
 variance of log depth into fast, slow and noise by matching the fitted autocovariance.
-Writes gdna_arma22.tsv and gdna_arma22.png next to this script.
+Writes gdna_arma22.tsv next to this script and gdna_arma22.png into figures/model_screen/.
 """
 import os
 import sys
@@ -104,5 +104,6 @@ for ax in axes:
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
 fig.tight_layout()
-fig.savefig(f"{HERE}/gdna_arma22.png", dpi=150, facecolor="white", bbox_inches="tight")
-print("wrote", f"{HERE}/gdna_arma22.png")
+FIG = os.path.normpath(os.path.join(HERE, "..", "..", "..", "..", "..", "figures", "model_screen", "gdna_arma22.png"))
+fig.savefig(FIG, dpi=150, facecolor="white", bbox_inches="tight")
+print("wrote", FIG)

@@ -3,7 +3,7 @@ Plots that make the results of compare_processes.py easier to read.
 
     python plot_processes.py <pf8_dir> <output_dir>
 
-<output_dir> is the folder compare_processes.py wrote fits.tsv into. Writes there:
+<output_dir> is the folder compare_processes.py wrote fits.tsv into. Writes into figures/model_screen/:
   ranking.png    models from best to worst, sWGA and gDNA side by side (median held-out score)
   ranks.png      every sample x model: its rank under the held-out score (1 = best for that sample)
   examples.png   every sample: real autocorrelation over the first 5 kb next to AR(1) and the best model of
@@ -26,6 +26,7 @@ from scipy.signal import lfilter
 from compare_processes import K, WINDOW, fit, lag_matrix, load, models
 
 TYPES = {"sWGA": "#2a78d6", "gDNA": "#eb6834"}
+FIGURES = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "figures", "model_screen"))
 TEXT, MUTED, GRID, GREY = "#0b0b0b", "#8a8984", "#e6e5e1", "#b9b8b3"
 SCORE = "dHeldout"
 
@@ -208,12 +209,12 @@ def main():
     parser.add_argument("output_dir")
     args = parser.parse_args()
     res = pd.read_csv(os.path.join(args.output_dir, "fits.tsv"), sep="\t")
-    ranking(res, os.path.join(args.output_dir, "ranking.png"))
-    ranks(res, os.path.join(args.output_dir, "ranks.png"))
-    examples(res, args.pf8_dir, os.path.join(args.output_dir, "examples.png"))
-    ar_lookback(res, os.path.join(args.output_dir, "ar_lookback.png"))
-    arma_gp(res, os.path.join(args.output_dir, "arma_gp.png"))
-    print(f"wrote ranking.png, ranks.png, examples.png, ar_lookback.png and arma_gp.png in {args.output_dir}")
+    ranking(res, os.path.join(FIGURES, "ranking.png"))
+    ranks(res, os.path.join(FIGURES, "ranks.png"))
+    examples(res, args.pf8_dir, os.path.join(FIGURES, "examples.png"))
+    ar_lookback(res, os.path.join(FIGURES, "ar_lookback.png"))
+    arma_gp(res, os.path.join(FIGURES, "arma_gp.png"))
+    print(f"wrote ranking.png, ranks.png, examples.png, ar_lookback.png and arma_gp.png in {FIGURES}")
 
 
 if __name__ == "__main__":

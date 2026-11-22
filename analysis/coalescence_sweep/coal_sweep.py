@@ -12,7 +12,7 @@ by each generation. The tree sequence is deleted after use.
 
     python coal_sweep.py list               # the runs, one per line (task id = line number - 1)
     sbatch --array=0-50 coal_sweep.sbatch   # one run per task -> results/<set>/runs/<param>_<value>_seed<seed>.npz
-    python coal_sweep.py plot               # -> results/<set>/coal_sweep*.{png,pdf}, coal_sweep_summary.tsv
+    python coal_sweep.py plot               # -> figures/coalescence/<set>/coal_sweep*.{png,pdf}, results/<set>/coal_sweep_summary.tsv
     (prefix with COAL_SET=real_scale for the other set; sbatch passes the variable on)
 """
 
@@ -42,6 +42,7 @@ SETS = {
 SET = os.environ.get("COAL_SET", "paper")
 BASELINE, SWEEP = SETS[SET]
 RESULTS = os.path.join(RESULTS, SET)
+FIGURES = os.path.normpath(os.path.join(HERE, "..", "..", "figures", "coalescence", SET))
 SCRATCH = os.path.join(SCRATCH, SET)
 SEEDS = [1, 2, 3]
 LABEL = {"Nh": "Nh (hosts)", "K": "K (parasites per bite)", "chi": "chi (superinfection)", "C": "C (oocysts)"}
@@ -151,14 +152,14 @@ def plot():
                  "band = range", x=0.01, ha="left", fontsize=13)
     plt.tight_layout()
     for ext in ("png", "pdf"):
-        plt.savefig(os.path.join(RESULTS, f"coal_sweep.{ext}"), dpi=200)
+        plt.savefig(os.path.join(FIGURES, f"coal_sweep.{ext}"), dpi=200)
     summary = (pd.DataFrame(rows).groupby(["parameter", "value"], sort=False)
                .agg(["median", "min", "max"]).drop(columns="seed"))
     summary.columns = [f"{a} ({b})" for a, b in summary.columns]
     summary.to_csv(os.path.join(RESULTS, "coal_sweep_summary.tsv"), sep="\t")
     pd.set_option("display.width", 250)
     print(summary[[c for c in summary.columns if c.startswith(("median coalescence", "coalesced by T"))]].round(3))
-    print("wrote", os.path.join(RESULTS, "coal_sweep.{png,pdf}"))
+    print("wrote", os.path.join(FIGURES, "coal_sweep.{png,pdf}"))
     plt.close(fig)
     plot_density()                            # 0-1,000 generations, 20-generation periods
     plot_density(bin_width=1, max_gen=100)    # 0-100 generations, every generation
@@ -220,8 +221,8 @@ def plot_density(bin_width=20, max_gen=None):
                  f"Line = median of {len(SEEDS)} seeds, band = range", x=0.01, ha="left", fontsize=13)
     plt.tight_layout()
     for ext in ("png", "pdf"):
-        plt.savefig(os.path.join(RESULTS, f"coal_sweep_density{suffix}.{ext}"), dpi=200)
-    print("wrote", os.path.join(RESULTS, f"coal_sweep_density{suffix}.{{png,pdf}}"))
+        plt.savefig(os.path.join(FIGURES, f"coal_sweep_density{suffix}.{ext}"), dpi=200)
+    print("wrote", os.path.join(FIGURES, f"coal_sweep_density{suffix}.{{png,pdf}}"))
     plt.close(fig)
 
 

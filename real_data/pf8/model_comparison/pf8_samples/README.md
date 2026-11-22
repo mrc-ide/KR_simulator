@@ -58,5 +58,5 @@ Note: two gDNA samples from study 1195-PF-TRAC2-DONDORP (RCN12993, QC0637-C) hav
 | File | What it is |
 |---|---|
 | `explore_depth.py` | Splits log window depth into sample level + shared window effect + sample-specific residual; GC content, autocorrelation, tails. `python explore_depth.py sWGA` |
-| `sWGA_explore.txt`, `sWGA_explore.png` | Its results for sWGA |
+| `sWGA_explore.txt` (figure in `figures/pf8_data/`) | Its results for sWGA |
 | `MODEL_LIST.md` | The depth models to test (M0-M8) and how to compare them |

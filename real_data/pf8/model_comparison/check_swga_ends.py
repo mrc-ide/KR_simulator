@@ -32,6 +32,7 @@ from krsim.output.pf8_profiles import CHROMS, WINDOW_SIZE
 
 PF8 = "/data/home/bty208/scratch/IMPERIAL/pf8_mosdepth"
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results", "swga_ends")
+FIGURES = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "figures", "realism"))
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 300
 N_SIM = 200
 SEED = 2026
@@ -205,7 +206,7 @@ def plot(real, sim_meds):
     ax.legend(frameon=False, loc="lower right", fontsize=11)
     ax.set_title("sWGA depth near chromosome ends: real Pf8 samples vs the depth model", loc="left", fontweight="bold")
     plt.tight_layout()
-    plt.savefig(os.path.join(OUT, "swga_ends.png"), dpi=110)
+    plt.savefig(os.path.join(FIGURES, "swga_ends.png"), dpi=110)
 
 
 if __name__ == "__main__":

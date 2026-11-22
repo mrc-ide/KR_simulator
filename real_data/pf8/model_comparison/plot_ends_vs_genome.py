@@ -31,6 +31,7 @@ import pandas as pd
 
 PF8 = "/data/home/bty208/scratch/IMPERIAL/pf8_mosdepth"
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results", "swga_ends")
+FIGURES = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "figures", "realism"))
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 300
 SEED = 2026
 ZONES = [("0–25 kb", 0, 50), ("25–50 kb", 50, 100), ("50–100 kb", 100, 200), ("100–200 kb", 200, 400)]  # 500 bp windows
@@ -109,8 +110,8 @@ def main():
                  "(both ends of all 14 chromosomes)", x=0.01, ha="left", fontsize=14)
     plt.tight_layout()
     for ext in ("png", "pdf"):
-        plt.savefig(os.path.join(OUT, f"ends_vs_genome.{ext}"), dpi=200)
-    print("wrote", os.path.join(OUT, "ends_vs_genome.{png,pdf,tsv}"))
+        plt.savefig(os.path.join(FIGURES, f"ends_vs_genome.{ext}"), dpi=200)
+    print("wrote", os.path.join(OUT, "ends_vs_genome.tsv"), "and", os.path.join(FIGURES, "ends_vs_genome.{png,pdf}"))
     plt.close(fig)
     plot_profile(res, profiles)
 
@@ -146,8 +147,8 @@ def plot_profile(res, profiles):
                  "per type (500 bp windows)", x=0.01, ha="left", fontsize=14)
     plt.tight_layout()
     for ext in ("png", "pdf"):
-        plt.savefig(os.path.join(OUT, f"ends_profile.{ext}"), dpi=200)
-    print("wrote", os.path.join(OUT, "ends_profile.{png,pdf}"))
+        plt.savefig(os.path.join(FIGURES, f"ends_profile.{ext}"), dpi=200)
+    print("wrote", os.path.join(FIGURES, "ends_profile.{png,pdf}"))
 
 
 if __name__ == "__main__":
