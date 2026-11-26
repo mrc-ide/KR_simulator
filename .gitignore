@@ -29,3 +29,10 @@ docs/.quarto/
 # Written when slurm/krsim_array.sh is run
 slurm/results/
 slurm/logs/
+
+# Personal notes, analysis and paper figures (kept locally, not part of the tool)
+/CLAUDE.md
+/figures/
+/analysis/
+/benchmarks/
+/real_data/

@@ -1,7 +1,6 @@
 project:
   type: website
   output-dir: _site
-  pre-render: copy_figures.py   # copies the website's figures from ../figures into images/
   resources:
     - maps/*.html
     - data/tutorial_depth.zip   # three small Pf8 depth files for the realistic-depth tutorial

@@ -15,13 +15,13 @@ Both read the same strain VCF and write the same files, so you can make a host V
 
 In a real sample, the number of reads covering each base varies hugely along the genome. Base composition (*P. falciparum* is about 80% AT), amplification, and stretches of the genome that are hard to map all push depth up or down. This is one real selective whole-genome amplification (sWGA) sample, its depth averaged in 500 bp windows along all 14 chromosomes:
 
-![Read depth along the 14 chromosomes of Pf8 sample PF1066-Cx (sWGA, Ghana 2014). Depth ranges from 0 at most chromosome ends to thousands of reads in a few over-amplified spots, around a median of 41 reads.](images/depth_along_genome_PF1066-Cx.png){fig-alt="Fourteen panels, one per chromosome, showing mean read depth per 500 bp window on a log scale; depth fluctuates between about 10 and 100, drops to near 0 at chromosome ends and in some internal gaps, and spikes above 1,000 in places."}
+![Read depth along the 14 chromosomes of Pf8 sample PF1066-Cx (sWGA, Ghana 2014). Depth ranges from 0 at most chromosome ends to thousands of reads in a few over-amplified spots, around a median of 41 reads.](website_fig/depth_along_genome_PF1066-Cx.png){fig-alt="Fourteen panels, one per chromosome, showing mean read depth per 500 bp window on a log scale; depth fluctuates between about 10 and 100, drops to near 0 at chromosome ends and in some internal gaps, and spikes above 1,000 in places."}
 
 This matters for what a host VCF can show. Where depth is high, every strain in a mixed infection is seen; where it is low, a minority strain can get no reads at all, and the site looks as if only one strain were there.
 
 Within each window, depth also varies more than pure chance (a Poisson distribution) would give. This holds across real samples: in 11 sWGA samples from 11 countries, 61–94% of windows vary more than a Poisson, and samples differ about 7-fold in their typical depth (19× to 127×):
 
-![Spread of depth within each 500 bp window for 11 Pf8 sWGA samples: each dot is a window, and the dashed line is what a Poisson would give.](images/depth_spread_sWGA_samples.png){fig-alt="Eleven scatter panels of window SD against window mean on log-log axes, one per sample; in every panel most points lie above the dashed Poisson line, increasingly so at higher depth."}
+![Spread of depth within each 500 bp window for 11 Pf8 sWGA samples: each dot is a window, and the dashed line is what a Poisson would give.](website_fig/depth_spread_sWGA_samples.png){fig-alt="Eleven scatter panels of window SD against window mean on log-log axes, one per sample; in every panel most points lie above the dashed Poisson line, increasingly so at higher depth."}
 
 ## Option 1: depth files {#option-1-depth-files}
 

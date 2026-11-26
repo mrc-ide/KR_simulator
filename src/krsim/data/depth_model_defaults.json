@@ -1,5 +1,5 @@
 {
-  "source": "MalariaGEN Pf8 QC-pass samples; made by real_data/pf8/model_comparison/make_depth_model_defaults.py",
+  "source": "MalariaGEN Pf8 QC-pass samples: medians of the per-sample model fits",
   "window_size": 500,
   "pseudo": 0.05,
   "sWGA": {

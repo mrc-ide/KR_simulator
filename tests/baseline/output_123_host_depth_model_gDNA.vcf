@@ -1,10 +1,11 @@
 ##fileformat=VCFv4.2
 ##source=tskit 0.6.4
 ##source=krsim vcf-host-depth (modelled read depth)
-##depth_model=<model="ARMA(2,2) t",ar="1.48756,-0.497668",ma="-0.847973,-0.109437",mu=0.0359158,scale=0.424959,nu=6.12619,offset=-0.1038,cap=116.364,end_width=0,end_factor=1,depth_mean=76.84,depth_spread=0.910281,pseudo=0.05>
+##depth_model=<model="ARMA(2,2) t",ar="1.48756,-0.497668",ma="-0.847973,-0.109437",mu=0.0359158,scale=0.424959,nu=6.12619,offset=-0.1038,cap=610.448,end_width=0,end_factor=1,depth_mean=76.84,depth_spread=0.910281,pseudo=0.05>
 ##depth_host=<host=3,typical_depth=43.050>
 ##depth_host=<host=4,typical_depth=125.845>
 ##depth_host=<host=5,typical_depth=57.601>
+##error_rates=<wt_mut=0,mut_wt=0,Description="Chance that a strain's allele in a host is read wrong: WT as MUT (wt_mut), MUT as WT (mut_wt); the strain VCF holds the true alleles">
 ##FILTER=<ID=PASS,Description="All filters passed">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Host genotype from reads: 0/0=all ref reads, 1/1=all alt reads, 0/1=mixed reads; at multi-allelic sites, the two alleles with the most reads">
 ##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and each alt allele">

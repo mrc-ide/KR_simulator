@@ -6,7 +6,7 @@ How much time, memory (RAM) and disk space a `krsim` run needs, so you can decid
 
 Times are estimates for a **typical laptop or computing-cluster core**: they were measured on a fast laptop and doubled. Memory and disk are the same on any computer.
 
-`vcf-host-depth` (with `--depth_model sWGA`) was timed on a computing-cluster core rather than the laptop. Its times here are scaled to the laptop by how much faster the laptop ran `vcf-strain` at the same size (about 2.3 times), then doubled like the rest, so treat them as rough. To time your own machine, run `python benchmarks/scaling.py pipeline --Nh 100`.
+`vcf-host-depth` (with `--depth_model sWGA`) was timed on a computing-cluster core rather than the laptop. Its times here are scaled to the laptop by how much faster the laptop ran `vcf-strain` at the same size (about 2.3 times), then doubled like the rest, so treat them as rough.
 
 ## The real-scale baseline
 
@@ -28,7 +28,7 @@ At the baseline used in [Real-scale dynamics](real-scale.qmd) (`--Nh 100 --T 100
 
 Each command was run for increasing numbers of hosts (T = 1000, K = 10). Both axes are logarithmic:
 
-![](images/scaling_pipeline.png){fig-alt="Time, peak RAM and output size of simulate, mutate, vcf-strain and vcf-host-depth against the number of hosts, from 50 to 1000"}
+![](website_fig/scaling_pipeline.png){fig-alt="Time, peak RAM and output size of simulate, mutate, vcf-strain and vcf-host-depth against the number of hosts, from 50 to 1000"}
 
 For all four commands together, with a suggested request (1 core each time):
 

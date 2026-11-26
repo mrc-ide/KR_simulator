@@ -21,8 +21,8 @@ Flat depth (an idealised control, not realistic): depth_spread = 0 gives every h
 depth; scale = 0 removes the kicks, so the track is flat along the genome (with end_width = 0, also at
 chromosome ends). Each site's depth is still Poisson around that depth, so a site can get 0 reads.
 
-Defaults: src/krsim/data/depth_model_defaults.json, made from the Pf8 fits by
-real_data/pf8/model_comparison/make_depth_model_defaults.py.
+Defaults: src/krsim/data/depth_model_defaults.json, the medians of the model fits to the MalariaGEN Pf8
+QC-pass samples.
 """
 
 import json
