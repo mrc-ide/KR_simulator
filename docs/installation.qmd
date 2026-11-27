@@ -29,7 +29,3 @@ pip does not reinstall krsim while the version number is unchanged, so force it 
 ```bash
 pip install --force-reinstall --no-deps git+https://github.com/mrc-ide/KR_simulator.git
 ```
-
-## Next steps
-
-Work through the tutorial, starting with the [quick start](quickstart.qmd).

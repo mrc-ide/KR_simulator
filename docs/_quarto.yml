@@ -3,7 +3,7 @@ project:
   output-dir: _site
   resources:
     - maps/*.html
-    - data/tutorial_depth.zip   # three small Pf8 depth files for the realistic-depth tutorial
+    - data/tutorial_depth.zip   # three small Pf8 depth files for the command-line scripts
 
 website:
   title: "krsim"
@@ -27,7 +27,6 @@ website:
         contents:
           - quickstart.qmd
           - real-scale.qmd
-          - realistic-depth.qmd
           - tutorial-scripts.qmd
       - section: Reference
         contents:

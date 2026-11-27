@@ -310,7 +310,7 @@ __DATA_JSON__
   const MARGIN_TOP = 46;
   const MARGIN_RIGHT = 30;
   const MARGIN_BOTTOM = 20;
-  const ROW_H = 100;
+  const ROW_H = 70;   // same gap between generations as the strain transmission map
   const LANE_W = 216;
   const SLOT_SPACING = 32;
   const R = 10.5;

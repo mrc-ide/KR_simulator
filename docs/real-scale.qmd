@@ -36,3 +36,5 @@ The baseline simulation takes about a minute and up to 3 GB of memory (see [Runn
 - **Varying the parameters:** what each parameter does to these distributions, and in particular what superinfection does.
 
 Most of this needs only `krsim simulate`: the coalescence times are read straight from the tree sequence with [tskit](https://tskit.dev), rather than with `krsim coal-mut`, which is too computationally expensive at this size. `krsim mutate` is used once, to place SNPs along a chromosome.
+
+Next: run the krsim commands from a terminal, in the [command-line scripts](tutorial-scripts.qmd).
