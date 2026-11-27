@@ -1,5 +1,5 @@
 ##fileformat=VCFv4.2
-##source=tskit 1.0.3
+##source=tskit 0.6.4
 ##FILTER=<ID=PASS,Description="All filters passed">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##contig=<ID=1,length=640851>

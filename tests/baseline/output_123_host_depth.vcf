@@ -5,6 +5,7 @@
 ##depth_profile=<host=3,sample=SPT52544>
 ##depth_profile=<host=4,sample=PF1066-Cx>
 ##depth_profile=<host=5,sample=RCN08168>
+##error_rates=<wt_mut=0,mut_wt=0,Description="Chance that a strain's allele in a host is read wrong: WT as MUT (wt_mut), MUT as WT (mut_wt); the strain VCF holds the true alleles">
 ##FILTER=<ID=PASS,Description="All filters passed">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Host genotype from reads: 0/0=all ref reads, 1/1=all alt reads, 0/1=mixed reads; at multi-allelic sites, the two alleles with the most reads">
 ##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and each alt allele">

@@ -15,23 +15,35 @@ krsim vcf-strain --ts $OUT/ts_mut_123.trees --random_seed 123 --output_dir $OUT
 krsim coal-mut   --ts $OUT/ts_mut_123.trees --random_seed 123 --output_dir $OUT
 ```
 
-For the host VCF (stage 4), `vcf-host-depth` gives each host [realistic read depth](realistic-depth.qmd). The simplest way uses krsim's depth model for sWGA samples, which needs no data:
+For the host VCF (stage 4), `vcf-host-depth` gives each host realistic read depth along the genome (see [Sequencing a host](background.qmd#sequencing-a-host)). It has two sources of depth.
+
+**krsim's depth model**, which needs no data. Pick the sample type, `sWGA` or `gDNA`:
 
 ```bash
 krsim vcf-host-depth --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT/sim_ind_node_map_123.csv \
-                     --depth_model sWGA --random_seed 123 --output_dir $OUT
+                     --depth_model sWGA --random_seed 123 --output_dir $OUT/model_sWGA
 ```
 
-Use `--depth_model gDNA` for gDNA samples. To use the depth of real samples instead, give a zip of depth files, one per host or more; download a small one with three Pf8 samples from this website:
+**Depth files from real samples.** Give a zip of depth files, at least one per host. Download a small one with three Pf8 samples from this website:
 
 ```bash
 curl -O https://mrc-ide.github.io/KR_simulator/data/tutorial_depth.zip
 
 krsim vcf-host-depth --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT/sim_ind_node_map_123.csv \
-                     --depth_zip tutorial_depth.zip --random_seed 123 --output_dir $OUT
+                     --depth_zip tutorial_depth.zip --random_seed 123 --output_dir $OUT/depth_files
 ```
 
-Both write the same files, so run them in different `--output_dir` folders if you want to keep both.
+To use your own samples, make the zip from their mosdepth output with [`krsim depth-zip`](commands.qmd#helper-depth-zip); larger example zips of 100 Pf8 samples are listed [there too](commands.qmd#example-zips).
+
+**Sequencing error (optional).** With either source, add sample-level error: here each strain's WT allele is read as MUT with chance 0.005, and its MUT allele as WT with chance 0.01:
+
+```bash
+krsim vcf-host-depth --strain_vcf $OUT/output_123_strain.vcf --ind_node_map_csv $OUT/sim_ind_node_map_123.csv \
+                     --depth_model sWGA --error_wt_mut 0.005 --error_mut_wt 0.01 \
+                     --random_seed 123 --output_dir $OUT/model_sWGA_errors
+```
+
+Every `vcf-host-depth` run writes files with the same names, so each run here has its own `--output_dir` folder.
 
 Each command prints the files it wrote. Every file name ends in the random seed (`123` here), and every command adds a record of what it ran to `KR_sim_123.log`.
 
@@ -40,7 +52,7 @@ Each command prints the files it wrote. Every file name ends in the random seed 
 | `simulate` | — | `ts_123.trees`, `sim_ind_node_map_123.csv` |
 | `mutate` | `ts_123.trees` | `ts_mut_123.trees` |
 | `vcf-strain` | `ts_mut_123.trees` | `output_123_strain.vcf` |
-| `vcf-host-depth` | `output_123_strain.vcf`, `sim_ind_node_map_123.csv` (and `tutorial_depth.zip` with `--depth_zip`) | `output_123_host_depth.vcf`, `host_depth_profiles_123.csv`, `host_depth_proportions_123.csv` |
+| `vcf-host-depth` | `output_123_strain.vcf`, `sim_ind_node_map_123.csv` (and the zip with `--depth_zip`) | `output_123_host_depth.vcf`, `host_depth_profiles_123.csv`, `host_depth_proportions_123.csv` |
 | `coal-mut` (helper) | `ts_mut_123.trees` | `coal_T_123.csv`, `mut_T_123.csv` |
 
 See the [command-line reference](commands.qmd) for every option.

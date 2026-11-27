@@ -13,7 +13,7 @@
 #
 # Requires krsim to be installed (`pip install -e .` from the repo root).
 #
-# Usage: bash tests/test_sim_mut.sh
+# Usage: bash tests/test_krsim_pipeline.sh
 
 set -euo pipefail
 
@@ -151,6 +151,20 @@ for TYPE in sWGA gDNA; do
     mv "$MODEL_TMP/host_depth_proportions_${SEED}.csv" "$OUT_DIR/host_depth_proportions_${SEED}_model_${TYPE}.csv"
     rm -rf "$MODEL_TMP"
 done
+
+# sample-level error at realistic rates, checked against the baseline (*_errors.* files)
+ERRB_TMP="$OUT_DIR/errors"
+run_stage "Stage 4: Host VCF, modelled sWGA read depth with sample-level error" \
+    krsim vcf-host-depth \
+    --strain_vcf "$STRAIN_VCF" \
+    --ind_node_map_csv "$OUT_DIR/sim_ind_node_map_${SEED}.csv" \
+    --depth_model sWGA \
+    --error_wt_mut 0.005 \
+    --error_mut_wt 0.01 \
+    --random_seed "$SEED" \
+    --output_dir "$ERRB_TMP"
+mv "$ERRB_TMP/output_${SEED}_host_depth.vcf" "$OUT_DIR/output_${SEED}_host_depth_errors.vcf"
+rm -rf "$ERRB_TMP"
 check "
 import numpy as np
 from krsim.output.depth_model import model_settings, relative_track, host_depths

@@ -152,7 +152,7 @@ def _build_genome_data(ts, lineage, node_map, nodes):
     segments = []
     for c, p, left, right in lineage[["child_node_ID", "parent_node_ID", "left", "right"]].itertuples(index=False):
         seg_by_child[int(c)].append((float(left), float(right), int(p)))
-        segments.append([int(c), int(p), float(left), float(right)])
+        segments.append([int(c), int(p), round(float(left)), round(float(right))])  # whole bp: drawing needs no more, and it keeps the file identical across machines
 
     gen_of = {n["id"]: n["gen"] for n in nodes}
     mapped = node_map.dropna(subset=["post_simplify_node_ID"])

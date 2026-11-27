@@ -152,7 +152,7 @@ def make_depth_zip(beds, out_zip, work_dir):
 
 
 if __name__ == "__main__":
-    # make one profile from mosdepth's per-base output (used by real_data/pf8/extraction/pf8_mosdepth.sh and all_samples/pf8_depth_task.sh):
+    # make one profile from mosdepth's per-base output:
     #   python -m krsim.output.pf8_profiles <sample>.per-base.bed.gz <sample>.window_stats.tsv [window size]
     import sys
 

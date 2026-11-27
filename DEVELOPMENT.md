@@ -45,10 +45,10 @@ Check it worked with `krsim --help`, which lists every command.
 From the `KR_simulator` folder with the environment active, run:
 
 ```bash
-bash tests/test_sim_mut.sh
+bash tests/test_krsim_pipeline.sh
 ```
 
-The test runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/` (decimal numbers only need to match to 12 significant digits, since the last digit can vary between machines). If everything is installed correctly, it ends with `All 20 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.
+The test runs every command on a small simulation and compares the results in `tests/output/` with the saved results in `tests/baseline/` (decimal numbers only need to match to 12 significant digits, since the last digit can vary between machines). If everything is installed correctly, it ends with `All 21 check(s) passed.` Answer `N` (or press Enter) at the final prompt, which asks whether to replace the baseline.
 
 ## Website
 
@@ -63,7 +63,7 @@ Pushing to `main` rebuilds and publishes it through `.github/workflows/docs.yml`
 ## Project structure
 
 ```
-KR_SIM/
+KR_simulator/
 ├── pyproject.toml        # Package definition: dependencies + the `krsim` command
 ├── src/krsim/            # The installable package
 │   ├── cli/              #   The `krsim` command: one module per subcommand (flags, logging, file saving)
@@ -92,16 +92,20 @@ KR_SIM/
 │
 ├── docs/                 # Quarto website (published to GitHub Pages)
 │   ├── _quarto.yml       #   Site config and navigation
-│   ├── *.qmd             #   Pages: welcome, background, installation, tutorial (3 pages), command line, output files
+│   ├── *.qmd             #   Pages: welcome, background, installation, tutorial, reference
+│   ├── website_fig/      #   Figures shown on the website (add new ones here)
+│   ├── data/             #   tutorial_depth.zip: three small Pf8 depth files for the realistic-depth tutorial
 │   └── maps/             #   Interactive pedigree maps embedded in the tutorial
 │
 ├── notebooks/            # Notebooks for users to download and run
-│   └── tutorial.ipynb    #   Runs every command on a small simulation, with outputs
+│   ├── tutorial.ipynb    #   Runs every command on a small simulation, with outputs
+│   └── tutorial_realistic.ipynb  # A run at real-world scale: coalescence-time distributions
 │
 ├── tests/                # Testing and regression tools
-│   ├── test_sim_mut.sh   #   Run full pipeline + regression check
+│   ├── test_krsim_pipeline.sh  # Run full pipeline + regression check
 │   ├── compare_outputs.py#   Diff outputs against baseline/
 │   ├── baseline/         #   Committed reference outputs
+│   ├── data/             #   test_depth.zip: three small Pf8 depth files
 │   └── output/           #   Latest test run (not committed)
 │
 ├── environment.yml       # Conda environment for development (editable install)

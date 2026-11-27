@@ -1,5 +1,7 @@
 ---
 title: "📖 Background"
+aliases:
+  - realistic-depth.html
 ---
 
 ## Why krsim
@@ -20,7 +22,7 @@ It is designed as a foundational model, with many possible avenues for extension
 
 krsim follows a population of `Nh` human hosts through `T` discrete, non-overlapping generations. Each host carries one or more parasite strains, and in every generation each host is infected afresh by parasites drawn from the hosts of the previous generation, passed on by a mosquito.
 
-![](images/KR_model.png){width="80%" fig-align="center" fig-alt="Left: hosts (circles) across T malaria generations, linked by transmission. Right: one transmission in detail. Parasites from the parent host pair up in the mosquito, recombine, and the resulting recombinant parasites are passed on to the new host."}
+![](website_fig/KR_model.png){width="80%" fig-align="center" fig-alt="Left: hosts (circles) across T malaria generations, linked by transmission. Right: one transmission in detail. Parasites from the parent host pair up in the mosquito, recombine, and the resulting recombinant parasites are passed on to the new host."}
 
 **Founders.** The simulation starts `T` generations before the present. Each founder host carries `K` strains, or `2K` if it is superinfected, which happens with probability `chi`.
 
@@ -56,7 +58,7 @@ Two such events per oocyst give its four products.
 
 Every parasite genome is recorded as a node in a [tskit](https://tskit.dev) tree sequence, and every stretch of genome inherited from a parent is recorded as an edge. Together these form an ancestral recombination graph: for any position on the genome, it gives the full genealogy of the current strains.
 
-![](images/KR_tskit.png){width="80%" fig-align="center" fig-alt="How krsim records a simulation in tskit: the population contains individuals (human hosts), each individual carries nodes (haploid parasite genomes), and each node is linked to its parent genomes by edges covering stretches of the genome."}
+![](website_fig/KR_tskit.png){width="80%" fig-align="center" fig-alt="How krsim records a simulation in tskit: the population contains individuals (human hosts), each individual carries nodes (haploid parasite genomes), and each node is linked to its parent genomes by edges covering stretches of the genome."}
 
 At the end of the run the tree sequence is simplified to the strains in the current generation, keeping only the ancestry they actually inherited. This is what `ts_{seed}.trees` contains. The `--save_lineage` option keeps the full generation-by-generation pedigree as well, which the [pedigree maps](quickstart.qmd#visualise-transmission) use.
 
@@ -65,9 +67,36 @@ At the end of the run the tree sequence is simplified to the strains in the curr
 - **Mutations** are added on top of the genealogy with [msprime](https://tskit.dev/msprime), at rate `--mutation_rate` (default `1e-6` per base pair, following [Kwiatkowski (2024)](https://doi.org/10.12688/wellcomeopenres.19092.1)).
 - **Coalescence times** are read directly from the genealogy: for every pair of strains and every stretch of genome, when their ancestry last met.
 - **Strain VCF**: one haploid genotype per strain, as if each strain were sequenced on its own.
-- **Host VCF**: mimics sequencing a mixed infection from a blood sample. Each host gets realistic read depth along the genome, either from real samples' depth files or from a model fitted to [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1) sWGA or gDNA samples (see [realistic read depth](realistic-depth.qmd)). Each host's strain proportions are drawn from a Dirichlet distribution, the reads at each site are shared between its strains, and a site is called `0/1` when the reads carry both alleles.
+- **Host VCF**: mimics sequencing a mixed infection from a blood sample, with realistic read depth (see [Sequencing a host](#sequencing-a-host) below).
 
 The VCFs have the same form as real sequencing data, while krsim also knows the true ancestry behind them. This makes them a way to benchmark whole-genome methods against a known truth: for example, comparing the IBD that [hmmIBD](https://github.com/glipsnort/hmmIBD) infers from the strain VCF with the true relatedness from `krsim relate-strain`.
+
+## Sequencing a host {#sequencing-a-host}
+
+Imagine taking a blood sample from a host that carries three strains, A, B and C. Sequencing it gives reads from all three mixed together, and two things decide what the host VCF shows: **how much of the sample each strain makes up**, and **how many reads cover each site**.
+
+**Strain proportions.** We don't know how much of the infection each strain makes up, so for each host the proportions are drawn once from a Dirichlet distribution: for example, A 60%, B 30% and C 10%.
+
+**Splitting the reads.** At each site, the host's reads are shared between its strains with a multinomial using these proportions. If a site has 20 reads, A might get 13, B 5 and C 2. The reads carrying each allele are then counted, and a site is called `0/1` when both alleles are seen, as in a mixed infection.
+
+**How many reads?** In real data, the number of reads covering each base varies hugely along the genome, from none at some sites to thousands in over-amplified spots:
+
+![Read depth along the 14 chromosomes of Pf8 sample PF1066-Cx (sWGA, Ghana 2014), averaged in 500 bp windows. Depth ranges from 0 at most chromosome ends to thousands of reads in a few over-amplified spots, around a median of 41 reads.](website_fig/depth_along_genome_PF1066-Cx.png){fig-alt="Fourteen panels, one per chromosome, showing mean read depth per 500 bp window on a log scale; depth fluctuates between about 10 and 100, drops to near 0 at chromosome ends and in some internal gaps, and spikes above 1,000 in places."}
+
+This matters: where depth is low, a minority strain like C can get no reads at all, and the site looks as if it weren't there. krsim gets the read depth along the genome in one of two ways:
+
+- **your own data**: the depth along the genome of real sequenced samples, one per host
+- **krsim's depth model**, for sWGA or gDNA samples, which needs no data
+
+**The depth model.** sWGA and gDNA data were modelled separately. Through model selection on all QC-pass samples of [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1), depth along the genome is modelled with an AR(8) model for sWGA and an ARMA(2,2) model for gDNA. In both, nearby stretches of the genome have similar depth, and Student t kicks allow the sudden dips and spikes seen in real samples. Each host also gets its own typical depth, so some hosts are sequenced more deeply than others. The model also allows for low depth near the chromosome ends (telomeres) in sWGA, and caps depth at the highest value seen in Pf8.
+
+The model is deliberately simple. It gives a realistic starting point for first insights and is very light to run. For more accuracy, use your own depth data.
+
+## Sequencing error {#sequencing-error}
+
+Optionally, `--error_wt_mut` and `--error_mut_wt` add error at the sample level. At each site, each strain's allele is read wrong with that chance (WT read as MUT, or MUT read as WT), and all of that strain's reads go to the wrong allele. MUT read as WT is usually the more common. The error applies to the host VCF only, so the strain VCF still holds the true alleles to compare against.
+
+See the [command reference](commands.qmd#stage-4-host-level-vcf) for every option of `vcf-host-depth`.
 
 ## References
 

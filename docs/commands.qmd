@@ -64,7 +64,7 @@ Outputs `output_{seed}_strain.vcf` — one sample column per parasite strain (no
 :::
 
 ::: {.stage}
-### 🧍 Stage 4 — Host-level VCF
+### 🧍 Stage 4 — Host-level VCF {#stage-4-host-level-vcf}
 
 ```bash
 # depth from real depth files
@@ -84,13 +84,22 @@ krsim vcf-host-depth \
     --output_dir results/
 ```
 
-Mixes each host's strains the way sequencing a blood sample would, with realistic read depth that varies along the genome as in real data (see [realistic read depth](realistic-depth.qmd)). Give one depth source:
+Mixes each host's strains the way sequencing a blood sample would, with realistic read depth that varies along the genome as in real data (see [Sequencing a host](background.qmd#sequencing-a-host) for how it works). Give one depth source:
 
-- **`--depth_zip FILE`:** a zip of `<sample>.window_stats.tsv` depth files (mean and SD of depth in every 500 bp window), made from your own samples with [`krsim depth-zip`](#helper-depth-zip), or an example zip of 100 sWGA or 100 gDNA Pf8 samples. The files must come from reads mapped to the 3D7 reference used by MalariaGEN Pf8 (PlasmoDB-54); krsim checks every file it uses and stops if one doesn't match. The zip needs at least one file per host. If it has more, files are picked at random, each used at most once, set by `--random_seed`.
+- **`--depth_zip FILE`:** a zip of `<sample>.window_stats.tsv` depth files (mean and SD of depth in every 500 bp window), made from your own samples with [`krsim depth-zip`](#helper-depth-zip), or one of the [example Pf8 zips](#example-zips). The files must come from reads mapped to the 3D7 reference used by MalariaGEN Pf8 (PlasmoDB-54); krsim checks every file it uses and stops if one doesn't match. The zip needs at least one file per host. If it has more, files are picked at random, each used at most once, set by `--random_seed`.
 - **`--depth_model sWGA|gDNA`:** depth simulated from a model fitted to Pf8: AR(8) for sWGA, ARMA(2,2) for gDNA, both with Student t kicks. Optional:
   - `--depth_mean X`: centre of the hosts' typical depths
   - `--depth_spread S`: how much hosts' typical depths differ (SD of log depth); `0` gives every host `--depth_mean`, though depth still varies along each host's genome
-  - `--depth_params FILE`: a JSON file changing any other model value, e.g. `{"nu": 3.0, "cap": 1000}`; values not listed keep their defaults. The settings are `ar`, `ma`, `mu`, `scale`, `nu`, `offset`, `cap`, `end_width`, `end_factor`, `depth_mean` and `depth_spread`; `krsim vcf-host-depth --help` lists the defaults
+  - `--depth_params FILE`: a JSON file changing any other model value, e.g. `{"nu": 3.0, "cap": 1000}`; values not listed keep their defaults (the medians over all QC-pass Pf8 samples of each type; `krsim vcf-host-depth --help` lists them). The settings:
+
+    | Setting | Meaning |
+    |---|---|
+    | `ar`, `ma` | lists of AR and MA coefficients: how strongly each window follows the previous windows and kicks |
+    | `mu`, `scale`, `nu` | the Student t kicks: centre, size and tail weight (a smaller `nu` gives more big jumps) |
+    | `offset` | the mean of the transformed depth the model was fitted to |
+    | `cap` | the highest window allowed, as a multiple of the host's typical depth |
+    | `end_width`, `end_factor` | bp at each chromosome end with lowered depth, and the factor (sWGA: 30,000 and 0.0035; gDNA: 0) |
+    | `depth_mean`, `depth_spread` | the same as `--depth_mean` and `--depth_spread` |
 
 ::: {.callout-note}
 ## Flat depth, for testing
@@ -133,7 +142,40 @@ krsim depth-zip \
     --output my_depth.zip
 ```
 
-Not a pipeline step: it prepares the input for `vcf-host-depth --depth_zip`. It turns each sample's [mosdepth](https://github.com/brentp/mosdepth) per-base output (`<sample>.per-base.bed.gz`) into a depth file (`<sample>.window_stats.tsv`: mean and SD of depth in every 500 bp window) and puts them all in one zip. Each file is checked against the 3D7 reference used by Pf8. It takes a few seconds per sample.
+Not a pipeline step: it prepares the input for `vcf-host-depth --depth_zip`. It turns each sample's [mosdepth](https://github.com/brentp/mosdepth) per-base output (`<sample>.per-base.bed.gz`) into a depth file (`<sample>.window_stats.tsv`: mean and SD of depth in every 500 bp window) and puts them all in one zip. It takes a few seconds per sample. Each depth file is under 1 MB zipped, so a zip of 100 samples is about 50 MB.
+
+::: {.callout-important}
+## Use the 3D7 reference used by Pf8
+krsim simulates the *P. falciparum* 3D7 reference genome used by MalariaGEN Pf8 (PlasmoDB-54, chromosomes `Pf3D7_01_v3` … `Pf3D7_14_v3`). Your reads must be mapped to this reference, so that the depth files line up with the simulated sites. krsim checks the chromosome names and lengths in every file and stops with a message if they don't match.
+:::
+
+#### From your own samples
+
+1. Run mosdepth on each sample's aligned reads (BAM or CRAM, mapped to the 3D7 reference above). It writes `<sample>.per-base.bed.gz`, the depth at every base:
+
+   ```bash
+   conda install -c bioconda mosdepth
+   mosdepth --fasta PlasmoDB-54-Pfalciparum3D7-Genome.fasta sample1 sample1.cram
+   ```
+
+2. Make the zip with `krsim depth-zip`, as above.
+
+3. Use it as `vcf-host-depth --depth_zip my_depth.zip`.
+
+The per-base files are large (tens of MB per sample), so krsim only takes the small depth files. If you make the depth files another way, zip them yourself: each needs the columns `chrom`, `start`, `end`, `mean` and `sd`, one row per 500 bp window, starting at 0.
+
+#### Example zips from Pf8 {#example-zips}
+
+To try `--depth_zip` without your own data, download one of two example zips from the krsim release [example-depth-data-v1](https://github.com/mrc-ide/KR_simulator/releases/tag/example-depth-data-v1):
+
+| Zip | Samples |
+|---|---|
+| `pf8_sWGA_100.zip` | 100 sWGA samples that passed Pf8 QC, picked at random |
+| `pf8_gDNA_100.zip` | 100 gDNA samples that passed Pf8 QC, picked at random |
+
+Each zip also holds `samples.tsv`, listing its samples with their country, year and study; krsim only reads the depth files, so it ignores this list. A smaller zip of three samples, used in the [command-line scripts](tutorial-scripts.qmd), is at <https://mrc-ide.github.io/KR_simulator/data/tutorial_depth.zip>.
+
+The example depth files are made from the reads of [MalariaGEN Pf8](https://doi.org/10.12688/wellcomeopenres.24031.1), whose data are released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). If you use them, please cite: MalariaGEN et al. (2025). Pf8: an open dataset of *Plasmodium falciparum* genome variation in 33,325 worldwide samples. *Wellcome Open Research* 10:325.
 :::
 
 ::: {.stage}

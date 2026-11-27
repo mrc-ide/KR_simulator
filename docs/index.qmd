@@ -4,7 +4,16 @@ subtitle: "*Malaria transmission simulator*"
 toc: false
 ---
 
-A forward simulator that brings together malaria modelling and population genetics to model parasite transmission. Whole-genome information is tracked through every recombination event as an ancestral recombination graph, stored efficiently with [tskit](https://tskit.dev). From the recorded genealogy (a tree sequence), krsim overlays mutations and outputs coalescence times across the genome and VCF files at the strain level and at the (observed) host level.
+krsim simulates the whole genomes of *Plasmodium falciparum* strains transmitted through a population of human hosts.
+
+From one simulation you can get:
+
+- tree sequences
+- coalescence times
+- strain-level VCF
+- host-level VCF with realistic read depth (krsim's depth model, or your own depth files)
+
+See the [background](background.qmd) for how the model works.
 
 ::: {.callout-tip}
 ## Get started
@@ -15,7 +24,7 @@ A forward simulator that brings together malaria modelling and population geneti
 
 krsim runs as a series of commands. Each one reads the files written by an earlier stage and writes new ones.
 
-![](images/pipeline.png){width="75%" fig-align="center" fig-alt="The krsim pipeline: simulate writes the tree sequence and host–strain map; mutate adds mutations; coal-mut writes coalescence and mutation times; vcf-strain writes the strain VCF; vcf-host-depth combines it with the host–strain map into the host VCF, with realistic read depth."}
+![](website_fig/pipeline.png){width="75%" fig-align="center" fig-alt="The krsim pipeline: simulate writes the tree sequence and host–strain map; mutate adds mutations; coal-mut writes coalescence and mutation times; vcf-strain writes the strain VCF; vcf-host-depth combines it with the host–strain map into the host VCF, with realistic read depth."}
 
 Each grey box is a `krsim` command, and the files inside its dashed outline are the ones it writes. Arrows show which files each command reads. Every command also records what it did in `KR_sim_{seed}.log` in its `--output_dir`.
 
