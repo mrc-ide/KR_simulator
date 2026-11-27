@@ -92,9 +92,7 @@ This matters: where depth is low, a minority strain like C can get no reads at a
 
 The model is deliberately simple. It gives a realistic starting point for first insights and is very light to run. For more accuracy, use your own depth data.
 
-## Sequencing error {#sequencing-error}
-
-Optionally, `--error_wt_mut` and `--error_mut_wt` add error at the sample level. At each site, each strain's allele is read wrong with that chance (WT read as MUT, or MUT read as WT), and all of that strain's reads go to the wrong allele. MUT read as WT is usually the more common. The error applies to the host VCF only, so the strain VCF still holds the true alleles to compare against.
+**Sequencing error.** Optionally, `--error_wt_mut` and `--error_mut_wt` add error at the sample level. At each site, each strain's allele is read wrong with that chance (WT read as MUT, or MUT read as WT), and all of that strain's reads go to the wrong allele. MUT read as WT is usually the more common. The error applies to the host VCF only, so the strain VCF still holds the true alleles to compare against.
 
 See the [command reference](commands.qmd#stage-4-host-level-vcf) for every option of `vcf-host-depth`.
 
