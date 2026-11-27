@@ -87,7 +87,7 @@ krsim vcf-host-depth \
 Mixes each host's strains the way sequencing a blood sample would, with realistic read depth that varies along the genome as in real data (see [Sequencing a host](background.qmd#sequencing-a-host) for how it works). Give one depth source:
 
 - **`--depth_zip FILE`:** a zip of `<sample>.window_stats.tsv` depth files (mean and SD of depth in every 500 bp window), made from your own samples with [`krsim depth-zip`](#helper-depth-zip), or one of the [example Pf8 zips](#example-zips). The files must come from reads mapped to the 3D7 reference used by MalariaGEN Pf8 (PlasmoDB-54); krsim checks every file it uses and stops if one doesn't match. The zip needs at least one file per host. If it has more, files are picked at random, each used at most once, set by `--random_seed`.
-- **`--depth_model sWGA|gDNA`:** depth simulated from a model fitted to Pf8: AR(8) for sWGA, ARMA(2,2) for gDNA, both with Student t kicks. Optional:
+- **`--depth_model sWGA|gDNA`:** depth from krsim's model for sWGA or gDNA samples (see [Sequencing a host](background.qmd#sequencing-a-host)). Optional:
   - `--depth_mean X`: centre of the hosts' typical depths
   - `--depth_spread S`: how much hosts' typical depths differ (SD of log depth); `0` gives every host `--depth_mean`, though depth still varies along each host's genome
   - `--depth_params FILE`: a JSON file changing any other model value, e.g. `{"nu": 3.0, "cap": 1000}`; values not listed keep their defaults (the medians over all QC-pass Pf8 samples of each type; `krsim vcf-host-depth --help` lists them). The settings:
@@ -110,21 +110,6 @@ For an idealised control with no depth variation, use `--depth_spread 0` (every 
 
 - `--error_wt_mut P`: the chance that a strain's WT allele is read as MUT in its host. At a site with several ALT alleles, it becomes one of them, each equally likely
 - `--error_mut_wt P`: the chance that a strain's MUT allele is read as WT in its host. This is usually the larger of the two: strains carrying MUT are more often mis-called as WT than the other way round
-
-At each site, in each host, each strain's allele is read wrong with that chance, and all that strain's reads go to the wrong allele, so `AD`, `DP` and `GT` follow from them. The error applies to the host VCF only: the strain VCF is not changed, so it still holds the true alleles to compare against. The rates are written to the VCF header (`##error_rates`), and the number of flipped alleles to the screen and the log. For example, `--error_wt_mut 0.005 --error_mut_wt 0.01`.
-
-The model:
-
-1. Within-host strain proportions sampled once per host from Dirichlet(α=1 per strain)
-2. Each host's depth along the genome:
-   - with `--depth_zip`: its depth file's mean *m* and SD *s* in each window
-   - with `--depth_model`: a typical depth drawn once per host from a log-normal, times the host's own relative depth track from the model, capped at `cap` times the typical depth and, for sWGA, lowered near chromosome ends
-3. At each variant site, the host's depth is drawn for the site's window:
-   - with `--depth_zip`: a negative binomial with mean *m* and SD *s* (*r* = *m*² / (*s*² − *m*), *p* = *r* / (*r* + *m*)), since real read depth varies more than a Poisson; Poisson(*m*) if *s*² ≤ *m*; 0 if *m* = 0
-   - with `--depth_model`: Poisson around the window's depth
-4. With sample-level error: each strain's allele is read wrong with chance `--error_wt_mut` (WT read as MUT) or `--error_mut_wt` (MUT read as WT)
-5. The depth is split between the host's strains via Multinomial from the proportions
-6. Reads are counted by allele and written as `GT:AD:DP`: `0/0` when all reads carry the ref allele, `1/1` when all carry the alt, `0/1` when both are seen (a mixed infection), and `./.` where the depth is 0. At a multi-allelic site (more than one ALT allele, from recurrent mutation), `AD` gives the reads for every allele and `GT` lists the two alleles with the most reads (e.g. `1/2`)
 
 Outputs `output_{seed}_host_depth.vcf` (its header records the depth source, for `--depth_model` every value used, and the error rates), `host_depth_profiles_{seed}.csv` (each host's depth file, or its typical depth) and `host_depth_proportions_{seed}.csv`.
 :::
